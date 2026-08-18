@@ -1,0 +1,45 @@
+---
+import "../styles/global.css";
+
+interface Props {
+  title: string;
+  description: string;
+}
+
+const { title, description } = Astro.props;
+const canonical = new URL(Astro.url.pathname, Astro.site);
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+const socialImage = new URL(`${base}/images/azure-traffic-flow.png`, Astro.site);
+const structuredData = {
+  "@context": "https://schema.org",
+  "@type": "Person",
+  name: "Karlo Jagar",
+  url: canonical.toString(),
+  sameAs: ["https://github.com/jagarkarlo", "https://www.linkedin.com/in/karlojagar/"],
+  knowsAbout: ["Platform engineering", "Kubernetes", "Observability", "Developer tooling"],
+};
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="description" content={description} />
+    <meta name="theme-color" content="#f4f0e8" />
+    <link rel="icon" href={`${base}/favicon.svg`} />
+    <link rel="canonical" href={canonical} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={socialImage} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <title>{title}</title>
+    <script type="application/ld+json" set:html={JSON.stringify(structuredData)} is:inline />
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">Skip to content</a>
+    <slot />
+  </body>
+</html>
