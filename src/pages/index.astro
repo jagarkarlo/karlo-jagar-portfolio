@@ -2,6 +2,7 @@
 import BaseLayout from "../layouts/BaseLayout.astro";
 import AcademicProjects from "../components/AcademicProjects.astro";
 import ProfileTimeline from "../components/ProfileTimeline.astro";
+import Recognition from "../components/Recognition.astro";
 import { projects } from "../data/projects";
 import { profile } from "../data/profile";
 
@@ -144,6 +145,7 @@ const skills = [
     </section>
 
     <AcademicProjects projects={profile.academicProjects} />
+    <Recognition items={profile.recognition} />
   </main>
 
   <footer id="contact">

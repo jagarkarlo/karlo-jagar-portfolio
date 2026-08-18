@@ -157,6 +157,15 @@ dd { font-size: 17px; line-height: 1.4; margin: 0; }
 .academic-grid ul { display: flex; flex-wrap: wrap; gap: 6px; list-style: none; margin: 25px 0 0; padding: 0; }
 .academic-grid li { border: 1px solid var(--line); font-family: var(--mono); font-size: 8px; padding: 5px 7px; text-transform: uppercase; }
 
+.recognition { background: var(--lime); display: grid; gap: clamp(48px,7vw,110px); grid-template-columns: minmax(260px,.8fr) minmax(0,1.2fr); padding: clamp(76px,9vw,130px) clamp(24px,8vw,130px); }
+.recognition-heading h2 { font-size: clamp(42px,5vw,70px); }
+.recognition-list { border-top: 1px solid rgba(16,32,39,.45); }
+.recognition-list article { border-bottom: 1px solid rgba(16,32,39,.45); display: grid; gap: 20px; grid-template-columns: minmax(150px,.6fr) minmax(180px,.8fr) 1fr; padding: 27px 0; }
+.recognition-list article > div p, .recognition-list time { font-family: var(--mono); font-size: 9px; text-transform: uppercase; }
+.recognition-list time { color: var(--muted); }
+.recognition-list h3 { font-size: 24px; font-weight: 500; letter-spacing: -.035em; }
+.recognition-list article > p { font-size: 14px; line-height: 1.5; margin-bottom: 0; }
+
 footer { background: var(--aqua); min-height: 590px; padding: clamp(76px,9vw,130px) clamp(24px,8vw,130px) 38px; position: relative; }
 footer h2 { font-size: clamp(60px,9vw,132px); margin: 60px 0 32px; }
 .footer-intro { font-size: 18px; line-height: 1.5; max-width: 570px; }
@@ -192,6 +201,7 @@ footer h2 { font-size: clamp(60px,9vw,132px); margin: 60px 0 32px; }
   .timeline-heading { position: static; }
   .approach { grid-template-columns: 1fr; }
   .academic-work { grid-template-columns: 1fr; }
+  .recognition { grid-template-columns: 1fr; }
 }
 @media (max-width: 700px) {
   .site-header { grid-template-columns: 1fr auto; }
@@ -210,6 +220,7 @@ footer h2 { font-size: clamp(60px,9vw,132px); margin: 60px 0 32px; }
   .academic-grid { grid-template-columns: 1fr; }
   .academic-grid article:nth-child(odd) { border-right: 0; }
   .academic-grid article:nth-child(even) { padding-left: 0; }
+  .recognition-list article { grid-template-columns: 1fr; }
   .section-heading { align-items: start; flex-direction: column; }
   .project { gap: 20px; grid-template-columns: 1fr; min-height: 0; }
   .project-meta { display: flex; justify-content: space-between; }
