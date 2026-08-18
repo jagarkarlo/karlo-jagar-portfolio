@@ -1,6 +1,7 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
 import { projects } from "../data/projects";
+import { profile } from "../data/profile";
 
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 const skills = [
@@ -19,7 +20,8 @@ const skills = [
     <a class="wordmark" href="#top" aria-label="Karlo Jagar, home">KJ<span>.</span></a>
     <nav aria-label="Main navigation">
       <a href="#work">Work</a>
-      <a href="#approach">Approach</a>
+      <a href="#experience">Experience</a>
+      <a href="#education">Education</a>
       <a href="#about">About</a>
     </nav>
     <button class="command-trigger" type="button" aria-label="Open project navigator" title="Project navigator">
@@ -58,13 +60,19 @@ const skills = [
     </aside>
 
     <section class="intro" id="about" aria-labelledby="about-title">
-      <p class="section-label">00 / Working premise</p>
+      <p class="section-label">00 / About me</p>
       <div>
-        <h2 id="about-title">Reliable systems are built to be read, tested, and changed.</h2>
+        <h2 id="about-title">DevOps engineer.<br /><em>Systems student.</em><br />Curious builder.</h2>
         <div class="intro-copy">
-          <p>I am a master's student in Business Systems Organization with a foundation in Information and Business Systems. My work sits where infrastructure, software, and operations meet.</p>
-          <p>I care about the full operating story: how a system is delivered, what it reveals when it degrades, and whether another person can safely continue the work.</p>
+          <p>{profile.summary}</p>
+          <p>{profile.perspective}</p>
         </div>
+        <dl class="profile-facts" aria-label="Profile summary">
+          <div><dt>Based in</dt><dd>Zagreb area, Croatia</dd></div>
+          <div><dt>Current role</dt><dd>DevOps Engineer</dd></div>
+          <div><dt>Current study</dt><dd>Business Systems Organization, MSc</dd></div>
+          <div><dt>International</dt><dd>Erasmus+ at FEUP, Porto</dd></div>
+        </dl>
       </div>
     </section>
 
