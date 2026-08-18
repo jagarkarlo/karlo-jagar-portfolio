@@ -68,6 +68,18 @@ h2 { font-size: clamp(44px,6vw,82px); font-weight: 500; letter-spacing: -.06em; 
 .profile-facts dt { color: var(--muted); margin-bottom: 8px; }
 .profile-facts dd { font-size: 15px; }
 
+.timeline-section { display: grid; gap: clamp(48px,7vw,110px); grid-template-columns: minmax(260px,.8fr) minmax(0,1.2fr); padding: clamp(72px,9vw,130px) clamp(24px,8vw,130px); }
+.timeline-section--paper { background: var(--white); }
+.timeline-section--mist { background: #dfe9e7; }
+.timeline-heading { align-self: start; position: sticky; top: 36px; }
+.timeline-heading h2 { font-size: clamp(40px,5vw,68px); max-width: 660px; }
+.timeline-list { list-style: none; margin: 0; padding: 0; }
+.timeline-list li { border-top: 1px solid var(--line); display: grid; gap: 20px; grid-template-columns: 42px minmax(0,1fr) auto; padding: 26px 0 32px; }
+.timeline-index, .timeline-list time { color: var(--muted); font-family: var(--mono); font-size: 10px; text-transform: uppercase; }
+.timeline-list h3 { font-size: clamp(22px,2.4vw,34px); font-weight: 500; letter-spacing: -.035em; line-height: 1.05; margin-bottom: 9px; }
+.timeline-organization { font-family: var(--mono); font-size: 10px; margin-bottom: 16px; text-transform: uppercase; }
+.timeline-description { font-size: 15px; line-height: 1.5; margin-bottom: 0; max-width: 560px; }
+
 .work { background: var(--ink); color: var(--paper); padding: clamp(76px,9vw,130px) clamp(20px,6vw,96px); }
 .work .section-label { color: var(--aqua); }
 .section-heading { align-items: end; display: flex; gap: 50px; justify-content: space-between; margin: 0 auto 70px; max-width: 1500px; }
@@ -162,6 +174,8 @@ footer h2 { font-size: clamp(60px,9vw,132px); margin: 60px 0 32px; }
   .hero-evidence { min-height: 600px; }
   .project { grid-template-columns: 55px 1fr; }
   .project-visual { grid-column: 2; }
+  .timeline-section { grid-template-columns: 1fr; }
+  .timeline-heading { position: static; }
   .approach { grid-template-columns: 1fr; }
 }
 @media (max-width: 700px) {
@@ -176,6 +190,8 @@ footer h2 { font-size: clamp(60px,9vw,132px); margin: 60px 0 32px; }
   .intro, .capabilities { grid-template-columns: 1fr; }
   .intro-copy { grid-template-columns: 1fr; }
   .profile-facts { grid-template-columns: 1fr; }
+  .timeline-list li { grid-template-columns: 32px 1fr; }
+  .timeline-list time { grid-column: 2; grid-row: 2; }
   .section-heading { align-items: start; flex-direction: column; }
   .project { gap: 20px; grid-template-columns: 1fr; min-height: 0; }
   .project-meta { display: flex; justify-content: space-between; }

@@ -1,5 +1,6 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
+import ProfileTimeline from "../components/ProfileTimeline.astro";
 import { projects } from "../data/projects";
 import { profile } from "../data/profile";
 
@@ -76,9 +77,24 @@ const skills = [
       </div>
     </section>
 
+    <ProfileTimeline
+      id="experience"
+      label="01 / Experience"
+      title="From software delivery to platform operations."
+      items={profile.experience}
+    />
+
+    <ProfileTimeline
+      id="education"
+      label="02 / Education"
+      title="Business systems, engineering, and an international perspective."
+      items={profile.education}
+      tone="mist"
+    />
+
     <section class="work" id="work" aria-labelledby="work-title">
       <div class="section-heading">
-        <div><p class="section-label">01 / Selected work</p><h2 id="work-title">Real systems.<br /><em>Visible decisions.</em></h2></div>
+        <div><p class="section-label">03 / Selected work</p><h2 id="work-title">Real systems.<br /><em>Visible decisions.</em></h2></div>
         <p class="heading-note">Six public builds across platform operations, developer tooling, networking, and game systems.</p>
       </div>
 
@@ -112,7 +128,7 @@ const skills = [
     </section>
 
     <section class="approach" id="approach" aria-labelledby="approach-title">
-      <div class="approach-heading"><p class="section-label">02 / Approach</p><h2 id="approach-title">One engineering loop,<br />across different systems.</h2></div>
+      <div class="approach-heading"><p class="section-label">04 / Approach</p><h2 id="approach-title">One engineering loop,<br />across different systems.</h2></div>
       <ol class="method-list">
         <li><span>01</span><strong>Make it reproducible</strong><p>Encode infrastructure, dependencies, and setup so the result can be rebuilt instead of remembered.</p></li>
         <li><span>02</span><strong>Make it observable</strong><p>Expose useful state and failure signals where operators can act on them.</p></li>
@@ -122,13 +138,13 @@ const skills = [
     </section>
 
     <section class="capabilities" aria-labelledby="capabilities-title">
-      <div><p class="section-label">03 / Capabilities</p><h2 id="capabilities-title">Tools follow the operating problem.</h2></div>
+      <div><p class="section-label">05 / Capabilities</p><h2 id="capabilities-title">Tools follow the operating problem.</h2></div>
       <dl>{skills.map(([term, detail]) => <div><dt>{term}</dt><dd>{detail}</dd></div>)}</dl>
     </section>
   </main>
 
   <footer id="contact">
-    <p class="section-label">04 / Contact</p>
+    <p class="section-label">09 / Contact</p>
     <h2>Build clearly.<br /><em>Operate calmly.</em></h2>
     <p class="footer-intro">I am interested in platform engineering, cloud infrastructure, observability, and developer tooling.</p>
     <div class="footer-links">

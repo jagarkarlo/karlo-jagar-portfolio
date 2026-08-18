@@ -1,0 +1,33 @@
+---
+import type { TimelineItem } from "../data/profile";
+
+type Props = {
+  id: string;
+  label: string;
+  title: string;
+  items: TimelineItem[];
+  tone?: "paper" | "mist";
+};
+
+const { id, label, title, items, tone = "paper" } = Astro.props;
+---
+
+<section class={`timeline-section timeline-section--${tone}`} id={id} aria-labelledby={`${id}-title`}>
+  <div class="timeline-heading">
+    <p class="section-label">{label}</p>
+    <h2 id={`${id}-title`}>{title}</h2>
+  </div>
+  <ol class="timeline-list">
+    {items.map((item, index) => (
+      <li>
+        <span class="timeline-index">{String(index + 1).padStart(2, "0")}</span>
+        <div class="timeline-copy">
+          <h3>{item.title}</h3>
+          <p class="timeline-organization">{item.organization}</p>
+          {item.description && <p class="timeline-description">{item.description}</p>}
+        </div>
+        <time>{item.period}</time>
+      </li>
+    ))}
+  </ol>
+</section>
