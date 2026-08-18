@@ -1,0 +1,33 @@
+---
+import type { AcademicProject } from "../data/profile";
+
+type Props = {
+  projects: AcademicProject[];
+};
+
+const { projects } = Astro.props;
+---
+
+<section class="academic-work" id="academic-work" aria-labelledby="academic-work-title">
+  <div class="academic-heading">
+    <p class="section-label">06 / Earlier projects</p>
+    <h2 id="academic-work-title">The work before<br /><em>the platform focus.</em></h2>
+    <p>Selected university projects spanning 3D graphics, augmented reality, interface design, and desktop software.</p>
+  </div>
+  <div class="academic-grid">
+    {projects.map((project, index) => (
+      <article>
+        <div class="academic-meta">
+          <span>{String(index + 1).padStart(2, "0")}</span>
+          <time>{project.period}</time>
+        </div>
+        <h3>{project.title}</h3>
+        <p class="academic-institution">{project.institution}</p>
+        <p>{project.description}</p>
+        <ul aria-label={`${project.title} skills`}>
+          {project.stack.map((item) => <li>{item}</li>)}
+        </ul>
+      </article>
+    ))}
+  </div>
+</section>

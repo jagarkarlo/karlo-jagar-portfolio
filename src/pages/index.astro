@@ -1,5 +1,6 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
+import AcademicProjects from "../components/AcademicProjects.astro";
 import ProfileTimeline from "../components/ProfileTimeline.astro";
 import { projects } from "../data/projects";
 import { profile } from "../data/profile";
@@ -141,6 +142,8 @@ const skills = [
       <div><p class="section-label">05 / Capabilities</p><h2 id="capabilities-title">Tools follow the operating problem.</h2></div>
       <dl>{skills.map(([term, detail]) => <div><dt>{term}</dt><dd>{detail}</dd></div>)}</dl>
     </section>
+
+    <AcademicProjects projects={profile.academicProjects} />
   </main>
 
   <footer id="contact">
