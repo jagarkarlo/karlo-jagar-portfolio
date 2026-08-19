@@ -2,19 +2,19 @@
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 ---
 
-<footer class="site-footer">
+<footer class="grid gap-12 border-t border-ink/20 bg-mist px-6 py-14 sm:px-10 lg:grid-cols-[1.3fr_.55fr_.55fr] lg:px-20 lg:py-20">
   <div>
-    <a class="footer-wordmark" href={`${base}/`}>Karlo Jagar</a>
-    <p>DevOps engineer building observable platforms and practical developer tools.</p>
+    <a class="text-3xl font-semibold no-underline" href={`${base}/`}>Karlo Jagar</a>
+    <p class="mt-4 max-w-sm text-sm leading-6 text-ink/65">DevOps engineer building observable platforms and practical developer tools.</p>
   </div>
-  <nav aria-label="Footer navigation">
-    <a href={`${base}/about/`}>About</a>
-    <a href={`${base}/work/`}>Work</a>
-    <a href={`${base}/contact/`}>Contact</a>
+  <nav class="grid content-start gap-3 font-mono text-[10px] uppercase" aria-label="Footer navigation">
+    <a class="w-max underline-offset-4 hover:underline" href={`${base}/about/`}>About</a>
+    <a class="w-max underline-offset-4 hover:underline" href={`${base}/work/`}>Work</a>
+    <a class="w-max underline-offset-4 hover:underline" href={`${base}/contact/`}>Contact</a>
   </nav>
-  <div class="footer-links">
-    <a href="https://github.com/jagarkarlo" target="_blank" rel="noreferrer">GitHub ↗</a>
-    <a href="https://www.linkedin.com/in/karlojagar/" target="_blank" rel="noreferrer">LinkedIn ↗</a>
+  <div class="grid content-start gap-2">
+    <a class="bg-ink px-4 py-3 font-mono text-[10px] uppercase text-paper no-underline transition-colors hover:bg-steel" href="https://github.com/jagarkarlo" target="_blank" rel="noreferrer">GitHub ↗</a>
+    <a class="bg-ink px-4 py-3 font-mono text-[10px] uppercase text-paper no-underline transition-colors hover:bg-steel" href="https://www.linkedin.com/in/karlojagar/" target="_blank" rel="noreferrer">LinkedIn ↗</a>
   </div>
-  <p class="footer-note">© {new Date().getFullYear()} Karlo Jagar · Built with Astro</p>
+  <p class="font-mono text-[9px] uppercase text-ink/50 lg:col-span-3 lg:text-right">© {new Date().getFullYear()} Karlo Jagar · Built with Astro and Tailwind CSS</p>
 </footer>
