@@ -7,22 +7,33 @@ type Props = {
 
 const { projects } = Astro.props;
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+const visualBackgrounds: Record<Project["visual"], string> = {
+  reliability: "bg-[#b6c9d2]",
+  context: "bg-[#c9d7c9]",
+  architecture: "bg-[#cbdff6]",
+  game: "bg-[#1c3038]",
+  security: "bg-[#c9d7c9]",
+  desktop: "bg-white",
+};
 ---
 
-<div class="project-list">
+<div class="mx-auto max-w-[94rem] border-t border-paper/25">
   {projects.map((project) => (
-    <article class={`project project--${project.visual}`}>
-      <div class="project-meta"><span>{project.number}</span><p>{project.category}</p></div>
-      <div class="project-copy">
-        <h3>{project.title}</h3>
-        <p>{project.summary}</p>
-        <strong>{project.outcome}</strong>
-        <ul aria-label={`${project.title} technologies`}>{project.stack.map((item) => <li>{item}</li>)}</ul>
-        <a href={project.href} target="_blank" rel="noreferrer">View public repository <span aria-hidden="true">↗</span></a>
+    <article class="grid gap-8 border-b border-paper/25 py-12 lg:grid-cols-[4rem_minmax(18rem_.85fr)_minmax(20rem_1.15fr)] lg:gap-12 lg:py-16">
+      <div class="flex justify-between font-mono text-[10px] uppercase lg:block">
+        <span class="text-signal">{project.number}</span>
+        <p class="m-0 text-paper/50 lg:mt-6 lg:[writing-mode:vertical-rl]">{project.category}</p>
       </div>
-      <div class="project-visual" aria-hidden={project.image ? undefined : "true"}>
+      <div class="self-center">
+        <h3 class="text-3xl leading-none font-semibold tracking-[-0.035em] sm:text-4xl">{project.title}</h3>
+        <p class="mt-6 max-w-xl text-[15px] leading-6 text-paper/75">{project.summary}</p>
+        <strong class="mt-5 block max-w-xl text-sm leading-6 font-medium text-signal">{project.outcome}</strong>
+        <ul class="my-7 flex list-none flex-wrap gap-2 p-0" aria-label={`${project.title} technologies`}>{project.stack.map((item) => <li class="border border-paper/30 px-2 py-1.5 font-mono text-[8px] uppercase">{item}</li>)}</ul>
+        <a class="font-mono text-[10px] uppercase underline underline-offset-4" href={project.href} target="_blank" rel="noreferrer">View public repository <span aria-hidden="true">↗</span></a>
+      </div>
+      <div class:list={["min-h-72 overflow-hidden lg:min-h-96", visualBackgrounds[project.visual]]} aria-hidden={project.image ? undefined : "true"}>
         {project.image ? (
-          <img src={`${base}/${project.image}`} alt={project.visual === "game" ? "QuantumQuarry pixel-art game environment" : "Azure Kubernetes traffic-flow architecture diagram"} />
+          <img class:list={["h-full w-full", project.visual === "architecture" ? "object-contain p-6" : "object-cover [image-rendering:pixelated]"]} src={`${base}/${project.image}`} alt={project.visual === "game" ? "QuantumQuarry pixel-art game environment" : "Azure Kubernetes traffic-flow architecture diagram"} />
         ) : project.visual === "reliability" ? (
           <div class="pulse-visual"><span>service</span><i></i><i></i><i></i><b>recovered</b></div>
         ) : project.visual === "context" ? (
