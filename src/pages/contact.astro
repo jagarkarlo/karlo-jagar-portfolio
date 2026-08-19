@@ -9,14 +9,14 @@ import SiteHeader from "../components/SiteHeader.astro";
   description="Connect with Karlo Jagar about platform engineering, cloud infrastructure, observability, and developer tooling."
 >
   <SiteHeader />
-  <main id="main-content" class="contact-page">
-    <section class="contact-hero">
-      <p class="section-label">Contact</p>
-      <h1>Get in touch</h1>
-      <p>I am interested in platform engineering, cloud infrastructure, observability, and developer tooling. The best places to reach me are LinkedIn and GitHub.</p>
-      <div class="contact-links">
-        <a href="https://www.linkedin.com/in/karlojagar/" target="_blank" rel="noreferrer"><span>01</span><strong>LinkedIn</strong><small>Professional contact ↗</small></a>
-        <a href="https://github.com/jagarkarlo" target="_blank" rel="noreferrer"><span>02</span><strong>GitHub</strong><small>Public work ↗</small></a>
+  <main id="main-content" class="min-h-[calc(100svh-4rem)] bg-paper">
+    <section class="px-6 py-20 sm:px-10 lg:px-[8vw] lg:py-28">
+      <p class="font-mono text-[10px] uppercase text-ink/50">Contact</p>
+      <h1 class="my-12 max-w-6xl text-6xl leading-[.92] font-semibold tracking-[-0.04em] sm:text-7xl lg:text-8xl">Get in touch</h1>
+      <p class="max-w-3xl text-lg leading-8 text-ink/75">I am interested in platform engineering, cloud infrastructure, observability, and developer tooling. The best places to reach me are LinkedIn and GitHub.</p>
+      <div class="mt-16 grid max-w-5xl border-t border-line sm:grid-cols-2">
+        <a class="group grid grid-cols-[2rem_1fr] gap-3 border-b border-line py-7 no-underline sm:border-r sm:pr-6" href="https://www.linkedin.com/in/karlojagar/" target="_blank" rel="noreferrer"><span class="font-mono text-[9px] uppercase">01</span><strong class="text-2xl font-medium transition-colors group-hover:text-steel">LinkedIn</strong><small class="col-start-2 font-mono text-[9px] uppercase text-ink/50">Professional contact ↗</small></a>
+        <a class="grid grid-cols-[2rem_1fr] gap-3 border-b border-line py-7 no-underline sm:pl-6" href="https://github.com/jagarkarlo" target="_blank" rel="noreferrer"><span class="font-mono text-[9px] uppercase">02</span><strong class="text-2xl font-medium">GitHub</strong><small class="col-start-2 font-mono text-[9px] uppercase text-ink/50">Public work ↗</small></a>
       </div>
     </section>
   </main>
