@@ -1,5 +1,7 @@
 ---
 import "../styles/global.css";
+import { ClientRouter } from "astro:transitions";
+import Terminal from "../components/Terminal.astro";
 
 interface Props {
   title: string;
@@ -37,9 +39,11 @@ const structuredData = {
     <meta name="twitter:card" content="summary_large_image" />
     <title>{title}</title>
     <script type="application/ld+json" set:html={JSON.stringify(structuredData)} is:inline />
+    <ClientRouter />
   </head>
   <body>
     <a class="fixed -top-20 left-4 z-50 bg-ink px-4 py-3 font-mono text-xs text-paper focus:top-4" href="#main-content">Skip to content</a>
     <slot />
+    <Terminal />
   </body>
 </html>
