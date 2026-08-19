@@ -8,20 +8,20 @@ type Props = {
 const { items } = Astro.props;
 ---
 
-<section class="recognition" id="recognition" aria-labelledby="recognition-title">
-  <div class="recognition-heading">
-    <p class="section-label">07 / Beyond the work</p>
-    <h2 id="recognition-title">Recognition and service</h2>
+<section class="grid gap-12 bg-signal/35 px-6 py-20 sm:px-10 lg:grid-cols-[.8fr_1.2fr] lg:gap-24 lg:px-[8vw] lg:py-28" id="recognition" aria-labelledby="recognition-title">
+  <div>
+    <p class="font-mono text-[10px] uppercase text-ink/50">07 / Beyond the work</p>
+    <h2 class="mt-4 max-w-xl text-4xl leading-tight font-semibold tracking-[-0.035em] sm:text-5xl" id="recognition-title">Recognition and service</h2>
   </div>
-  <div class="recognition-list">
+  <div class="border-t border-ink/30">
     {items.map((item) => (
-      <article>
+      <article class="grid gap-5 border-b border-ink/30 py-7 sm:grid-cols-[.65fr_.85fr_1fr]">
         <div>
-          <p>{item.organization}</p>
-          <time>{item.period}</time>
+          <p class="font-mono text-[9px] uppercase">{item.organization}</p>
+          <time class="mt-2 block font-mono text-[9px] uppercase text-ink/50">{item.period}</time>
         </div>
-        <h3>{item.title}</h3>
-        {item.description && <p>{item.description}</p>}
+        <h3 class="text-xl font-medium tracking-[-0.02em]">{item.title}</h3>
+        {item.description && <p class="text-sm leading-6 text-ink/70">{item.description}</p>}
       </article>
     ))}
   </div>
