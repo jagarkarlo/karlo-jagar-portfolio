@@ -1,7 +1,7 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
-import OperationsTopology from "../components/OperationsTopology.astro";
 import ProjectList from "../components/ProjectList.astro";
+import SignalField from "../components/SignalField.astro";
 import SiteFooter from "../components/SiteFooter.astro";
 import SiteHeader from "../components/SiteHeader.astro";
 import TechnologyStack from "../components/TechnologyStack.astro";
@@ -16,27 +16,25 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 >
   <SiteHeader />
   <main id="main-content">
-    <section class="grid min-h-[calc(100svh-4rem)] bg-paper lg:grid-cols-[1.15fr_.85fr]" aria-labelledby="hero-title" data-reveal>
-      <div class="flex flex-col justify-center px-6 py-24 sm:px-10 lg:px-[8vw] lg:py-32">
-        <p class="mb-8 flex items-center gap-3 font-mono text-[10px] uppercase text-ink/55"><span class="size-2 rounded-full bg-steel"></span> DevOps & platform engineering · Zagreb</p>
-        <h1 class="max-w-4xl text-6xl leading-[.92] font-semibold tracking-[-0.04em] sm:text-7xl lg:text-8xl" id="hero-title">Karlo Jagar</h1>
-        <p class="mt-10 max-w-2xl text-lg leading-8 text-ink/75 sm:text-xl">DevOps engineer working with cloud infrastructure, Kubernetes, observability, and developer tooling.</p>
-        <div class="mt-10 flex flex-wrap items-center gap-6">
-          <a class="inline-flex items-center gap-8 bg-ink px-5 py-4 font-mono text-[10px] uppercase text-paper no-underline transition-colors hover:bg-steel" href={`${base}/work/`}>Explore my work <span aria-hidden="true">→</span></a>
-          <a class="border-b border-ink pb-1 font-mono text-[10px] uppercase no-underline" href={`${base}/about/`}>About me</a>
+    <section class="relative flex min-h-[calc(100svh-7rem)] overflow-hidden bg-canvas px-6 py-16 sm:px-10 lg:px-[6vw] lg:py-20" aria-labelledby="hero-title" data-reveal>
+      <SignalField />
+      <div class="pointer-events-none relative z-10 mx-auto flex w-full max-w-[94rem] flex-col justify-between">
+        <p class="flex items-center gap-3 font-mono text-[9px] uppercase text-muted"><span class="size-1.5 bg-accent"></span> Zagreb / Platform engineering</p>
+        <div class="max-w-5xl py-16 sm:py-24">
+          <p class="mb-5 font-mono text-[9px] uppercase text-accent">DevOps engineer</p>
+          <h1 class="text-6xl leading-[.9] font-semibold sm:text-7xl lg:text-[7.5rem]" id="hero-title">Karlo Jagar</h1>
+          <p class="mt-8 max-w-2xl text-lg leading-8 text-muted sm:text-xl">I build observable cloud platforms, reliable delivery workflows, and focused developer tools.</p>
+          <div class="pointer-events-auto mt-10 flex flex-wrap items-center gap-6">
+            <a class="inline-flex items-center gap-8 border border-accent bg-accent px-5 py-3.5 font-mono text-[9px] uppercase text-canvas no-underline transition-colors hover:bg-transparent hover:text-accent" href={`${base}/work/`}>Explore work <span aria-hidden="true">→</span></a>
+            <a class="border-b border-border pb-1 font-mono text-[9px] uppercase text-muted no-underline transition-colors hover:border-accent hover:text-foreground" href={`${base}/about/`}>About me</a>
+          </div>
         </div>
-      </div>
-      <aside class="relative flex min-h-[32rem] flex-col justify-end overflow-hidden bg-ink p-8 text-paper sm:p-12 lg:p-16">
-        <OperationsTopology />
-        <div class="pointer-events-none absolute inset-6 border border-signal/30"></div>
-        <p class="relative font-mono text-[10px] uppercase text-signal">Current focus</p>
-        <strong class="relative my-8 max-w-xl text-3xl leading-tight font-medium tracking-[-0.03em] sm:text-4xl">Cloud platforms, delivery automation, and observability</strong>
-        <dl class="relative">
-          <div class="grid grid-cols-[7rem_1fr] gap-5 border-t border-paper/25 py-4"><dt class="font-mono text-[10px] uppercase text-signal">Role</dt><dd class="m-0 text-sm">DevOps Engineer</dd></div>
-          <div class="grid grid-cols-[7rem_1fr] gap-5 border-t border-paper/25 py-4"><dt class="font-mono text-[10px] uppercase text-signal">Study</dt><dd class="m-0 text-sm">Business Systems Organization, MSc</dd></div>
-          <div class="grid grid-cols-[7rem_1fr] gap-5 border-t border-paper/25 py-4"><dt class="font-mono text-[10px] uppercase text-signal">Working with</dt><dd class="m-0 text-sm">Cloud · Observability · AI context</dd></div>
+        <dl class="grid border-t border-border font-mono text-[8px] uppercase text-muted sm:grid-cols-3">
+          <div class="grid grid-cols-[5rem_1fr] gap-3 py-4 sm:border-r sm:border-border"><dt>Focus</dt><dd class="m-0 text-foreground">Cloud / GitOps</dd></div>
+          <div class="grid grid-cols-[5rem_1fr] gap-3 py-4 sm:px-5 sm:nth-[2]:border-r sm:nth-[2]:border-border"><dt>Systems</dt><dd class="m-0 text-foreground">Observe / Automate</dd></div>
+          <div class="grid grid-cols-[5rem_1fr] gap-3 py-4 sm:pl-5"><dt>Status</dt><dd class="m-0 text-accent">Available</dd></div>
         </dl>
-      </aside>
+      </div>
     </section>
 
     <TechnologyStack />
