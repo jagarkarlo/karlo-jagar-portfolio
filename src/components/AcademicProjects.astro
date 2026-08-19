@@ -8,24 +8,23 @@ type Props = {
 const { projects } = Astro.props;
 ---
 
-<section class="academic-work" id="academic-work" aria-labelledby="academic-work-title">
-  <div class="academic-heading">
-    <p class="section-label">06 / Earlier projects</p>
-    <h2 id="academic-work-title">Academic projects</h2>
-    <p>University projects spanning 3D graphics, augmented reality, interface design, and desktop software.</p>
+<section class="grid gap-12 bg-white px-6 py-20 sm:px-10 lg:grid-cols-[.7fr_1.3fr] lg:gap-24 lg:px-[8vw] lg:py-28" id="academic-work" aria-labelledby="academic-work-title">
+  <div class="self-start lg:sticky lg:top-28">
+    <p class="font-mono text-[10px] uppercase text-ink/50">06 / Earlier projects</p>
+    <h2 class="mt-4 text-4xl leading-tight font-semibold tracking-[-0.035em] sm:text-5xl" id="academic-work-title">Academic projects</h2>
+    <p class="mt-6 max-w-md text-sm leading-6 text-ink/65">University projects spanning 3D graphics, augmented reality, interface design, and desktop software.</p>
   </div>
-  <div class="academic-grid">
+  <div class="grid sm:grid-cols-2">
     {projects.map((project, index) => (
-      <article>
-        <div class="academic-meta">
-          <span>{String(index + 1).padStart(2, "0")}</span>
-          <time>{project.period}</time>
+      <article class="border-t border-line py-7 sm:min-h-80 sm:pr-7 sm:nth-[even]:border-l sm:nth-[even]:pl-7 sm:nth-[even]:pr-0">
+        <div class="flex justify-between font-mono text-[9px] uppercase text-ink/45">
+          <span>{String(index + 1).padStart(2, "0")}</span><time>{project.period}</time>
         </div>
-        <h3>{project.title}</h3>
-        <p class="academic-institution">{project.institution}</p>
-        <p>{project.description}</p>
-        <ul aria-label={`${project.title} skills`}>
-          {project.stack.map((item) => <li>{item}</li>)}
+        <h3 class="mt-9 text-2xl leading-tight font-medium tracking-[-0.025em] sm:text-3xl">{project.title}</h3>
+        <p class="mt-3 font-mono text-[9px] uppercase text-ink/50">{project.institution}</p>
+        <p class="mt-5 text-sm leading-6 text-ink/70">{project.description}</p>
+        <ul class="mt-6 flex list-none flex-wrap gap-2 p-0" aria-label={`${project.title} skills`}>
+          {project.stack.map((item) => <li class="border border-line px-2 py-1 font-mono text-[8px] uppercase">{item}</li>)}
         </ul>
       </article>
     ))}
