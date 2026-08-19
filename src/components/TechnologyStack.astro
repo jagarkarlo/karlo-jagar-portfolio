@@ -40,14 +40,14 @@ const groups = [
 <section class="border-y border-border bg-canvas px-6 py-20 sm:px-10 lg:px-[6vw] lg:py-24" aria-labelledby="stack-title" data-reveal>
   <div class="mx-auto grid max-w-[94rem] gap-12 lg:grid-cols-[.6fr_1.4fr] lg:gap-20">
     <div>
-      <p class="font-mono text-[9px] uppercase text-accent">Technical stack</p>
+      <p class="font-mono text-xs uppercase text-accent">Technical stack</p>
       <h2 class="mt-4 text-4xl leading-tight font-semibold sm:text-5xl" id="stack-title">Tools I use</h2>
       <p class="mt-6 max-w-sm text-sm leading-6 text-muted">The platform, cloud, telemetry, and development tools that recur across my work.</p>
     </div>
     <div class="grid border-t border-border sm:grid-cols-2">
       {groups.map((group) => (
         <section class="border-b border-border py-7 sm:px-7 sm:nth-[odd]:border-r sm:nth-[odd]:pl-0" aria-label={group.label}>
-          <h3 class="mb-6 font-mono text-[8px] uppercase text-muted">{group.label}</h3>
+          <h3 class="mb-6 font-mono text-xs uppercase text-muted">{group.label}</h3>
           <ul class="grid list-none gap-4 p-0">
             {group.tools.map((tool) => (
               <li>
