@@ -10,23 +10,24 @@ type Props = {
 };
 
 const { id, label, title, items, tone = "paper" } = Astro.props;
+const backgrounds = { paper: "bg-white", mist: "bg-mist" };
 ---
 
-<section class={`timeline-section timeline-section--${tone}`} id={id} aria-labelledby={`${id}-title`}>
-  <div class="timeline-heading">
-    <p class="section-label">{label}</p>
-    <h2 id={`${id}-title`}>{title}</h2>
+<section class:list={["grid gap-12 px-6 py-20 sm:px-10 lg:grid-cols-[.8fr_1.2fr] lg:gap-24 lg:px-[8vw] lg:py-28", backgrounds[tone]]} id={id} aria-labelledby={`${id}-title`}>
+  <div class="self-start lg:sticky lg:top-28">
+    <p class="font-mono text-[10px] uppercase text-ink/50">{label}</p>
+    <h2 class="mt-4 text-4xl leading-tight font-semibold tracking-[-0.035em] sm:text-5xl" id={`${id}-title`}>{title}</h2>
   </div>
-  <ol class="timeline-list">
+  <ol class="m-0 list-none p-0">
     {items.map((item, index) => (
-      <li>
-        <span class="timeline-index">{String(index + 1).padStart(2, "0")}</span>
-        <div class="timeline-copy">
-          <h3>{item.title}</h3>
-          <p class="timeline-organization">{item.organization}</p>
-          {item.description && <p class="timeline-description">{item.description}</p>}
+      <li class="grid grid-cols-[2rem_1fr] gap-x-5 gap-y-3 border-t border-line py-7 sm:grid-cols-[2rem_1fr_auto]">
+        <span class="font-mono text-[9px] uppercase text-ink/45">{String(index + 1).padStart(2, "0")}</span>
+        <div>
+          <h3 class="text-2xl leading-tight font-medium tracking-[-0.025em] sm:text-3xl">{item.title}</h3>
+          <p class="mt-2 font-mono text-[9px] uppercase">{item.organization}</p>
+          {item.description && <p class="mt-4 max-w-xl text-sm leading-6 text-ink/70">{item.description}</p>}
         </div>
-        <time>{item.period}</time>
+        <time class="col-start-2 font-mono text-[9px] uppercase text-ink/45 sm:col-start-3 sm:row-start-1">{item.period}</time>
       </li>
     ))}
   </ol>
