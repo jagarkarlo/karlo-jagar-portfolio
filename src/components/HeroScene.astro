@@ -20,7 +20,7 @@
       this.controller?.abort();
       this.controller = new AbortController();
       const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
-      const pointer = { x: 0, y: 0, targetX: 0, targetY: 0 };
+      const pointer = { x: 0, y: 0, targetX: 0, targetY: 0, canvasX: 0, canvasY: 0, active: false };
       const stars = Array.from({ length: 110 }, (_, index) => ({
         x: ((index * 73 + 11) % 997) / 997,
         y: ((index * 149 + 31) % 991) / 991,
@@ -83,8 +83,13 @@
         const mobile = width < 640;
         const phase = reducedMotion.matches ? 0 : time * 0.0001;
 
-        pointer.x += (pointer.targetX - pointer.x) * 0.045;
-        pointer.y += (pointer.targetY - pointer.y) * 0.045;
+        if (reducedMotion.matches) {
+          pointer.x = 0;
+          pointer.y = 0;
+        } else {
+          pointer.x += (pointer.targetX - pointer.x) * 0.045;
+          pointer.y += (pointer.targetY - pointer.y) * 0.045;
+        }
 
         stars.forEach((star, index) => {
           const x = star.x * width + pointer.x * star.depth * -38;
@@ -154,30 +159,59 @@
         }
         context.restore();
 
-        const fieldNodes = meshNodes.map((node) => ({
-          x: node.x * width + pointer.x * node.depth * 42,
-          y: node.y * height + pointer.y * node.depth * 28 + Math.sin(node.phase + phase * 3) * 1.5,
-          depth: node.depth,
-          cluster: node.cluster,
-        }));
+        const interactionRadius = mobile ? 105 : 190;
+        const fieldNodes = meshNodes.map((node) => {
+          const baseX = node.x * width + pointer.x * node.depth * 42;
+          const baseY = node.y * height + pointer.y * node.depth * 28 + Math.sin(node.phase + phase * 3) * 1.5;
+          const pointerDistance = Math.hypot(baseX - pointer.canvasX, baseY - pointer.canvasY);
+          const influence = pointer.active ? Math.max(0, 1 - pointerDistance / interactionRadius) : 0;
+          const attraction = influence ** 2 * 0.22;
+          return {
+            x: baseX + (pointer.canvasX - baseX) * attraction,
+            y: baseY + (pointer.canvasY - baseY) * attraction,
+            depth: node.depth,
+            cluster: node.cluster,
+            influence,
+          };
+        });
 
         fieldNodes.forEach((node, index) => {
           fieldNodes.slice(index + 1).forEach((candidate) => {
-            if (candidate.cluster !== node.cluster) return;
             const distance = Math.hypot(node.x - candidate.x, node.y - candidate.y);
-            if (distance > Math.min(width, height) * 0.135) return;
-            context.strokeStyle = index % 5 === 0 ? accent : foreground;
-            context.globalAlpha = (1 - distance / (Math.min(width, height) * 0.135)) * 0.34 * focusOpacity(node.x, node.y);
-            context.lineWidth = index % 11 === 0 ? 1 : 0.65;
+            const localInteraction = Math.min(node.influence, candidate.influence);
+            const sameCluster = candidate.cluster === node.cluster;
+            const connectionRadius = sameCluster
+              ? Math.min(width, height) * 0.135 + localInteraction * 55
+              : localInteraction * 125;
+            if (distance > connectionRadius || (!sameCluster && localInteraction < 0.2)) return;
+            context.strokeStyle = localInteraction > 0.12 || index % 5 === 0 ? accent : foreground;
+            context.globalAlpha = (1 - distance / connectionRadius) * (0.34 + localInteraction * 0.58) * focusOpacity(node.x, node.y);
+            context.lineWidth = localInteraction > 0.25 ? 1.1 : index % 11 === 0 ? 1 : 0.65;
             line(node, candidate);
           });
 
           context.beginPath();
-          context.arc(node.x, node.y, index % 11 === 0 ? 2.6 : 1.25, 0, Math.PI * 2);
-          context.fillStyle = index % 11 === 0 ? accent : foreground;
-          context.globalAlpha = (index % 11 === 0 ? 0.9 : 0.5) * focusOpacity(node.x, node.y);
+          context.arc(node.x, node.y, (index % 11 === 0 ? 2.6 : 1.25) + node.influence * 1.7, 0, Math.PI * 2);
+          context.fillStyle = node.influence > 0.12 || index % 11 === 0 ? accent : foreground;
+          context.globalAlpha = Math.min(1, (index % 11 === 0 ? 0.9 : 0.5) + node.influence * 0.5) * focusOpacity(node.x, node.y);
           context.fill();
+
+          if (pointer.active && node.influence > 0.16) {
+            context.strokeStyle = accent;
+            context.globalAlpha = node.influence ** 2 * 0.48 * focusOpacity(node.x, node.y);
+            context.lineWidth = 0.65 + node.influence * 0.45;
+            line(node, { x: pointer.canvasX, y: pointer.canvasY });
+          }
         });
+
+        if (pointer.active) {
+          context.beginPath();
+          context.arc(pointer.canvasX, pointer.canvasY, 13 + Math.sin(phase * 9) * 2, 0, Math.PI * 2);
+          context.strokeStyle = accent;
+          context.globalAlpha = 0.16;
+          context.lineWidth = 0.7;
+          context.stroke();
+        }
 
         const clusterCores = clusterSeeds.map((cluster, index) => ({
           x: cluster.x * width + pointer.x * (18 + index * 2),
@@ -240,13 +274,18 @@
       };
 
       this.addEventListener("pointermove", (event) => {
+        if (reducedMotion.matches) return;
         const bounds = this.getBoundingClientRect();
         pointer.targetX = (event.clientX - bounds.left) / bounds.width - 0.5;
         pointer.targetY = (event.clientY - bounds.top) / bounds.height - 0.5;
+        pointer.canvasX = event.clientX - bounds.left;
+        pointer.canvasY = event.clientY - bounds.top;
+        pointer.active = true;
       }, { signal: this.controller.signal });
       this.addEventListener("pointerleave", () => {
         pointer.targetX = 0;
         pointer.targetY = 0;
+        pointer.active = false;
       }, { signal: this.controller.signal });
 
       this.resizeObserver = new ResizeObserver(() => {
