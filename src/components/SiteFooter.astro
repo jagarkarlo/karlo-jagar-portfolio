@@ -4,33 +4,20 @@ import { Icon } from "astro-icon/components";
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 ---
 
-<footer class="relative overflow-hidden border-t border-border bg-surface">
-  <div class="pointer-events-none absolute inset-0 opacity-50" aria-hidden="true">
-    <div class="absolute -top-24 left-[12%] size-52 rounded-full border border-border"></div>
-    <div class="absolute top-12 right-[10%] h-px w-72 rotate-[-18deg] bg-border"></div>
-    <div class="absolute top-16 right-[21%] size-1 bg-accent"></div>
-  </div>
-  <div class="relative px-6 py-12 sm:px-10 lg:px-[6vw] lg:py-16">
-    <div class="mx-auto grid max-w-[94rem] gap-12 lg:grid-cols-[1.2fr_.8fr_auto] lg:items-end lg:gap-20">
-      <div>
-        <a class="inline-flex items-center gap-3 text-xl font-semibold no-underline" href={`${base}/`}><span class="grid size-8 place-items-center bg-foreground font-mono text-xs text-canvas">&gt;_</span>Karlo Jagar</a>
-        <p class="mt-4 max-w-sm text-sm leading-6 text-muted">DevOps engineer building observable platforms and practical developer tools.</p>
-      </div>
-      <nav class="grid grid-cols-2 gap-x-10 gap-y-3 font-mono text-xs uppercase text-muted" aria-label="Footer navigation">
-        <a class="w-max no-underline transition-colors hover:text-accent" href={`${base}/`}>Home</a>
-        <a class="w-max no-underline transition-colors hover:text-accent" href={`${base}/about/`}>About</a>
-        <a class="w-max no-underline transition-colors hover:text-accent" href={`${base}/work/`}>Work</a>
-        <a class="w-max no-underline transition-colors hover:text-accent" href={`${base}/contact/`}>Contact</a>
-      </nav>
-      <div class="flex items-center gap-2">
-        <a class="grid size-10 place-items-center border border-border text-muted no-underline transition-colors hover:border-accent hover:text-accent" href="https://github.com/jagarkarlo" target="_blank" rel="noreferrer" aria-label="GitHub"><Icon class="size-4" name="simple-icons:github" aria-hidden="true" /></a>
-        <a class="grid size-10 place-items-center border border-border text-muted no-underline transition-colors hover:border-accent hover:text-accent" href="https://www.linkedin.com/in/karlojagar/" target="_blank" rel="noreferrer" aria-label="LinkedIn"><Icon class="size-4" name="simple-icons:linkedin" aria-hidden="true" /></a>
-        <a class="grid size-10 place-items-center rounded-full border border-border text-muted no-underline transition-colors hover:border-accent hover:text-accent" href="#main-content" aria-label="Back to top"><Icon class="size-4" name="lucide:arrow-up" aria-hidden="true" /></a>
-      </div>
-      <div class="flex flex-wrap justify-between gap-4 border-t border-border pt-6 font-mono text-xs uppercase text-muted lg:col-span-3">
-        <p>© {new Date().getFullYear()} Karlo Jagar</p>
-        <p>Astro / Tailwind CSS / Canvas</p>
-      </div>
+<footer class="border-t border-border bg-surface">
+  <div class="mx-auto grid max-w-[106rem] grid-cols-[1fr_auto] items-center gap-x-5 gap-y-4 px-6 py-5 sm:px-10 lg:grid-cols-[auto_1fr_auto] lg:px-[3vw]">
+    <a class="inline-flex items-center gap-3 text-base font-semibold no-underline" href={`${base}/`}><span class="grid size-8 place-items-center border border-accent font-mono text-xs text-accent">KJ</span>Karlo Jagar</a>
+    <nav class="col-span-2 row-start-2 flex flex-wrap items-center gap-x-6 gap-y-2 font-mono text-xs uppercase text-muted lg:col-span-1 lg:row-start-1 lg:justify-center" aria-label="Footer navigation">
+      <a class="no-underline transition-colors hover:text-accent" href={`${base}/`}>Home</a>
+      <a class="no-underline transition-colors hover:text-accent" href={`${base}/about/`}>About</a>
+      <a class="no-underline transition-colors hover:text-accent" href={`${base}/work/`}>Work</a>
+      <a class="no-underline transition-colors hover:text-accent" href={`${base}/contact/`}>Contact</a>
+    </nav>
+    <div class="col-start-2 row-start-1 flex items-center justify-self-end gap-2">
+      <span class="mr-2 hidden font-mono text-xs uppercase text-muted sm:inline">© {new Date().getFullYear()}</span>
+      <a class="grid size-9 place-items-center border border-border text-muted no-underline transition-colors hover:border-accent hover:text-accent" href="https://github.com/jagarkarlo" target="_blank" rel="noreferrer" aria-label="GitHub"><Icon class="size-4" name="simple-icons:github" aria-hidden="true" /></a>
+      <a class="grid size-9 place-items-center border border-border text-muted no-underline transition-colors hover:border-accent hover:text-accent" href="https://www.linkedin.com/in/karlojagar/" target="_blank" rel="noreferrer" aria-label="LinkedIn"><Icon class="size-4" name="simple-icons:linkedin" aria-hidden="true" /></a>
+      <a class="grid size-9 place-items-center border border-border text-muted no-underline transition-colors hover:border-accent hover:text-accent" href="#main-content" aria-label="Back to top"><Icon class="size-4" name="lucide:arrow-up" aria-hidden="true" /></a>
     </div>
   </div>
 </footer>
