@@ -20,7 +20,7 @@ const { items } = Astro.props;
           <p class="font-mono text-[9px] uppercase">{item.organization}</p>
           <time class="mt-2 block font-mono text-[8px] uppercase text-muted">{item.period}</time>
         </div>
-        <h3 class="text-xl font-medium tracking-[-0.02em]">{item.title}</h3>
+        <h3 class="text-xl font-medium">{item.title}</h3>
         {item.description && <p class="text-sm leading-6 text-muted">{item.description}</p>}
       </article>
     ))}

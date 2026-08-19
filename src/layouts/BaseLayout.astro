@@ -29,7 +29,7 @@ const structuredData = {
     <meta name="viewport" content="width=device-width" />
     <meta name="description" content={description} />
     <meta name="theme-color" content="#090d10" data-theme-color />
-    <script is:inline>
+    <script is:inline data-astro-rerun>
       (() => {
         const storedTheme = localStorage.getItem("portfolio-theme");
         const theme = storedTheme === "light" || storedTheme === "dark" ? storedTheme : "dark";

@@ -2,7 +2,7 @@
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 ---
 
-<dialog class="m-auto w-[min(62rem,calc(100%-2rem))] border border-border bg-raised/95 p-0 text-foreground shadow-2xl backdrop:bg-canvas/85 backdrop:backdrop-blur-sm" data-terminal data-base={base} aria-labelledby="terminal-title">
+<portfolio-terminal><dialog class="m-auto w-[min(62rem,calc(100%-2rem))] border border-border bg-raised/95 p-0 text-foreground shadow-2xl backdrop:bg-canvas/85 backdrop:backdrop-blur-sm" data-terminal data-base={base} aria-labelledby="terminal-title">
   <div class="flex items-center justify-between border-b border-border px-4 py-3 sm:px-5">
     <div class="flex items-center gap-3">
       <span class="size-2 bg-accent"></span>
@@ -34,11 +34,9 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
     <label class="text-accent" for="terminal-input">karlo@platform:~$</label>
     <input class="min-w-0 flex-1 border-0 bg-transparent text-foreground caret-accent outline-none placeholder:text-muted" id="terminal-input" data-terminal-input autocomplete="off" spellcheck="false" placeholder="help" aria-label="Terminal command" />
   </form>
-</dialog>
+</dialog></portfolio-terminal>
 
 <script>
-  const listenerOptions = {};
-
   const getRoutes = () => {
     const base = document.querySelector("[data-terminal]")?.getAttribute("data-base") ?? "";
     return {
@@ -78,51 +76,66 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
     if (terminal instanceof HTMLDialogElement) terminal.close();
   };
 
-  window.addEventListener("click", (event) => {
-    if (!(event.target instanceof Element)) return;
-    if (event.target.closest("[data-terminal-open]")) openTerminal();
-    if (event.target.closest("[data-terminal-close]")) closeTerminal();
-    if (event.target.matches("[data-terminal]")) closeTerminal();
-  }, listenerOptions);
-  window.addEventListener("keydown", (event) => {
-    if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
-      event.preventDefault();
-      openTerminal();
-    }
-  }, listenerOptions);
+  class PortfolioTerminalElement extends HTMLElement {
+    controller?: AbortController;
 
-  window.addEventListener("submit", (event) => {
-    if (!(event.target instanceof HTMLFormElement) || !event.target.matches("[data-terminal-form]")) return;
-    event.preventDefault();
-    const input = document.querySelector("[data-terminal-input]");
-    const output = document.querySelector("[data-terminal-output]");
-    if (!(input instanceof HTMLInputElement)) return;
-    const command = input.value.trim().toLowerCase();
-    appendLine(`karlo@platform:~$ ${command}`, "mt-4 text-accent");
-    input.value = "";
+    connectedCallback() {
+      this.controller?.abort();
+      this.controller = new AbortController();
+      const listenerOptions = { signal: this.controller.signal };
 
-    if (!command) return;
-    if (command === "clear") {
-      if (output) output.innerHTML = "";
-      return;
+      document.addEventListener("click", (event) => {
+        if (!(event.target instanceof Element)) return;
+        if (event.target.closest("[data-terminal-open]")) openTerminal();
+        if (event.target.closest("[data-terminal-close]")) closeTerminal();
+        if (event.target.matches("[data-terminal]")) closeTerminal();
+      }, listenerOptions);
+      document.addEventListener("keydown", (event) => {
+        if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
+          event.preventDefault();
+          openTerminal();
+        }
+      }, listenerOptions);
+      document.addEventListener("submit", (event) => {
+        if (!(event.target instanceof HTMLFormElement) || !event.target.matches("[data-terminal-form]")) return;
+        event.preventDefault();
+        const input = document.querySelector("[data-terminal-input]");
+        const output = document.querySelector("[data-terminal-output]");
+        if (!(input instanceof HTMLInputElement)) return;
+        const command = input.value.trim().toLowerCase();
+        appendLine(`karlo@platform:~$ ${command}`, "mt-4 text-accent");
+        input.value = "";
+
+        if (!command) return;
+        if (command === "clear") {
+          if (output) output.innerHTML = "";
+          return;
+        }
+        if (command === "exit") {
+          closeTerminal();
+          return;
+        }
+        if (command === "github") {
+          window.open("https://github.com/jagarkarlo", "_blank", "noopener,noreferrer");
+          appendLine("Opening GitHub...");
+          return;
+        }
+        const routes = getRoutes();
+        if (command in routes) {
+          window.location.href = routes[command as keyof typeof routes];
+          return;
+        }
+        const response = lines[command];
+        if (response) response.forEach((line) => appendLine(line));
+        else appendLine(`Command not found: ${command}. Type help.`, "text-[#e5a098]");
+        output?.scrollTo({ top: output.scrollHeight, behavior: "smooth" });
+      }, listenerOptions);
     }
-    if (command === "exit") {
-      closeTerminal();
-      return;
+
+    disconnectedCallback() {
+      this.controller?.abort();
     }
-    if (command === "github") {
-      window.open("https://github.com/jagarkarlo", "_blank", "noopener,noreferrer");
-      appendLine("Opening GitHub...");
-      return;
-    }
-    const routes = getRoutes();
-    if (command in routes) {
-      window.location.href = routes[command as keyof typeof routes];
-      return;
-    }
-    const response = lines[command];
-    if (response) response.forEach((line) => appendLine(line));
-    else appendLine(`Command not found: ${command}. Type help.`, "text-[#e5a098]");
-    output?.scrollTo({ top: output.scrollHeight, behavior: "smooth" });
-  }, listenerOptions);
+  }
+
+  if (!customElements.get("portfolio-terminal")) customElements.define("portfolio-terminal", PortfolioTerminalElement);
 </script>
