@@ -11,14 +11,21 @@ const links = [
 const isActive = (href: string) => currentPath === href.replace(/\/$/, "");
 ---
 
-<header class="site-header">
-  <a class="wordmark" href={`${base}/`} aria-label="Karlo Jagar, home">KJ<span>.</span></a>
-  <nav aria-label="Main navigation">
+<header class="sticky top-0 z-40 grid min-h-16 grid-cols-[auto_1fr] items-center border-b border-ink/20 bg-paper/95 px-4 backdrop-blur-md sm:px-8 lg:grid-cols-[1fr_auto_1fr] lg:px-12">
+  <a class="w-max font-mono text-lg font-medium no-underline" href={`${base}/`} aria-label="Karlo Jagar, home">KJ<span class="text-steel">.</span></a>
+  <nav class="ml-auto flex self-stretch lg:ml-0" aria-label="Main navigation">
     {links.map((link) => (
-      <a href={link.href} aria-current={isActive(link.href) ? "page" : undefined}>{link.label}</a>
+      <a
+        class:list={[
+          "grid min-h-16 place-items-center border-b-2 px-2 font-mono text-[9px] uppercase no-underline transition-colors sm:px-4 sm:text-[10px]",
+          isActive(link.href) ? "border-steel text-ink" : "border-transparent text-ink/55 hover:border-signal hover:text-ink",
+        ]}
+        href={link.href}
+        aria-current={isActive(link.href) ? "page" : undefined}
+      >{link.label}</a>
     ))}
   </nav>
-  <a class="header-social" href="https://github.com/jagarkarlo" target="_blank" rel="noreferrer">
+  <a class="hidden justify-self-end font-mono text-[10px] uppercase no-underline transition-colors hover:text-steel lg:block" href="https://github.com/jagarkarlo" target="_blank" rel="noreferrer">
     GitHub <span aria-hidden="true">↗</span>
   </a>
 </header>
