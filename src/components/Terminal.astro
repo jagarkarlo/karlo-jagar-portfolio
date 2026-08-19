@@ -1,0 +1,118 @@
+---
+import { Icon } from "astro-icon/components";
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+---
+
+<button class="fixed right-5 bottom-20 z-40 grid size-12 place-items-center border border-paper/20 bg-ink text-paper shadow-lg transition-colors hover:bg-steel focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-steel" type="button" data-terminal-open aria-label="Open terminal" title="Open terminal (Ctrl or Command + K)">
+  <Icon class="size-5" name="kj-terminal" aria-hidden="true" />
+</button>
+
+<dialog class="m-auto w-[min(44rem,calc(100%-2rem))] border border-paper/20 bg-ink p-0 text-paper shadow-2xl backdrop:bg-ink/75" data-terminal aria-labelledby="terminal-title">
+  <div class="flex items-center justify-between border-b border-paper/15 px-4 py-3">
+    <div class="flex items-center gap-3">
+      <span class="size-2.5 rounded-full bg-[#d86f62]"></span>
+      <span class="size-2.5 rounded-full bg-[#d8b762]"></span>
+      <span class="size-2.5 rounded-full bg-signal"></span>
+      <h2 class="ml-2 font-mono text-[10px] font-normal uppercase text-paper/60" id="terminal-title">karlo@portfolio:~</h2>
+    </div>
+    <button class="grid size-8 place-items-center text-paper/60 hover:text-paper" type="button" data-terminal-close aria-label="Close terminal">
+      <Icon class="size-4" name="lucide:x" aria-hidden="true" />
+    </button>
+  </div>
+  <div class="max-h-[60svh] min-h-80 overflow-y-auto p-5 font-mono text-xs leading-6" data-terminal-output aria-live="polite">
+    <p class="text-signal">Karlo Jagar portfolio terminal</p>
+    <p class="text-paper/55">Type <span class="text-paper">help</span> to list commands.</p>
+  </div>
+  <form class="flex items-center gap-2 border-t border-paper/15 px-5 py-4 font-mono text-xs" data-terminal-form>
+    <label class="text-signal" for="terminal-input">$</label>
+    <input class="min-w-0 flex-1 border-0 bg-transparent text-paper caret-signal outline-none placeholder:text-paper/30" id="terminal-input" data-terminal-input autocomplete="off" spellcheck="false" placeholder="help" aria-label="Terminal command" />
+  </form>
+</dialog>
+
+<script is:inline data-astro-rerun define:vars={{ base }}>
+  window.__portfolioTerminalController?.abort();
+  const controller = new AbortController();
+  window.__portfolioTerminalController = controller;
+  const listenerOptions = { signal: controller.signal };
+  const terminal = document.querySelector("[data-terminal]");
+  const openButton = document.querySelector("[data-terminal-open]");
+  const closeButton = document.querySelector("[data-terminal-close]");
+  const form = document.querySelector("[data-terminal-form]");
+  const input = document.querySelector("[data-terminal-input]");
+  const output = document.querySelector("[data-terminal-output]");
+
+  const routes = {
+    home: `${base}/`,
+    about: `${base}/about/`,
+    work: `${base}/work/`,
+    contact: `${base}/contact/`,
+  };
+
+  const lines = {
+    help: ["Commands: about, work, stack, contact, github, clear, exit"],
+    about: ["DevOps engineer in Zagreb working with cloud infrastructure, Kubernetes, observability, and developer tooling."],
+    work: ["Reliability Replay", "GitLab Jira Context MCP", "Azure DevOps Challenge", "QuantumQuarry", "SDN Security Aspects", "PC Status Monitor"],
+    stack: ["Kubernetes  Argo CD  Docker", "Azure  Terraform  Linux", "Prometheus  Grafana  Loki", "TypeScript  Python  GitLab"],
+    contact: ["LinkedIn: linkedin.com/in/karlojagar", "GitHub: github.com/jagarkarlo"],
+  };
+
+  const appendLine = (text, className = "text-paper/75") => {
+    const paragraph = document.createElement("p");
+    paragraph.className = className;
+    paragraph.textContent = text;
+    output?.append(paragraph);
+  };
+
+  const openTerminal = () => {
+    if (terminal instanceof HTMLDialogElement && !terminal.open) terminal.showModal();
+    if (input instanceof HTMLInputElement) input.focus();
+  };
+
+  const closeTerminal = () => {
+    if (terminal instanceof HTMLDialogElement) terminal.close();
+  };
+
+  openButton?.addEventListener("click", openTerminal, listenerOptions);
+  closeButton?.addEventListener("click", closeTerminal, listenerOptions);
+  terminal?.addEventListener("click", (event) => {
+    if (event.target === terminal) closeTerminal();
+  }, listenerOptions);
+  document.addEventListener("keydown", (event) => {
+    if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
+      event.preventDefault();
+      openTerminal();
+    }
+  }, listenerOptions);
+
+  form?.addEventListener("submit", (event) => {
+    event.preventDefault();
+    if (!(input instanceof HTMLInputElement)) return;
+    const command = input.value.trim().toLowerCase();
+    appendLine(`$ ${command}`, "mt-3 text-signal");
+    input.value = "";
+
+    if (!command) return;
+    if (command === "clear") {
+      if (output) output.innerHTML = "";
+      return;
+    }
+    if (command === "exit") {
+      closeTerminal();
+      return;
+    }
+    if (command === "github") {
+      window.open("https://github.com/jagarkarlo", "_blank", "noopener,noreferrer");
+      appendLine("Opening GitHub...");
+      return;
+    }
+    if (command in routes) {
+      window.location.href = routes[command];
+      return;
+    }
+    const response = lines[command];
+    if (response) response.forEach((line) => appendLine(line));
+    else appendLine(`Command not found: ${command}. Type help.`, "text-[#e5a098]");
+    output?.scrollTo({ top: output.scrollHeight, behavior: "smooth" });
+  }, listenerOptions);
+</script>
