@@ -20,36 +20,37 @@ const skills = [
 >
   <SiteHeader />
   <main id="main-content">
-    <section class="home-hero" aria-labelledby="hero-title">
-      <div class="home-hero-copy">
-        <p class="eyebrow"><span></span> DevOps & platform engineering · Zagreb</p>
-        <h1 id="hero-title">Karlo Jagar</h1>
-        <p class="lede">DevOps engineer working with cloud infrastructure, Kubernetes, observability, and developer tooling.</p>
-        <div class="hero-actions">
-          <a class="button primary" href={`${base}/work/`}>Explore my work <span aria-hidden="true">→</span></a>
-          <a class="button text" href={`${base}/about/`}>About me</a>
+    <section class="grid min-h-[calc(100svh-4rem)] bg-paper lg:grid-cols-[1.15fr_.85fr]" aria-labelledby="hero-title">
+      <div class="flex flex-col justify-center px-6 py-24 sm:px-10 lg:px-[8vw] lg:py-32">
+        <p class="mb-8 flex items-center gap-3 font-mono text-[10px] uppercase text-ink/55"><span class="size-2 rounded-full bg-steel"></span> DevOps & platform engineering · Zagreb</p>
+        <h1 class="max-w-4xl text-6xl leading-[.92] font-semibold tracking-[-0.04em] sm:text-7xl lg:text-8xl" id="hero-title">Karlo Jagar</h1>
+        <p class="mt-10 max-w-2xl text-lg leading-8 text-ink/75 sm:text-xl">DevOps engineer working with cloud infrastructure, Kubernetes, observability, and developer tooling.</p>
+        <div class="mt-10 flex flex-wrap items-center gap-6">
+          <a class="inline-flex items-center gap-8 bg-ink px-5 py-4 font-mono text-[10px] uppercase text-paper no-underline transition-colors hover:bg-steel" href={`${base}/work/`}>Explore my work <span aria-hidden="true">→</span></a>
+          <a class="border-b border-ink pb-1 font-mono text-[10px] uppercase no-underline" href={`${base}/about/`}>About me</a>
         </div>
       </div>
-      <div class="home-hero-panel">
-        <p>Current focus</p>
-        <strong>Cloud platforms, delivery automation, and observability</strong>
-        <dl>
-          <div><dt>Role</dt><dd>DevOps Engineer</dd></div>
-          <div><dt>Study</dt><dd>Business Systems Organization, MSc</dd></div>
-          <div><dt>Working with</dt><dd>Cloud · Observability · AI context</dd></div>
+      <aside class="relative flex min-h-[32rem] flex-col justify-end overflow-hidden bg-ink p-8 text-paper sm:p-12 lg:p-16">
+        <div class="pointer-events-none absolute inset-6 border border-signal/30"></div>
+        <p class="relative font-mono text-[10px] uppercase text-signal">Current focus</p>
+        <strong class="relative my-8 max-w-xl text-3xl leading-tight font-medium tracking-[-0.03em] sm:text-4xl">Cloud platforms, delivery automation, and observability</strong>
+        <dl class="relative">
+          <div class="grid grid-cols-[7rem_1fr] gap-5 border-t border-paper/25 py-4"><dt class="font-mono text-[10px] uppercase text-signal">Role</dt><dd class="m-0 text-sm">DevOps Engineer</dd></div>
+          <div class="grid grid-cols-[7rem_1fr] gap-5 border-t border-paper/25 py-4"><dt class="font-mono text-[10px] uppercase text-signal">Study</dt><dd class="m-0 text-sm">Business Systems Organization, MSc</dd></div>
+          <div class="grid grid-cols-[7rem_1fr] gap-5 border-t border-paper/25 py-4"><dt class="font-mono text-[10px] uppercase text-signal">Working with</dt><dd class="m-0 text-sm">Cloud · Observability · AI context</dd></div>
         </dl>
-      </div>
+      </aside>
     </section>
 
-    <section class="stack-band" aria-labelledby="stack-title">
-      <div><p class="section-label">Technical stack</p><h2 id="stack-title">Tools I work with</h2></div>
-      <dl>{skills.map(([term, detail]) => <div><dt>{term}</dt><dd>{detail}</dd></div>)}</dl>
+    <section class="grid gap-12 border-y border-line bg-paper px-6 py-20 sm:px-10 lg:grid-cols-[.7fr_1.3fr] lg:gap-24 lg:px-[8vw] lg:py-28" aria-labelledby="stack-title">
+      <div><p class="font-mono text-[10px] uppercase text-ink/50">Technical stack</p><h2 class="mt-4 text-4xl leading-tight font-semibold tracking-[-0.035em] sm:text-5xl" id="stack-title">Tools I work with</h2></div>
+      <dl class="grid sm:grid-cols-2">{skills.map(([term, detail]) => <div class="border-t border-line py-5 sm:pr-8"><dt class="font-mono text-[10px] uppercase text-ink/55">{term}</dt><dd class="m-0 mt-2 text-sm leading-6">{detail}</dd></div>)}</dl>
     </section>
 
-    <section class="work home-work" aria-labelledby="selected-work-title">
-      <div class="section-heading">
-        <div><p class="section-label">Selected work</p><h2 id="selected-work-title">Featured projects</h2></div>
-        <a class="section-link" href={`${base}/work/`}>View all work <span aria-hidden="true">→</span></a>
+    <section class="bg-ink px-5 py-20 text-paper sm:px-10 lg:px-[6vw] lg:py-28" aria-labelledby="selected-work-title">
+      <div class="mx-auto mb-16 flex max-w-[94rem] flex-col items-start justify-between gap-8 sm:flex-row sm:items-end">
+        <div><p class="font-mono text-[10px] uppercase text-signal">Selected work</p><h2 class="mt-4 text-4xl leading-tight font-semibold tracking-[-0.035em] sm:text-5xl" id="selected-work-title">Featured projects</h2></div>
+        <a class="font-mono text-[10px] uppercase underline underline-offset-4" href={`${base}/work/`}>View all work <span aria-hidden="true">→</span></a>
       </div>
       <ProjectList projects={projects.slice(0, 2)} />
     </section>
