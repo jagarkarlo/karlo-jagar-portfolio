@@ -14,18 +14,21 @@ import { profile } from "../data/profile";
 >
   <SiteHeader />
   <main id="main-content">
-    <header class="bg-paper px-6 py-20 sm:px-10 lg:px-[8vw] lg:py-28">
-      <p class="font-mono text-[10px] uppercase text-ink/50">About</p>
-      <h1 class="my-12 text-6xl leading-[.92] font-semibold tracking-[-0.04em] sm:text-7xl lg:text-8xl">About me</h1>
-      <div class="ml-auto grid max-w-5xl gap-8 text-lg leading-8 text-ink/75 sm:grid-cols-2">
-        <p>{profile.summary}</p><p>{profile.perspective}</p>
-      </div>
-      <dl class="ml-auto mt-12 grid max-w-5xl sm:grid-cols-2" aria-label="Profile summary">
-        <div class="border-t border-line py-4 sm:pr-6"><dt class="font-mono text-[9px] uppercase text-ink/50">Based in</dt><dd class="m-0 mt-2 text-sm">Zagreb area, Croatia</dd></div>
-        <div class="border-t border-line py-4 sm:pl-6"><dt class="font-mono text-[9px] uppercase text-ink/50">Current role</dt><dd class="m-0 mt-2 text-sm">DevOps Engineer</dd></div>
-        <div class="border-t border-line py-4 sm:pr-6"><dt class="font-mono text-[9px] uppercase text-ink/50">Current study</dt><dd class="m-0 mt-2 text-sm">Business Systems Organization, MSc</dd></div>
-        <div class="border-t border-line py-4 sm:pl-6"><dt class="font-mono text-[9px] uppercase text-ink/50">International</dt><dd class="m-0 mt-2 text-sm">Erasmus+ at FEUP, Porto</dd></div>
+    <header class="bg-canvas px-6 py-20 sm:px-10 lg:px-[6vw] lg:py-28">
+      <div class="mx-auto max-w-[94rem]">
+        <p class="font-mono text-[9px] uppercase text-accent">About / Profile</p>
+        <h1 class="my-10 text-6xl leading-[.92] font-semibold sm:text-7xl lg:text-8xl">About me</h1>
+        <div class="ml-auto grid max-w-5xl gap-8 text-lg leading-8 text-muted sm:grid-cols-2">
+          <p>{profile.summary}</p><p>{profile.perspective}</p>
+        </div>
+        <dl class="ml-auto mt-12 grid max-w-5xl sm:grid-cols-2" aria-label="Profile summary">
+          <div class="border-t border-border py-4 sm:pr-6"><dt class="font-mono text-[8px] uppercase text-muted">Based in</dt><dd class="m-0 mt-2 text-sm">Zagreb area, Croatia</dd></div>
+          <div class="border-t border-border py-4 sm:pl-6"><dt class="font-mono text-[8px] uppercase text-muted">Current role</dt><dd class="m-0 mt-2 text-sm">DevOps Engineer</dd></div>
+          <div class="border-t border-border py-4 sm:pr-6"><dt class="font-mono text-[8px] uppercase text-muted">Current study</dt><dd class="m-0 mt-2 text-sm">Business Systems Organization, MSc</dd></div>
+          <div class="border-t border-border py-4 sm:pl-6"><dt class="font-mono text-[8px] uppercase text-muted">International</dt><dd class="m-0 mt-2 text-sm">Erasmus+ at FEUP, Porto</dd></div>
+        </dl>
       </dl>
+      </div>
     </header>
     <ProfileTimeline id="experience" label="01" title="Experience" items={profile.experience} />
     <ProfileTimeline id="education" label="02" title="Education" items={profile.education} tone="mist" />
