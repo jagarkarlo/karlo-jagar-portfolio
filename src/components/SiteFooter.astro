@@ -1,0 +1,20 @@
+---
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+---
+
+<footer class="site-footer">
+  <div>
+    <a class="footer-wordmark" href={`${base}/`}>Karlo Jagar</a>
+    <p>DevOps engineer building observable platforms and practical developer tools.</p>
+  </div>
+  <nav aria-label="Footer navigation">
+    <a href={`${base}/about/`}>About</a>
+    <a href={`${base}/work/`}>Work</a>
+    <a href={`${base}/contact/`}>Contact</a>
+  </nav>
+  <div class="footer-links">
+    <a href="https://github.com/jagarkarlo" target="_blank" rel="noreferrer">GitHub ↗</a>
+    <a href="https://www.linkedin.com/in/karlojagar/" target="_blank" rel="noreferrer">LinkedIn ↗</a>
+  </div>
+  <p class="footer-note">© {new Date().getFullYear()} Karlo Jagar · Built with Astro</p>
+</footer>
