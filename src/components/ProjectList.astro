@@ -1,0 +1,38 @@
+---
+import type { Project } from "../data/projects";
+
+type Props = {
+  projects: Project[];
+};
+
+const { projects } = Astro.props;
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+---
+
+<div class="project-list">
+  {projects.map((project) => (
+    <article class={`project project--${project.visual}`}>
+      <div class="project-meta"><span>{project.number}</span><p>{project.category}</p></div>
+      <div class="project-copy">
+        <h3>{project.title}</h3>
+        <p>{project.summary}</p>
+        <strong>{project.outcome}</strong>
+        <ul aria-label={`${project.title} technologies`}>{project.stack.map((item) => <li>{item}</li>)}</ul>
+        <a href={project.href} target="_blank" rel="noreferrer">View public repository <span aria-hidden="true">↗</span></a>
+      </div>
+      <div class="project-visual" aria-hidden={project.image ? undefined : "true"}>
+        {project.image ? (
+          <img src={`${base}/${project.image}`} alt={project.visual === "game" ? "QuantumQuarry pixel-art game environment" : "Azure Kubernetes traffic-flow architecture diagram"} />
+        ) : project.visual === "reliability" ? (
+          <div class="pulse-visual"><span>service</span><i></i><i></i><i></i><b>recovered</b></div>
+        ) : project.visual === "context" ? (
+          <div class="context-visual"><span>assistant</span><i>GitLab</i><i>Jira</i><i>Docs</i><b>least privilege</b></div>
+        ) : project.visual === "security" ? (
+          <div class="network-visual"><i></i><i></i><i></i><i></i><b>policy / signal / action</b></div>
+        ) : (
+          <div class="monitor-visual"><span>3 services online</span><i></i><i></i><i></i><b>last known state retained</b></div>
+        )}
+      </div>
+    </article>
+  ))}
+</div>
