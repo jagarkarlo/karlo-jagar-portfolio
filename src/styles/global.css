@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Manrope:wght@400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600&display=swap");
 @import "tailwindcss";
 
 @theme {
@@ -15,7 +15,7 @@
   --color-steel: #55758a;
   --color-line: #bcc7c7;
   --color-signal: #a9c7b2;
-  --font-sans: "Manrope", sans-serif;
+  --font-sans: "Instrument Sans", sans-serif;
   --font-mono: "IBM Plex Mono", monospace;
 }
 
@@ -48,18 +48,27 @@
   }
 
   html {
+    background: var(--theme-canvas);
     scroll-behavior: smooth;
   }
 
   body {
     margin: 0;
     background-color: var(--theme-canvas);
-    background-image:
-      linear-gradient(color-mix(in srgb, var(--theme-foreground) 4%, transparent) 1px, transparent 1px),
-      linear-gradient(90deg, color-mix(in srgb, var(--theme-foreground) 4%, transparent) 1px, transparent 1px);
-    background-size: 32px 32px;
     color: var(--theme-foreground);
     font-family: var(--font-sans);
+    letter-spacing: 0;
+    min-width: 20rem;
+  }
+
+  ::selection {
+    background: var(--theme-accent);
+    color: var(--theme-canvas);
+  }
+
+  :focus-visible {
+    outline: 1px solid var(--theme-accent);
+    outline-offset: 4px;
   }
 
   button,

@@ -13,14 +13,14 @@ const links = [
 const isActive = (href: string) => currentPath === href.replace(/\/$/, "");
 ---
 
-<header class="sticky top-0 z-40 grid min-h-16 grid-cols-[auto_1fr_auto] items-center border-b border-border bg-surface/90 px-4 backdrop-blur-md sm:px-8 lg:grid-cols-[1fr_auto_1fr] lg:px-12">
-  <a class="w-max font-mono text-lg font-medium no-underline" href={`${base}/`} aria-label="Karlo Jagar, home">KJ<span class="text-steel">.</span></a>
-  <nav class="ml-auto flex self-stretch lg:ml-0" aria-label="Main navigation">
+<header class="sticky top-0 z-40 grid min-h-14 grid-cols-[auto_1fr_auto] items-center border-b border-border bg-surface/85 px-4 backdrop-blur-xl sm:px-6 lg:px-10">
+  <a class="w-max font-mono text-sm font-medium no-underline" href={`${base}/`} aria-label="Karlo Jagar, home">KJ<span class="text-accent">/</span></a>
+  <nav class="mx-auto flex self-stretch" aria-label="Main navigation">
     {links.map((link) => (
       <a
         class:list={[
-          "grid min-h-16 place-items-center border-b-2 px-2 font-mono text-[9px] uppercase no-underline transition-colors sm:px-4 sm:text-[10px]",
-          isActive(link.href) ? "border-steel text-ink" : "border-transparent text-ink/55 hover:border-signal hover:text-ink",
+          "relative grid min-h-14 place-items-center px-2 font-mono text-[9px] uppercase no-underline transition-colors sm:px-4",
+          isActive(link.href) ? "text-foreground after:absolute after:inset-x-2 after:bottom-0 after:h-px after:bg-accent" : "text-muted hover:text-foreground",
         ]}
         href={link.href}
         aria-current={isActive(link.href) ? "page" : undefined}
@@ -28,7 +28,7 @@ const isActive = (href: string) => currentPath === href.replace(/\/$/, "");
     ))}
   </nav>
   <div class="flex items-center justify-self-end gap-2">
-    <a class="hidden font-mono text-[10px] uppercase no-underline transition-colors hover:text-accent lg:block" href="https://github.com/jagarkarlo" target="_blank" rel="noreferrer">
+    <a class="hidden font-mono text-[9px] uppercase text-muted no-underline transition-colors hover:text-accent lg:block" href="https://github.com/jagarkarlo" target="_blank" rel="noreferrer">
       GitHub <span aria-hidden="true">↗</span>
     </a>
     <ThemeToggle />

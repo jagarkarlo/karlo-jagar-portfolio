@@ -2,19 +2,21 @@
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 ---
 
-<footer class="grid gap-12 border-t border-ink/20 bg-mist px-6 py-14 sm:px-10 lg:grid-cols-[1.3fr_.55fr_.55fr] lg:px-20 lg:py-20">
-  <div>
-    <a class="text-3xl font-semibold no-underline" href={`${base}/`}>Karlo Jagar</a>
-    <p class="mt-4 max-w-sm text-sm leading-6 text-ink/65">DevOps engineer building observable platforms and practical developer tools.</p>
+<footer class="border-t border-border bg-surface px-6 py-12 sm:px-10 lg:px-[6vw] lg:py-16">
+  <div class="mx-auto grid max-w-[94rem] gap-12 lg:grid-cols-[1fr_auto_auto] lg:gap-20">
+    <div>
+      <a class="text-xl font-semibold no-underline" href={`${base}/`}>Karlo Jagar<span class="text-accent">/</span></a>
+      <p class="mt-3 max-w-sm text-sm leading-6 text-muted">DevOps engineer building observable platforms and practical developer tools.</p>
+    </div>
+    <nav class="grid content-start gap-3 font-mono text-[9px] uppercase text-muted" aria-label="Footer navigation">
+      <a class="w-max no-underline transition-colors hover:text-accent" href={`${base}/about/`}>About</a>
+      <a class="w-max no-underline transition-colors hover:text-accent" href={`${base}/work/`}>Work</a>
+      <a class="w-max no-underline transition-colors hover:text-accent" href={`${base}/contact/`}>Contact</a>
+    </nav>
+    <div class="grid content-start gap-3 font-mono text-[9px] uppercase text-muted">
+      <a class="w-max no-underline transition-colors hover:text-accent" href="https://github.com/jagarkarlo" target="_blank" rel="noreferrer">GitHub <span aria-hidden="true">↗</span></a>
+      <a class="w-max no-underline transition-colors hover:text-accent" href="https://www.linkedin.com/in/karlojagar/" target="_blank" rel="noreferrer">LinkedIn <span aria-hidden="true">↗</span></a>
+    </div>
+    <p class="border-t border-border pt-6 font-mono text-[8px] uppercase text-muted lg:col-span-3 lg:text-right">© {new Date().getFullYear()} Karlo Jagar · Astro / Tailwind CSS</p>
   </div>
-  <nav class="grid content-start gap-3 font-mono text-[10px] uppercase" aria-label="Footer navigation">
-    <a class="w-max underline-offset-4 hover:underline" href={`${base}/about/`}>About</a>
-    <a class="w-max underline-offset-4 hover:underline" href={`${base}/work/`}>Work</a>
-    <a class="w-max underline-offset-4 hover:underline" href={`${base}/contact/`}>Contact</a>
-  </nav>
-  <div class="grid content-start gap-2">
-    <a class="bg-ink px-4 py-3 font-mono text-[10px] uppercase text-paper no-underline transition-colors hover:bg-steel" href="https://github.com/jagarkarlo" target="_blank" rel="noreferrer">GitHub ↗</a>
-    <a class="bg-ink px-4 py-3 font-mono text-[10px] uppercase text-paper no-underline transition-colors hover:bg-steel" href="https://www.linkedin.com/in/karlojagar/" target="_blank" rel="noreferrer">LinkedIn ↗</a>
-  </div>
-  <p class="font-mono text-[9px] uppercase text-ink/50 lg:col-span-3 lg:text-right">© {new Date().getFullYear()} Karlo Jagar · Built with Astro and Tailwind CSS</p>
 </footer>
