@@ -1,45 +1,38 @@
 ---
-import { Icon } from "astro-icon/components";
-
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 ---
 
-<button class="group fixed right-5 bottom-20 z-40 flex h-12 items-center border border-paper/20 bg-ink text-paper shadow-lg transition-colors hover:border-signal hover:bg-steel focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-steel" type="button" data-terminal-open aria-label="Open operations console" title="Open operations console (Ctrl or Command + K)">
-  <span class="grid size-12 place-items-center"><Icon class="size-5" name="kj-terminal" aria-hidden="true" /></span>
-  <span class="hidden border-l border-paper/15 pr-4 pl-3 font-mono text-[9px] uppercase sm:block">Console <kbd class="ml-2 text-paper/45">Ctrl K</kbd></span>
-</button>
-
-<dialog class="m-auto w-[min(62rem,calc(100%-2rem))] border border-paper/20 bg-[#101a20]/95 p-0 text-paper shadow-2xl backdrop:bg-ink/80 backdrop:backdrop-blur-sm" data-terminal data-base={base} aria-labelledby="terminal-title">
-  <div class="flex items-center justify-between border-b border-paper/15 px-4 py-3 sm:px-5">
+<dialog class="m-auto w-[min(62rem,calc(100%-2rem))] border border-border bg-raised/95 p-0 text-foreground shadow-2xl backdrop:bg-canvas/85 backdrop:backdrop-blur-sm" data-terminal data-base={base} aria-labelledby="terminal-title">
+  <div class="flex items-center justify-between border-b border-border px-4 py-3 sm:px-5">
     <div class="flex items-center gap-3">
-      <span class="size-2 bg-signal shadow-[0_0_14px_rgba(169,199,178,.7)]"></span>
-      <h2 class="font-mono text-[10px] font-normal uppercase text-paper/75" id="terminal-title">Platform operations console</h2>
-      <span class="hidden font-mono text-[9px] uppercase text-paper/30 sm:inline">Session 01 / Zagreb</span>
+      <span class="size-2 bg-accent"></span>
+      <h2 class="font-mono text-[9px] font-normal uppercase text-foreground" id="terminal-title">Platform operations console</h2>
+      <span class="hidden font-mono text-[8px] uppercase text-muted sm:inline">Session 01 / Zagreb</span>
     </div>
-    <button class="grid size-8 place-items-center border border-transparent text-paper/60 hover:border-paper/20 hover:text-paper" type="button" data-terminal-close aria-label="Close terminal">
-      <Icon class="size-4" name="lucide:x" aria-hidden="true" />
+    <button class="grid size-8 place-items-center border border-transparent font-mono text-sm text-muted hover:border-border hover:text-foreground" type="button" data-terminal-close aria-label="Close terminal">
+      <span aria-hidden="true">×</span>
     </button>
   </div>
   <div class="grid min-h-[26rem] sm:grid-cols-[13rem_1fr]">
-    <aside class="hidden border-r border-paper/15 p-5 font-mono text-[9px] uppercase sm:block" aria-label="Console status">
-      <p class="text-paper/35">Runtime</p>
+    <aside class="hidden border-r border-border bg-surface/50 p-5 font-mono text-[8px] uppercase sm:block" aria-label="Console status">
+      <p class="text-muted">Runtime</p>
       <dl class="mt-5 space-y-4">
-        <div><dt class="text-paper/35">Operator</dt><dd class="mt-1 text-paper/80">Karlo Jagar</dd></div>
-        <div><dt class="text-paper/35">Role</dt><dd class="mt-1 text-paper/80">DevOps engineer</dd></div>
-        <div><dt class="text-paper/35">Focus</dt><dd class="mt-1 text-paper/80">Platforms / telemetry</dd></div>
-        <div><dt class="text-paper/35">Status</dt><dd class="mt-1 flex items-center gap-2 text-signal"><span class="size-1.5 bg-signal"></span> Available</dd></div>
+        <div><dt class="text-muted">Operator</dt><dd class="mt-1 text-foreground">Karlo Jagar</dd></div>
+        <div><dt class="text-muted">Role</dt><dd class="mt-1 text-foreground">DevOps engineer</dd></div>
+        <div><dt class="text-muted">Focus</dt><dd class="mt-1 text-foreground">Platforms / telemetry</dd></div>
+        <div><dt class="text-muted">Status</dt><dd class="mt-1 flex items-center gap-2 text-accent"><span class="size-1.5 bg-accent"></span> Available</dd></div>
       </dl>
-      <p class="mt-10 border-t border-paper/15 pt-4 leading-5 text-paper/35">Navigate with commands. Press Esc to close.</p>
+      <p class="mt-10 border-t border-border pt-4 leading-5 text-muted">Navigate with commands. Press Esc to close.</p>
     </aside>
     <div class="max-h-[64svh] min-h-[26rem] overflow-y-auto p-5 font-mono text-xs leading-6 sm:p-7" data-terminal-output aria-live="polite">
-      <p class="text-signal">Connection established.</p>
-      <p class="mt-2 text-paper/55">Portfolio context loaded. Type <span class="text-paper">help</span> to list commands.</p>
-      <p class="mt-6 text-paper/30">karlo@platform:~</p>
+      <p class="text-accent">Connection established.</p>
+      <p class="mt-2 text-muted">Portfolio context loaded. Type <span class="text-foreground">help</span> to list commands.</p>
+      <p class="mt-6 text-muted">karlo@platform:~</p>
     </div>
   </div>
-  <form class="flex items-center gap-3 border-t border-paper/15 px-5 py-4 font-mono text-xs sm:px-7" data-terminal-form>
-    <label class="text-signal" for="terminal-input">karlo@platform:~$</label>
-    <input class="min-w-0 flex-1 border-0 bg-transparent text-paper caret-signal outline-none placeholder:text-paper/30" id="terminal-input" data-terminal-input autocomplete="off" spellcheck="false" placeholder="help" aria-label="Terminal command" />
+  <form class="flex items-center gap-3 border-t border-border px-5 py-4 font-mono text-xs sm:px-7" data-terminal-form>
+    <label class="text-accent" for="terminal-input">karlo@platform:~$</label>
+    <input class="min-w-0 flex-1 border-0 bg-transparent text-foreground caret-accent outline-none placeholder:text-muted" id="terminal-input" data-terminal-input autocomplete="off" spellcheck="false" placeholder="help" aria-label="Terminal command" />
   </form>
 </dialog>
 
@@ -65,7 +58,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
     status: ["platform    healthy", "projects    6 public repositories", "location    Zagreb, Croatia", "availability open to useful conversations"],
   };
 
-  const appendLine = (text: string, className = "text-paper/75") => {
+  const appendLine = (text: string, className = "text-muted") => {
     const output = document.querySelector("[data-terminal-output]");
     const paragraph = document.createElement("p");
     paragraph.className = className;
@@ -85,27 +78,27 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
     if (terminal instanceof HTMLDialogElement) terminal.close();
   };
 
-  document.addEventListener("click", (event) => {
+  window.addEventListener("click", (event) => {
     if (!(event.target instanceof Element)) return;
     if (event.target.closest("[data-terminal-open]")) openTerminal();
     if (event.target.closest("[data-terminal-close]")) closeTerminal();
     if (event.target.matches("[data-terminal]")) closeTerminal();
   }, listenerOptions);
-  document.addEventListener("keydown", (event) => {
+  window.addEventListener("keydown", (event) => {
     if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
       event.preventDefault();
       openTerminal();
     }
   }, listenerOptions);
 
-  document.addEventListener("submit", (event) => {
+  window.addEventListener("submit", (event) => {
     if (!(event.target instanceof HTMLFormElement) || !event.target.matches("[data-terminal-form]")) return;
     event.preventDefault();
     const input = document.querySelector("[data-terminal-input]");
     const output = document.querySelector("[data-terminal-output]");
     if (!(input instanceof HTMLInputElement)) return;
     const command = input.value.trim().toLowerCase();
-    appendLine(`karlo@platform:~$ ${command}`, "mt-4 text-signal");
+    appendLine(`karlo@platform:~$ ${command}`, "mt-4 text-accent");
     input.value = "";
 
     if (!command) return;
