@@ -1,0 +1,24 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import SiteFooter from "../components/SiteFooter.astro";
+import SiteHeader from "../components/SiteHeader.astro";
+---
+
+<BaseLayout
+  title="Contact | Karlo Jagar"
+  description="Connect with Karlo Jagar about platform engineering, cloud infrastructure, observability, and developer tooling."
+>
+  <SiteHeader />
+  <main id="main-content" class="contact-page">
+    <section class="contact-hero">
+      <p class="section-label">Contact</p>
+      <h1>Get in touch</h1>
+      <p>I am interested in platform engineering, cloud infrastructure, observability, and developer tooling. The best places to reach me are LinkedIn and GitHub.</p>
+      <div class="contact-links">
+        <a href="https://www.linkedin.com/in/karlojagar/" target="_blank" rel="noreferrer"><span>01</span><strong>LinkedIn</strong><small>Professional contact ↗</small></a>
+        <a href="https://github.com/jagarkarlo" target="_blank" rel="noreferrer"><span>02</span><strong>GitHub</strong><small>Public work ↗</small></a>
+      </div>
+    </section>
+  </main>
+  <SiteFooter />
+</BaseLayout>
