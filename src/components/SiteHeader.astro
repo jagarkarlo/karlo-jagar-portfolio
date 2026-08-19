@@ -14,27 +14,57 @@ const links = [
 const isActive = (href: string) => currentPath === href.replace(/\/$/, "");
 ---
 
-<header class="sticky top-0 z-40 grid min-h-14 grid-cols-[auto_1fr_auto] items-center border-b border-border bg-surface/85 px-4 backdrop-blur-xl sm:px-6 lg:px-10">
-  <a class="w-max font-mono text-sm font-medium no-underline" href={`${base}/`} aria-label="Karlo Jagar, home">KJ<span class="text-accent">/</span></a>
-  <nav class="mx-auto flex self-stretch" aria-label="Main navigation">
-    {links.map((link) => (
-      <a
-        class:list={[
-          "relative grid min-h-14 place-items-center px-2 font-mono text-[9px] uppercase no-underline transition-colors sm:px-4",
-          isActive(link.href) ? "text-foreground after:absolute after:inset-x-2 after:bottom-0 after:h-px after:bg-accent" : "text-muted hover:text-foreground",
-        ]}
-        href={link.href}
-        aria-current={isActive(link.href) ? "page" : undefined}
-      >{link.label}</a>
-    ))}
-  </nav>
-  <div class="flex items-center justify-self-end gap-2">
-    <a class="hidden font-mono text-[9px] uppercase text-muted no-underline transition-colors hover:text-accent lg:block" href="https://github.com/jagarkarlo" target="_blank" rel="noreferrer">
-      GitHub <span aria-hidden="true">↗</span>
-    </a>
-    <button class="grid size-10 place-items-center border border-border bg-surface text-foreground transition-colors hover:border-accent hover:text-accent" type="button" data-terminal-open aria-label="Open operations console" title="Open operations console (Ctrl or Command + K)">
-      <Icon class="size-4" name="kj-terminal" aria-hidden="true" />
-    </button>
-    <ThemeToggle />
-  </div>
-</header>
+<site-header>
+  <header class="pointer-events-none sticky top-0 z-40 h-0" data-site-header>
+    <div class="pointer-events-auto absolute top-3 left-1/2 grid w-[min(44rem,calc(100vw-1.5rem))] -translate-x-1/2 grid-cols-[auto_1fr_auto] items-center rounded-lg border border-border bg-surface/88 p-1 shadow-[0_18px_50px_rgb(0_0_0/.18)] backdrop-blur-xl">
+      <a class="flex h-9 items-center gap-2 px-2 font-mono text-[10px] font-medium no-underline" href={`${base}/`} aria-label="Karlo Jagar, home"><span class="grid size-6 place-items-center bg-foreground text-canvas">&gt;_</span><span class="hidden sm:inline">Karlo Jagar</span></a>
+      <nav class="mx-auto hidden rounded-md border border-border/70 bg-canvas/50 p-0.5 sm:flex" aria-label="Main navigation">
+        {links.map((link) => (
+          <a
+            class:list={[
+              "grid h-8 place-items-center rounded-[5px] px-3 font-mono text-[8px] uppercase no-underline transition-colors",
+              isActive(link.href) ? "bg-foreground text-canvas" : "text-muted hover:text-foreground",
+            ]}
+            href={link.href}
+            aria-current={isActive(link.href) ? "page" : undefined}
+          >{link.label}</a>
+        ))}
+      </nav>
+      <div class="flex items-center justify-self-end gap-1">
+        <a class="grid size-9 place-items-center text-muted no-underline transition-colors hover:text-accent" href="https://github.com/jagarkarlo" target="_blank" rel="noreferrer" aria-label="GitHub" title="GitHub">
+          <Icon class="size-4" name="simple-icons:github" aria-hidden="true" />
+        </a>
+        <button class="grid size-9 place-items-center text-muted transition-colors hover:text-accent" type="button" data-terminal-open aria-label="Open operations console" title="Open operations console (Ctrl or Command + K)">
+          <Icon class="size-4" name="kj-terminal" aria-hidden="true" />
+        </button>
+        <ThemeToggle />
+        <button class="grid size-9 place-items-center text-muted transition-colors hover:text-accent sm:hidden" type="button" data-menu-toggle aria-expanded="false" aria-controls="mobile-navigation" aria-label="Open navigation">
+          <Icon class="size-4" name="lucide:menu" aria-hidden="true" />
+        </button>
+      </div>
+      <nav class="col-span-3 hidden border-t border-border px-1 pt-1 sm:hidden" id="mobile-navigation" data-mobile-navigation aria-label="Mobile navigation">
+        {links.map((link) => (
+          <a class:list={["flex h-10 items-center justify-between border-b border-border px-2 font-mono text-[9px] uppercase no-underline", isActive(link.href) ? "text-accent" : "text-muted"]} href={link.href} aria-current={isActive(link.href) ? "page" : undefined}>{link.label}<span aria-hidden="true">→</span></a>
+        ))}
+      </nav>
+    </div>
+  </header>
+</site-header>
+
+<script>
+  class SiteHeaderElement extends HTMLElement {
+    connectedCallback() {
+      const button = this.querySelector("[data-menu-toggle]");
+      const navigation = this.querySelector("[data-mobile-navigation]");
+      if (!(button instanceof HTMLButtonElement) || !(navigation instanceof HTMLElement)) return;
+      button.addEventListener("click", () => {
+        const open = button.getAttribute("aria-expanded") !== "true";
+        button.setAttribute("aria-expanded", String(open));
+        button.setAttribute("aria-label", open ? "Close navigation" : "Open navigation");
+        navigation.classList.toggle("hidden", !open);
+      });
+    }
+  }
+
+  if (!customElements.get("site-header")) customElements.define("site-header", SiteHeaderElement);
+</script>
