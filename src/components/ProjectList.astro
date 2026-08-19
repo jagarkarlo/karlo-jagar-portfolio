@@ -6,15 +6,6 @@ type Props = {
 };
 
 const { projects } = Astro.props;
-const base = import.meta.env.BASE_URL.replace(/\/$/, "");
-const visualBackgrounds: Record<Project["visual"], string> = {
-  reliability: "bg-[#b6c9d2]",
-  context: "bg-[#c9d7c9]",
-  architecture: "bg-[#cbdff6]",
-  game: "bg-[#1c3038]",
-  security: "bg-[#c9d7c9]",
-  desktop: "bg-raised",
-};
 ---
 
 <project-deck class="project-deck">
@@ -25,21 +16,6 @@ const visualBackgrounds: Record<Project["visual"], string> = {
         <span>{project.number} / {project.category}</span>
         <a href={project.href} target="_blank" rel="noreferrer" aria-label={`Open ${project.title} public repository`}>Repository ↗</a>
       </header>
-      <div class="project-window__visual">
-        <div class:list={["h-full min-h-56 overflow-hidden", visualBackgrounds[project.visual]]} aria-hidden={project.image ? undefined : "true"}>
-          {project.image ? (
-            <img class:list={["h-full w-full", project.visual === "architecture" ? "object-contain p-6" : "object-cover [image-rendering:pixelated]"]} src={`${base}/${project.image}`} alt={project.visual === "game" ? "QuantumQuarry pixel-art game environment" : "Azure Kubernetes traffic-flow architecture diagram"} />
-          ) : project.visual === "reliability" ? (
-            <div class="pulse-visual"><span>service</span><i></i><i></i><i></i><b>recovered</b></div>
-          ) : project.visual === "context" ? (
-            <div class="context-visual"><span>assistant</span><i>GitLab</i><i>Jira</i><i>Docs</i><b>least privilege</b></div>
-          ) : project.visual === "security" ? (
-            <div class="network-visual"><i></i><i></i><i></i><i></i><b>policy / signal / action</b></div>
-          ) : (
-            <div class="monitor-visual"><span>3 services online</span><i></i><i></i><i></i><b>last known state retained</b></div>
-          )}
-        </div>
-      </div>
       <div class="project-window__body">
         <div>
           <p class="font-mono text-[8px] uppercase text-accent">{project.category}</p>
@@ -149,8 +125,7 @@ const visualBackgrounds: Record<Project["visual"], string> = {
   .project-window__lights { display: flex; gap: 0.25rem; }
   .project-window__lights i { background: var(--theme-border); border-radius: 50%; height: 0.35rem; width: 0.35rem; }
   .project-window__lights i:first-child { background: var(--theme-accent); }
-  .project-window__visual { border-bottom: 1px solid var(--theme-border); overflow: hidden; }
-  .project-window__body { display: grid; gap: 1rem; padding: clamp(1.25rem, 3vw, 2rem); }
+  .project-window__body { display: grid; gap: 1.25rem; min-height: 22rem; padding: clamp(1.5rem, 4vw, 3.25rem); }
   .project-window__body h3 { font-size: clamp(1.55rem, 3vw, 2.4rem); font-weight: 600; line-height: 1.05; margin-top: 0.4rem; }
   .project-window__body > p { color: var(--theme-muted); font-size: 0.9rem; line-height: 1.65; max-width: 42rem; }
   .project-window__body > strong { color: var(--theme-accent); font-size: 0.8rem; font-weight: 500; line-height: 1.55; }
@@ -162,7 +137,6 @@ const visualBackgrounds: Record<Project["visual"], string> = {
     .project-window:nth-child(even) { margin-top: 5rem; }
     .project-window:nth-child(4n + 1) { transform: translateZ(1rem) rotateX(var(--window-rx)) rotateY(var(--window-ry)); }
     .project-window:nth-child(4n + 2) { transform: translateZ(-1rem) rotateX(var(--window-rx)) rotateY(var(--window-ry)); }
-    .project-window__visual > div { min-height: 18rem; }
   }
 
   @media (prefers-reduced-motion: reduce) {

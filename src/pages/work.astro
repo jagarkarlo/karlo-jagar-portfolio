@@ -1,7 +1,6 @@
 ---
 import AcademicProjects from "../components/AcademicProjects.astro";
 import BaseLayout from "../layouts/BaseLayout.astro";
-import OperationsTopology from "../components/OperationsTopology.astro";
 import ProjectList from "../components/ProjectList.astro";
 import SiteFooter from "../components/SiteFooter.astro";
 import SiteHeader from "../components/SiteHeader.astro";
@@ -26,13 +25,6 @@ import { profile } from "../data/profile";
       <div class="mx-auto mb-12 grid max-w-[94rem] gap-10 lg:grid-cols-[.7fr_1.3fr] lg:items-end">
         <div><p class="font-mono text-[9px] uppercase text-accent">01 / Public repositories</p><h2 class="mt-4 text-4xl leading-tight font-semibold sm:text-5xl" id="public-work-title">Engineering projects</h2></div>
         <p class="max-w-lg text-sm leading-6 text-muted lg:justify-self-end">Each project links to its public repository, source code, and documentation.</p>
-      </div>
-      <div class="relative mx-auto mb-16 min-h-[28rem] max-w-[94rem] overflow-hidden border border-border bg-canvas">
-        <OperationsTopology />
-        <div class="pointer-events-none absolute inset-x-6 bottom-6 z-10 flex items-end justify-between gap-6 sm:inset-x-10 sm:bottom-9">
-          <div><p class="font-mono text-[8px] uppercase text-accent">Operations topology</p><p class="mt-2 max-w-md text-sm leading-6 text-muted">A labeled view of the platform signals connecting delivery, runtime health, telemetry, and recovery.</p></div>
-          <span class="hidden font-mono text-[8px] uppercase text-muted sm:block">Pointer reactive</span>
-        </div>
       </div>
       <ProjectList projects={projects} />
     </section>

@@ -1,30 +1,5 @@
----
-import { projects } from "../data/projects";
-
-const featured = projects.slice(0, 3);
-const positions = ["deploy", "observe", "context"];
-const depths = ["0.85", "0.55", "1.05"];
----
-
-<hero-scene class="hero-scene">
+<hero-scene class="hero-scene" aria-hidden="true">
   <canvas data-depth-field aria-hidden="true"></canvas>
-  {featured.map((project, index) => (
-    <a
-      class:list={["scene-window", `scene-window--${positions[index]}`]}
-      data-depth={depths[index]}
-      href={project.href}
-      target="_blank"
-      rel="noreferrer"
-      aria-label={`${project.title}, open public repository`}
-    >
-      <header><span></span><span>{project.number} / {project.category}</span><b>open ↗</b></header>
-      <strong>{project.title}</strong>
-      <p>{project.summary}</p>
-      <footer>{project.stack.slice(0, 3).join(" / ")}</footer>
-    </a>
-  ))}
-  <div class="scene-orbit scene-orbit--one" aria-hidden="true"></div>
-  <div class="scene-orbit scene-orbit--two" aria-hidden="true"></div>
 </hero-scene>
 
 <script>
@@ -44,6 +19,12 @@ const depths = ["0.85", "0.55", "1.05"];
       this.controller = new AbortController();
       const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
       const pointer = { x: 0, y: 0, targetX: 0, targetY: 0 };
+      const nodes = Array.from({ length: 42 }, (_, index) => ({
+        x: ((index * 47) % 101) / 100,
+        y: ((index * 67 + 13) % 97) / 96,
+        depth: 0.35 + ((index * 29) % 61) / 100,
+        phase: ((index * 31) % 100) / 100 * Math.PI * 2,
+      }));
       let width = 0;
       let height = 0;
 
@@ -64,7 +45,7 @@ const depths = ["0.85", "0.55", "1.05"];
         const accent = styles.getPropertyValue("--theme-accent").trim();
         const columns = width < 640 ? 9 : 16;
         const rows = width < 640 ? 12 : 15;
-        const horizon = height * 0.46;
+        const horizon = height * 0.52;
         const phase = reducedMotion.matches ? 0 : time * 0.00012;
 
         pointer.x += (pointer.targetX - pointer.x) * 0.06;
@@ -94,27 +75,44 @@ const depths = ["0.85", "0.55", "1.05"];
           context.stroke();
         }
 
-        const points = width < 640 ? 18 : 34;
-        for (let point = 0; point < points; point += 1) {
-          const depth = ((point * 0.618 + phase * (0.25 + point % 4 * 0.08)) % 1 + 1) % 1;
-          const spread = depth * depth;
-          const angle = point * 2.399;
-          const x = width / 2 + Math.cos(angle) * width * spread * 0.7 + shiftX * spread;
-          const y = horizon + Math.sin(angle) * height * spread * 0.34 + depth * height * 0.24 + shiftY * spread;
-          const size = 1 + depth * 2;
-          context.fillStyle = point % 6 === 0 ? accent : foreground;
-          context.globalAlpha = point % 6 === 0 ? 0.8 : 0.3;
-          context.fillRect(x - size / 2, y - size / 2, size, size);
+        const fieldNodes = nodes.map((node) => ({
+          x: node.x * width + pointer.x * node.depth * 32,
+          y: node.y * height + pointer.y * node.depth * 22 + Math.sin(node.phase + phase * 3) * 2,
+          depth: node.depth,
+        }));
+
+        fieldNodes.forEach((node, index) => {
+          fieldNodes.slice(index + 1).forEach((candidate) => {
+            const distance = Math.hypot(node.x - candidate.x, node.y - candidate.y);
+            if (distance > Math.min(width, height) * 0.18) return;
+            context.beginPath();
+            context.moveTo(node.x, node.y);
+            context.lineTo(candidate.x, candidate.y);
+            context.strokeStyle = index % 5 === 0 ? accent : foreground;
+            context.globalAlpha = (1 - distance / (Math.min(width, height) * 0.18)) * 0.16;
+            context.lineWidth = 0.7;
+            context.stroke();
+          });
+
+          context.beginPath();
+          context.arc(node.x, node.y, index % 9 === 0 ? 2.1 : 1.1, 0, Math.PI * 2);
+          context.fillStyle = index % 9 === 0 ? accent : foreground;
+          context.globalAlpha = index % 9 === 0 ? 0.72 : 0.28;
+          context.fill();
+        });
+
+        const core = { x: width / 2 + shiftX * 0.12, y: height * 0.34 + shiftY * 0.12 };
+        for (let ring = 0; ring < 4; ring += 1) {
+          const pulse = reducedMotion.matches ? ring / 4 : (phase * 0.45 + ring / 4) % 1;
+          context.beginPath();
+          context.ellipse(core.x, core.y, 28 + pulse * Math.min(width, height) * 0.31, 18 + pulse * Math.min(width, height) * 0.17, pointer.x * 0.35, 0, Math.PI * 2);
+          context.strokeStyle = ring === 1 ? accent : foreground;
+          context.globalAlpha = (1 - pulse) * 0.11;
+          context.lineWidth = 0.8;
+          context.stroke();
         }
 
         context.globalAlpha = 1;
-        this.querySelectorAll<HTMLElement>("[data-depth]").forEach((panel) => {
-          const depth = Number(panel.dataset.depth ?? 1);
-          panel.style.setProperty("--scene-x", `${pointer.x * depth * 16}px`);
-          panel.style.setProperty("--scene-y", `${pointer.y * depth * 10}px`);
-          panel.style.setProperty("--scene-rx", `${pointer.y * depth * -3}deg`);
-          panel.style.setProperty("--scene-ry", `${pointer.x * depth * 4}deg`);
-        });
 
         if (!reducedMotion.matches && this.visible) this.frame = requestAnimationFrame(draw);
       };
@@ -165,13 +163,11 @@ const depths = ["0.85", "0.55", "1.05"];
   .hero-scene {
     inset: 0;
     overflow: hidden;
-    perspective: 900px;
-    pointer-events: auto;
     position: absolute;
   }
 
   .hero-scene::after {
-    background: radial-gradient(circle at center, transparent 0 26%, color-mix(in srgb, var(--theme-canvas) 22%, transparent) 64%, var(--theme-canvas) 100%);
+    background: radial-gradient(circle at 50% 38%, transparent 0 17%, color-mix(in srgb, var(--theme-canvas) 16%, transparent) 48%, var(--theme-canvas) 100%);
     content: "";
     inset: 0;
     pointer-events: none;
@@ -183,50 +179,4 @@ const depths = ["0.85", "0.55", "1.05"];
     width: 100%;
   }
 
-  .scene-window {
-    --scene-rx: 0deg;
-    --scene-ry: 0deg;
-    --scene-x: 0px;
-    --scene-y: 0px;
-    background: color-mix(in srgb, var(--theme-raised) 82%, transparent);
-    border: 1px solid color-mix(in srgb, var(--theme-border) 88%, transparent);
-    box-shadow: 0 24px 70px rgb(0 0 0 / 24%);
-    color: var(--theme-muted);
-    font-family: var(--font-mono);
-    font-size: 0.48rem;
-    padding: 0.75rem;
-    position: absolute;
-    transform: translate3d(var(--scene-x), var(--scene-y), 0) rotateX(var(--scene-rx)) rotateY(var(--scene-ry));
-    transform-style: preserve-3d;
-    transition: border-color 180ms ease;
-    width: clamp(10rem, 17vw, 15rem);
-    z-index: 1;
-  }
-
-  .scene-window { text-decoration: none; }
-  .scene-window:hover { border-color: var(--theme-accent); color: var(--theme-muted); }
-  .scene-window header { align-items: center; display: grid; gap: 0.4rem; grid-template-columns: auto 1fr auto; text-transform: uppercase; }
-  .scene-window header > span:first-child { background: var(--theme-accent); height: 0.35rem; width: 0.35rem; }
-  .scene-window header b { color: var(--theme-accent); font-weight: 400; }
-  .scene-window footer { border-top: 1px solid var(--theme-border); margin-top: 0.75rem; padding-top: 0.55rem; text-transform: uppercase; }
-  .scene-window > strong { color: var(--theme-foreground); display: block; font-family: var(--font-sans); font-size: 0.82rem; font-weight: 500; line-height: 1.2; margin-top: 0.9rem; }
-  .scene-window > p { display: -webkit-box; font-family: var(--font-sans); font-size: 0.62rem; line-height: 1.45; margin: 0.45rem 0 0; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
-  .scene-window--deploy { left: 5%; top: 18%; transform-origin: right center; }
-  .scene-window--observe { right: 5%; top: 15%; }
-  .scene-window--context { bottom: 12%; right: 10%; width: clamp(9rem, 14vw, 12rem); }
-  .scene-orbit { border: 1px solid color-mix(in srgb, var(--theme-foreground) 10%, transparent); border-radius: 50%; position: absolute; }
-  .scene-orbit--one { height: 26rem; left: calc(50% - 13rem); top: calc(48% - 13rem); transform: rotateX(62deg) rotateZ(24deg); width: 26rem; }
-  .scene-orbit--two { height: 34rem; left: calc(50% - 17rem); top: calc(48% - 17rem); transform: rotateX(72deg) rotateZ(-18deg); width: 34rem; }
-
-  @media (max-width: 47.99rem) {
-    .scene-window--deploy { left: -2.5rem; top: 12%; }
-    .scene-window--observe { right: -3.5rem; top: 18%; }
-    .scene-window--context { bottom: 8%; right: -2rem; }
-    .scene-window { opacity: 0.72; }
-    .scene-orbit--two { display: none; }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .scene-window { transform: none; }
-  }
 </style>
