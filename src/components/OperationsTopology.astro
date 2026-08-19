@@ -1,4 +1,4 @@
-<canvas class="pointer-events-none absolute inset-0 size-full opacity-45" data-operations-topology aria-hidden="true"></canvas>
+<canvas class="pointer-events-none absolute inset-0 size-full opacity-65" data-operations-topology aria-hidden="true"></canvas>
 
 <script is:inline data-astro-rerun>
   window.__operationsTopologyController?.abort();
@@ -50,7 +50,11 @@
         pointGroups.push(nodes.map((node) => ({ ...node, px: node.x * width, py: cellTop + node.y * cellHeight })));
       }
 
-      context.strokeStyle = "rgba(169, 199, 178, 0.16)";
+      const styles = getComputedStyle(document.documentElement);
+      const accent = styles.getPropertyValue("--theme-accent").trim();
+      const foreground = styles.getPropertyValue("--theme-foreground").trim();
+      context.strokeStyle = accent;
+      context.globalAlpha = 0.16;
       context.lineWidth = 1;
       pointGroups.forEach((points, groupIndex) => {
         links.forEach(([from, to], index) => {
@@ -64,7 +68,8 @@
           const progress = reducedMotion ? 0.5 : ((time * 0.00004 * (index % 3 + 1)) + index * 0.17 + groupIndex * 0.11) % 1;
           const packetX = start.px + (end.px - start.px) * progress;
           const packetY = start.py + (end.py - start.py) * progress;
-          context.fillStyle = "rgba(169, 199, 178, 0.72)";
+          context.fillStyle = accent;
+          context.globalAlpha = 0.72;
           context.fillRect(packetX - 1.5, packetY - 1.5, 3, 3);
         });
       });
@@ -72,14 +77,18 @@
       pointGroups.flat().forEach((node) => {
           const distance = Math.hypot(pointer.x - node.px, pointer.y - node.py);
           const active = distance < 150;
-          context.fillStyle = active ? "rgba(244, 246, 243, 0.95)" : "rgba(169, 199, 178, 0.68)";
+          context.fillStyle = active ? foreground : accent;
+          context.globalAlpha = active ? 0.95 : 0.68;
           context.beginPath();
           context.arc(node.px, node.py, active ? 4 : 2.5, 0, Math.PI * 2);
           context.fill();
           context.font = "9px IBM Plex Mono, monospace";
-          context.fillStyle = active ? "rgba(244, 246, 243, 0.82)" : "rgba(244, 246, 243, 0.28)";
+            context.fillStyle = foreground;
+            context.globalAlpha = active ? 0.82 : 0.28;
           context.fillText(node.label, node.px + 10, node.py + 4);
       });
+
+          context.globalAlpha = 1;
 
       if (!reducedMotion) frame = requestAnimationFrame(draw);
     };

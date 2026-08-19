@@ -15,18 +15,26 @@ import { profile } from "../data/profile";
 >
   <SiteHeader />
   <main id="main-content">
-    <header class="bg-paper px-6 py-20 sm:px-10 lg:px-[8vw] lg:py-28">
-      <p class="font-mono text-[10px] uppercase text-ink/50">Work</p>
-      <h1 class="my-12 text-6xl leading-[.92] font-semibold tracking-[-0.04em] sm:text-7xl lg:text-8xl">Projects</h1>
-      <p class="ml-auto max-w-3xl text-lg leading-8 text-ink/75 sm:text-xl">Projects across platform operations, AI-assisted developer tooling, cloud delivery, network security, resilient desktop software, and game systems.</p>
-    </header>
-    <section class="relative isolate overflow-hidden bg-ink px-5 py-20 text-paper sm:px-10 lg:px-[6vw] lg:py-24" aria-labelledby="public-work-title">
-      <OperationsTopology />
-      <div class="relative z-10 mx-auto mb-12 flex max-w-[94rem] flex-col items-start justify-between gap-8 sm:flex-row sm:items-end">
-        <div><p class="font-mono text-[10px] uppercase text-signal">01 / Public repositories</p><h2 class="mt-4 text-4xl leading-tight font-semibold tracking-[-0.035em] sm:text-5xl" id="public-work-title">Engineering projects</h2></div>
-        <p class="max-w-sm text-sm leading-6 text-paper/65">Each project links to its public repository, source code, and documentation.</p>
+    <header class="bg-canvas px-6 py-20 sm:px-10 lg:px-[6vw] lg:py-28">
+      <div class="mx-auto max-w-[94rem]">
+        <p class="font-mono text-[9px] uppercase text-accent">Work / Public and academic</p>
+        <h1 class="my-10 text-6xl leading-[.92] font-semibold sm:text-7xl lg:text-8xl">Projects</h1>
+        <p class="ml-auto max-w-3xl text-lg leading-8 text-muted sm:text-xl">Projects across platform operations, AI-assisted developer tooling, cloud delivery, network security, resilient desktop software, and game systems.</p>
       </div>
-      <div class="relative z-10"><ProjectList projects={projects} /></div>
+    </header>
+    <section class="border-y border-border bg-surface px-5 py-20 sm:px-10 lg:px-[6vw] lg:py-24" aria-labelledby="public-work-title">
+      <div class="mx-auto mb-12 grid max-w-[94rem] gap-10 lg:grid-cols-[.7fr_1.3fr] lg:items-end">
+        <div><p class="font-mono text-[9px] uppercase text-accent">01 / Public repositories</p><h2 class="mt-4 text-4xl leading-tight font-semibold sm:text-5xl" id="public-work-title">Engineering projects</h2></div>
+        <p class="max-w-lg text-sm leading-6 text-muted lg:justify-self-end">Each project links to its public repository, source code, and documentation.</p>
+      </div>
+      <div class="relative mx-auto mb-16 min-h-[28rem] max-w-[94rem] overflow-hidden border border-border bg-canvas">
+        <OperationsTopology />
+        <div class="pointer-events-none absolute inset-x-6 bottom-6 z-10 flex items-end justify-between gap-6 sm:inset-x-10 sm:bottom-9">
+          <div><p class="font-mono text-[8px] uppercase text-accent">Operations topology</p><p class="mt-2 max-w-md text-sm leading-6 text-muted">A labeled view of the platform signals connecting delivery, runtime health, telemetry, and recovery.</p></div>
+          <span class="hidden font-mono text-[8px] uppercase text-muted sm:block">Pointer reactive</span>
+        </div>
+      </div>
+      <ProjectList projects={projects} />
     </section>
     <AcademicProjects projects={profile.academicProjects} />
   </main>
