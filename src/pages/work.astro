@@ -1,0 +1,32 @@
+---
+import AcademicProjects from "../components/AcademicProjects.astro";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import ProjectList from "../components/ProjectList.astro";
+import SiteFooter from "../components/SiteFooter.astro";
+import SiteHeader from "../components/SiteHeader.astro";
+import { projects } from "../data/projects";
+import { profile } from "../data/profile";
+---
+
+<BaseLayout
+  title="Work | Karlo Jagar"
+  description="Public platform, cloud, developer tooling, network security, game systems, and academic projects by Karlo Jagar."
+>
+  <SiteHeader />
+  <main id="main-content">
+    <header class="page-hero page-hero--compact">
+      <p class="section-label">Work</p>
+      <h1>Projects</h1>
+      <p class="page-lede">Projects across platform operations, AI-assisted developer tooling, cloud delivery, network security, resilient desktop software, and game systems.</p>
+    </header>
+    <section class="work work-page" aria-labelledby="public-work-title">
+      <div class="section-heading">
+        <div><p class="section-label">01 / Public repositories</p><h2 id="public-work-title">Engineering projects</h2></div>
+        <p class="heading-note">Each project links to its public repository, source code, and documentation.</p>
+      </div>
+      <ProjectList projects={projects} />
+    </section>
+    <AcademicProjects projects={profile.academicProjects} />
+  </main>
+  <SiteFooter />
+</BaseLayout>
