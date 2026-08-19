@@ -1,6 +1,7 @@
 ---
 import AcademicProjects from "../components/AcademicProjects.astro";
 import BaseLayout from "../layouts/BaseLayout.astro";
+import OperationsTopology from "../components/OperationsTopology.astro";
 import ProjectList from "../components/ProjectList.astro";
 import SiteFooter from "../components/SiteFooter.astro";
 import SiteHeader from "../components/SiteHeader.astro";
@@ -19,12 +20,13 @@ import { profile } from "../data/profile";
       <h1 class="my-12 text-6xl leading-[.92] font-semibold tracking-[-0.04em] sm:text-7xl lg:text-8xl">Projects</h1>
       <p class="ml-auto max-w-3xl text-lg leading-8 text-ink/75 sm:text-xl">Projects across platform operations, AI-assisted developer tooling, cloud delivery, network security, resilient desktop software, and game systems.</p>
     </header>
-    <section class="bg-ink px-5 py-20 text-paper sm:px-10 lg:px-[6vw] lg:py-28" aria-labelledby="public-work-title">
-      <div class="mx-auto mb-16 flex max-w-[94rem] flex-col items-start justify-between gap-8 sm:flex-row sm:items-end">
+    <section class="relative isolate overflow-hidden bg-ink px-5 py-20 text-paper sm:px-10 lg:px-[6vw] lg:py-24" aria-labelledby="public-work-title">
+      <OperationsTopology />
+      <div class="relative z-10 mx-auto mb-12 flex max-w-[94rem] flex-col items-start justify-between gap-8 sm:flex-row sm:items-end">
         <div><p class="font-mono text-[10px] uppercase text-signal">01 / Public repositories</p><h2 class="mt-4 text-4xl leading-tight font-semibold tracking-[-0.035em] sm:text-5xl" id="public-work-title">Engineering projects</h2></div>
         <p class="max-w-sm text-sm leading-6 text-paper/65">Each project links to its public repository, source code, and documentation.</p>
       </div>
-      <ProjectList projects={projects} />
+      <div class="relative z-10"><ProjectList projects={projects} /></div>
     </section>
     <AcademicProjects projects={profile.academicProjects} />
   </main>
