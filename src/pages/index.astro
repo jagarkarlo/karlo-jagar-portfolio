@@ -1,208 +1,58 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
-import AcademicProjects from "../components/AcademicProjects.astro";
-import Credentials from "../components/Credentials.astro";
-import ProfileTimeline from "../components/ProfileTimeline.astro";
-import Recognition from "../components/Recognition.astro";
+import ProjectList from "../components/ProjectList.astro";
+import SiteFooter from "../components/SiteFooter.astro";
+import SiteHeader from "../components/SiteHeader.astro";
 import { projects } from "../data/projects";
-import { profile } from "../data/profile";
 
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 const skills = [
-  ["Platform & delivery", "Kubernetes, Docker, GitOps, Argo CD, CI/CD"],
-  ["Infrastructure", "Terraform, Azure, declarative configuration"],
-  ["Observability", "Prometheus, Grafana, Loki, alerting, failure testing"],
-  ["Developer tooling", "TypeScript, Python, .NET, MCP, OAuth 2.0 and OIDC"],
+  ["Platform", "Kubernetes, GitOps, Argo CD"],
+  ["Infrastructure", "Terraform, Azure, Docker"],
+  ["Observability", "Prometheus, Grafana, Loki"],
+  ["Tooling", "TypeScript, Python, .NET, MCP"],
 ];
 ---
 
 <BaseLayout
-  title="Karlo Jagar | Platform Engineer"
-  description="Karlo Jagar builds observable cloud platforms, reliable delivery workflows, and focused AI-assisted developer tools."
+  title="Karlo Jagar | DevOps & Platform Engineer"
+  description="Karlo Jagar builds observable cloud platforms, reliable delivery workflows, and focused developer tools."
 >
-  <header class="site-header">
-    <a class="wordmark" href="#top" aria-label="Karlo Jagar, home">KJ<span>.</span></a>
-    <nav aria-label="Main navigation">
-      <a href="#work">Work</a>
-      <a href="#experience">Experience</a>
-      <a href="#education">Education</a>
-      <a href="#about">About</a>
-    </nav>
-    <button class="command-trigger" type="button" aria-label="Open project navigator" title="Project navigator">
-      <span aria-hidden="true">&gt;_</span>
-    </button>
-  </header>
-
+  <SiteHeader />
   <main id="main-content">
-    <section class="hero" id="top" aria-labelledby="hero-title">
-      <div class="hero-copy">
-        <p class="eyebrow"><span></span> Platform engineering · Zagreb, Croatia</p>
-        <h1 id="hero-title">Karlo<br /><em>Jagar</em></h1>
-        <p class="lede">
-          I build observable platforms, reliable delivery paths, and focused developer tools for
-          systems that need to stay understandable when the easy path stops working.
-        </p>
+    <section class="home-hero" aria-labelledby="hero-title">
+      <div class="home-hero-copy">
+        <p class="eyebrow"><span></span> DevOps & platform engineering · Zagreb</p>
+        <h1 id="hero-title">Karlo Jagar</h1>
+        <p class="lede">DevOps engineer working with cloud infrastructure, Kubernetes, observability, and developer tooling.</p>
         <div class="hero-actions">
-          <a class="button primary" href="#work">Explore selected work <span aria-hidden="true">↓</span></a>
-          <a class="button text" href="https://github.com/jagarkarlo" target="_blank" rel="noreferrer">GitHub <span aria-hidden="true">↗</span></a>
+          <a class="button primary" href={`${base}/work/`}>Explore my work <span aria-hidden="true">→</span></a>
+          <a class="button text" href={`${base}/about/`}>About me</a>
         </div>
       </div>
-      <figure class="hero-evidence">
-        <img src={`${base}/images/azure-traffic-flow.png`} alt="Documented traffic flow through an Azure load balancer, Traefik, and Kubernetes services" />
-        <figcaption>
-          <span>Evidence 03 / Azure delivery</span>
-          <strong>Architecture is part of the handover.</strong>
-          <a href="https://github.com/kjagar21/devops-challenge" target="_blank" rel="noreferrer">Inspect the source <span aria-hidden="true">↗</span></a>
-        </figcaption>
-      </figure>
-    </section>
-
-    <aside class="signal-strip" aria-label="Engineering focus">
-      <p>Currently connecting</p>
-      <ul><li>Cloud platforms</li><li>Operational signals</li><li>AI context</li></ul>
-      <p class="signal-status"><span></span> Learning in public</p>
-    </aside>
-
-    <section class="intro" id="about" aria-labelledby="about-title">
-      <p class="section-label">00 / About me</p>
-      <div>
-        <h2 id="about-title">DevOps engineer.<br /><em>Systems student.</em><br />Curious builder.</h2>
-        <div class="intro-copy">
-          <p>{profile.summary}</p>
-          <p>{profile.perspective}</p>
-        </div>
-        <dl class="profile-facts" aria-label="Profile summary">
-          <div><dt>Based in</dt><dd>Zagreb area, Croatia</dd></div>
-          <div><dt>Current role</dt><dd>DevOps Engineer</dd></div>
-          <div><dt>Current study</dt><dd>Business Systems Organization, MSc</dd></div>
-          <div><dt>International</dt><dd>Erasmus+ at FEUP, Porto</dd></div>
+      <div class="home-hero-panel">
+        <p>Current focus</p>
+        <strong>Cloud platforms, delivery automation, and observability</strong>
+        <dl>
+          <div><dt>Role</dt><dd>DevOps Engineer</dd></div>
+          <div><dt>Study</dt><dd>Business Systems Organization, MSc</dd></div>
+          <div><dt>Working with</dt><dd>Cloud · Observability · AI context</dd></div>
         </dl>
       </div>
     </section>
 
-    <ProfileTimeline
-      id="experience"
-      label="01 / Experience"
-      title="From software delivery to platform operations."
-      items={profile.experience}
-    />
-
-    <ProfileTimeline
-      id="education"
-      label="02 / Education"
-      title="Business systems, engineering, and an international perspective."
-      items={profile.education}
-      tone="mist"
-    />
-
-    <section class="work" id="work" aria-labelledby="work-title">
-      <div class="section-heading">
-        <div><p class="section-label">03 / Selected work</p><h2 id="work-title">Real systems.<br /><em>Visible decisions.</em></h2></div>
-        <p class="heading-note">Six public builds across platform operations, developer tooling, networking, and game systems.</p>
-      </div>
-
-      <div class="project-list">
-        {projects.map((project) => (
-          <article class={`project project--${project.visual}`} id={`project-${project.number}`} data-project={project.title.toLowerCase()}>
-            <div class="project-meta"><span>{project.number}</span><p>{project.category}</p></div>
-            <div class="project-copy">
-              <h3>{project.title}</h3>
-              <p>{project.summary}</p>
-              <strong>{project.outcome}</strong>
-              <ul aria-label={`${project.title} technologies`}>{project.stack.map((item) => <li>{item}</li>)}</ul>
-              <a href={project.href} target="_blank" rel="noreferrer">View public repository <span aria-hidden="true">↗</span></a>
-            </div>
-            <div class="project-visual" aria-hidden={project.image ? undefined : "true"}>
-              {project.image ? (
-                <img src={`${base}/${project.image}`} alt={project.visual === "game" ? "QuantumQuarry pixel-art game environment" : "Azure Kubernetes traffic-flow architecture diagram"} />
-              ) : project.visual === "reliability" ? (
-                <div class="pulse-visual"><span>service</span><i></i><i></i><i></i><b>recovered</b></div>
-              ) : project.visual === "context" ? (
-                <div class="context-visual"><span>assistant</span><i>GitLab</i><i>Jira</i><i>Docs</i><b>least privilege</b></div>
-              ) : project.visual === "security" ? (
-                <div class="network-visual"><i></i><i></i><i></i><i></i><b>policy / signal / action</b></div>
-              ) : (
-                <div class="monitor-visual"><span>3 services online</span><i></i><i></i><i></i><b>last known state retained</b></div>
-              )}
-            </div>
-          </article>
-        ))}
-      </div>
-    </section>
-
-    <section class="approach" id="approach" aria-labelledby="approach-title">
-      <div class="approach-heading"><p class="section-label">04 / Approach</p><h2 id="approach-title">One engineering loop,<br />across different systems.</h2></div>
-      <ol class="method-list">
-        <li><span>01</span><strong>Make it reproducible</strong><p>Encode infrastructure, dependencies, and setup so the result can be rebuilt instead of remembered.</p></li>
-        <li><span>02</span><strong>Make it observable</strong><p>Expose useful state and failure signals where operators can act on them.</p></li>
-        <li><span>03</span><strong>Make it testable</strong><p>Turn assumptions into validation, smoke tests, and explicit acceptance checks.</p></li>
-        <li><span>04</span><strong>Make it transferable</strong><p>Document decisions and operating paths so the work can continue beyond its author.</p></li>
-      </ol>
-    </section>
-
-    <section class="capabilities" aria-labelledby="capabilities-title">
-      <div><p class="section-label">05 / Capabilities</p><h2 id="capabilities-title">Tools follow the operating problem.</h2></div>
+    <section class="stack-band" aria-labelledby="stack-title">
+      <div><p class="section-label">Technical stack</p><h2 id="stack-title">Tools I work with</h2></div>
       <dl>{skills.map(([term, detail]) => <div><dt>{term}</dt><dd>{detail}</dd></div>)}</dl>
     </section>
 
-    <AcademicProjects projects={profile.academicProjects} />
-    <Recognition items={profile.recognition} />
-    <Credentials certifications={profile.certifications} languages={profile.languages} />
+    <section class="work home-work" aria-labelledby="selected-work-title">
+      <div class="section-heading">
+        <div><p class="section-label">Selected work</p><h2 id="selected-work-title">Featured projects</h2></div>
+        <a class="section-link" href={`${base}/work/`}>View all work <span aria-hidden="true">→</span></a>
+      </div>
+      <ProjectList projects={projects.slice(0, 2)} />
+    </section>
   </main>
-
-  <footer id="contact">
-    <p class="section-label">09 / Contact</p>
-    <h2>Build clearly.<br /><em>Operate calmly.</em></h2>
-    <p class="footer-intro">I am interested in platform engineering, cloud infrastructure, observability, and developer tooling.</p>
-    <div class="footer-links">
-      <a href="https://github.com/jagarkarlo" target="_blank" rel="noreferrer">GitHub <span aria-hidden="true">↗</span></a>
-      <a href="https://www.linkedin.com/in/karlojagar/" target="_blank" rel="noreferrer">LinkedIn <span aria-hidden="true">↗</span></a>
-    </div>
-    <p class="footer-note">© {new Date().getFullYear()} Karlo Jagar · Built with Astro</p>
-  </footer>
-
-  <dialog class="command-dialog" aria-labelledby="command-title">
-    <form method="dialog" class="command-head"><label id="command-title" for="project-search">Go to a project</label><button aria-label="Close project navigator" title="Close">×</button></form>
-    <input id="project-search" type="search" placeholder="Type a project name…" autocomplete="off" />
-    <div class="command-results">{projects.map((project) => <a href={`#project-${project.number}`} data-command={project.title.toLowerCase()}><span>{project.number}</span>{project.title}<small>{project.category}</small></a>)}</div>
-    <p class="command-empty" hidden>No matching project.</p>
-  </dialog>
-
-  <script>
-    const dialog = document.querySelector<HTMLDialogElement>(".command-dialog");
-    const trigger = document.querySelector<HTMLButtonElement>(".command-trigger");
-    const search = document.querySelector<HTMLInputElement>("#project-search");
-    const links = [...document.querySelectorAll<HTMLAnchorElement>("[data-command]")];
-    const empty = document.querySelector<HTMLElement>(".command-empty");
-    const openDialog = () => { dialog?.showModal(); search?.focus(); };
-
-    trigger?.addEventListener("click", openDialog);
-    dialog?.addEventListener("keydown", (event) => {
-      if (event.key === "Escape") {
-        event.preventDefault();
-        dialog.close();
-      }
-    });
-    document.addEventListener("keydown", (event) => {
-      if (event.key === "Escape" && dialog?.open) {
-        dialog.close();
-        return;
-      }
-      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
-        event.preventDefault();
-        dialog?.open ? dialog.close() : openDialog();
-      }
-    });
-    search?.addEventListener("input", () => {
-      const query = search.value.trim().toLowerCase();
-      let matches = 0;
-      links.forEach((link) => {
-        const visible = link.dataset.command?.includes(query) ?? false;
-        link.hidden = !visible;
-        if (visible) matches += 1;
-      });
-      if (empty) empty.hidden = matches !== 0;
-    });
-    links.forEach((link) => link.addEventListener("click", () => dialog?.close()));
-  </script>
+  <SiteFooter />
 </BaseLayout>
