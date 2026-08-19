@@ -1,0 +1,64 @@
+---
+import { Icon } from "astro-icon/components";
+
+const groups = [
+  {
+    label: "Platform",
+    tools: [
+      { name: "Kubernetes", icon: "simple-icons:kubernetes", href: "https://kubernetes.io/" },
+      { name: "Argo CD", icon: "simple-icons:argo", href: "https://argo-cd.readthedocs.io/" },
+      { name: "Docker", icon: "simple-icons:docker", href: "https://www.docker.com/" },
+    ],
+  },
+  {
+    label: "Cloud & infrastructure",
+    tools: [
+      { name: "Azure", icon: "simple-icons:microsoftazure", href: "https://azure.microsoft.com/" },
+      { name: "Terraform", icon: "simple-icons:terraform", href: "https://www.terraform.io/" },
+      { name: "Linux", icon: "simple-icons:linux", href: "https://www.linux.org/" },
+    ],
+  },
+  {
+    label: "Observability",
+    tools: [
+      { name: "Prometheus", icon: "simple-icons:prometheus", href: "https://prometheus.io/" },
+      { name: "Grafana", icon: "simple-icons:grafana", href: "https://grafana.com/" },
+      { name: "Loki", icon: "simple-icons:grafana", href: "https://grafana.com/oss/loki/" },
+    ],
+  },
+  {
+    label: "Development",
+    tools: [
+      { name: "TypeScript", icon: "simple-icons:typescript", href: "https://www.typescriptlang.org/" },
+      { name: "Python", icon: "simple-icons:python", href: "https://www.python.org/" },
+      { name: "GitLab", icon: "simple-icons:gitlab", href: "https://about.gitlab.com/" },
+    ],
+  },
+];
+---
+
+<section class="border-y border-line bg-paper px-6 py-20 sm:px-10 lg:px-[8vw] lg:py-28" aria-labelledby="stack-title" data-reveal>
+  <div class="grid gap-10 lg:grid-cols-[.55fr_1.45fr] lg:gap-20">
+    <div>
+      <p class="font-mono text-[10px] uppercase text-ink/50">Technical stack</p>
+      <h2 class="mt-4 text-4xl leading-tight font-semibold tracking-[-0.035em] sm:text-5xl" id="stack-title">Tools I use</h2>
+    </div>
+    <div class="grid border-t border-line sm:grid-cols-2">
+      {groups.map((group) => (
+        <section class="border-b border-line py-6 sm:px-6 sm:nth-[odd]:border-r sm:nth-[odd]:pl-0" aria-label={group.label}>
+          <h3 class="mb-5 font-mono text-[9px] uppercase text-ink/50">{group.label}</h3>
+          <ul class="grid list-none gap-3 p-0">
+            {group.tools.map((tool) => (
+              <li>
+                <a class="group flex items-center gap-3 text-sm no-underline" href={tool.href} target="_blank" rel="noreferrer">
+                  <Icon class="size-5 text-steel transition-transform group-hover:scale-110" name={tool.icon} aria-hidden="true" />
+                  <span class="underline-offset-4 group-hover:underline">{tool.name}</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))}
+    </div>
+  </div>
+</section>
