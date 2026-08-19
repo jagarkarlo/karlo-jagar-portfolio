@@ -2,6 +2,13 @@
 @import "tailwindcss";
 
 @theme {
+  --color-canvas: var(--theme-canvas);
+  --color-surface: var(--theme-surface);
+  --color-raised: var(--theme-raised);
+  --color-foreground: var(--theme-foreground);
+  --color-muted: var(--theme-muted);
+  --color-accent: var(--theme-accent);
+  --color-border: var(--theme-border);
   --color-ink: #17232b;
   --color-paper: #f4f6f3;
   --color-mist: #e6ece9;
@@ -10,6 +17,29 @@
   --color-signal: #a9c7b2;
   --font-sans: "Manrope", sans-serif;
   --font-mono: "IBM Plex Mono", monospace;
+}
+
+:root,
+:root[data-theme="dark"] {
+  --theme-canvas: #090d10;
+  --theme-surface: #0d1216;
+  --theme-raised: #131a1f;
+  --theme-foreground: #edf2ef;
+  --theme-muted: #94a09c;
+  --theme-accent: #7dd3b0;
+  --theme-border: #263139;
+  color-scheme: dark;
+}
+
+:root[data-theme="light"] {
+  --theme-canvas: #edf0ec;
+  --theme-surface: #f8faf7;
+  --theme-raised: #ffffff;
+  --theme-foreground: #172027;
+  --theme-muted: #5f6c6a;
+  --theme-accent: #28785f;
+  --theme-border: #c6cfcb;
+  color-scheme: light;
 }
 
 @layer base {
@@ -23,12 +53,12 @@
 
   body {
     margin: 0;
-    background-color: var(--color-mist);
+    background-color: var(--theme-canvas);
     background-image:
-      linear-gradient(rgb(23 35 43 / 4%) 1px, transparent 1px),
-      linear-gradient(90deg, rgb(23 35 43 / 4%) 1px, transparent 1px);
+      linear-gradient(color-mix(in srgb, var(--theme-foreground) 4%, transparent) 1px, transparent 1px),
+      linear-gradient(90deg, color-mix(in srgb, var(--theme-foreground) 4%, transparent) 1px, transparent 1px);
     background-size: 32px 32px;
-    color: var(--color-ink);
+    color: var(--theme-foreground);
     font-family: var(--font-sans);
   }
 
@@ -41,6 +71,18 @@
     display: block;
     max-width: 100%;
   }
+}
+
+.theme-icon-light {
+  display: none;
+}
+
+:root[data-theme="light"] .theme-icon-light {
+  display: block;
+}
+
+:root[data-theme="light"] .theme-icon-dark {
+  display: none;
 }
 
 body:has(dialog[open]) {
