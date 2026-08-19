@@ -14,15 +14,15 @@ import { profile } from "../data/profile";
 >
   <SiteHeader />
   <main id="main-content">
-    <header class="page-hero page-hero--compact">
-      <p class="section-label">Work</p>
-      <h1>Projects</h1>
-      <p class="page-lede">Projects across platform operations, AI-assisted developer tooling, cloud delivery, network security, resilient desktop software, and game systems.</p>
+    <header class="bg-paper px-6 py-20 sm:px-10 lg:px-[8vw] lg:py-28">
+      <p class="font-mono text-[10px] uppercase text-ink/50">Work</p>
+      <h1 class="my-12 text-6xl leading-[.92] font-semibold tracking-[-0.04em] sm:text-7xl lg:text-8xl">Projects</h1>
+      <p class="ml-auto max-w-3xl text-lg leading-8 text-ink/75 sm:text-xl">Projects across platform operations, AI-assisted developer tooling, cloud delivery, network security, resilient desktop software, and game systems.</p>
     </header>
-    <section class="work work-page" aria-labelledby="public-work-title">
-      <div class="section-heading">
-        <div><p class="section-label">01 / Public repositories</p><h2 id="public-work-title">Engineering projects</h2></div>
-        <p class="heading-note">Each project links to its public repository, source code, and documentation.</p>
+    <section class="bg-ink px-5 py-20 text-paper sm:px-10 lg:px-[6vw] lg:py-28" aria-labelledby="public-work-title">
+      <div class="mx-auto mb-16 flex max-w-[94rem] flex-col items-start justify-between gap-8 sm:flex-row sm:items-end">
+        <div><p class="font-mono text-[10px] uppercase text-signal">01 / Public repositories</p><h2 class="mt-4 text-4xl leading-tight font-semibold tracking-[-0.035em] sm:text-5xl" id="public-work-title">Engineering projects</h2></div>
+        <p class="max-w-sm text-sm leading-6 text-paper/65">Each project links to its public repository, source code, and documentation.</p>
       </div>
       <ProjectList projects={projects} />
     </section>
