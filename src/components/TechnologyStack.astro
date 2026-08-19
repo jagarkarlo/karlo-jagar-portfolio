@@ -37,22 +37,23 @@ const groups = [
 ];
 ---
 
-<section class="border-y border-line bg-paper px-6 py-20 sm:px-10 lg:px-[8vw] lg:py-28" aria-labelledby="stack-title" data-reveal>
-  <div class="grid gap-10 lg:grid-cols-[.55fr_1.45fr] lg:gap-20">
+<section class="border-y border-border bg-canvas px-6 py-20 sm:px-10 lg:px-[6vw] lg:py-24" aria-labelledby="stack-title" data-reveal>
+  <div class="mx-auto grid max-w-[94rem] gap-12 lg:grid-cols-[.6fr_1.4fr] lg:gap-20">
     <div>
-      <p class="font-mono text-[10px] uppercase text-ink/50">Technical stack</p>
-      <h2 class="mt-4 text-4xl leading-tight font-semibold tracking-[-0.035em] sm:text-5xl" id="stack-title">Tools I use</h2>
+      <p class="font-mono text-[9px] uppercase text-accent">Technical stack</p>
+      <h2 class="mt-4 text-4xl leading-tight font-semibold sm:text-5xl" id="stack-title">Tools I use</h2>
+      <p class="mt-6 max-w-sm text-sm leading-6 text-muted">The platform, cloud, telemetry, and development tools that recur across my work.</p>
     </div>
-    <div class="grid border-t border-line sm:grid-cols-2">
+    <div class="grid border-t border-border sm:grid-cols-2">
       {groups.map((group) => (
-        <section class="border-b border-line py-6 sm:px-6 sm:nth-[odd]:border-r sm:nth-[odd]:pl-0" aria-label={group.label}>
-          <h3 class="mb-5 font-mono text-[9px] uppercase text-ink/50">{group.label}</h3>
-          <ul class="grid list-none gap-3 p-0">
+        <section class="border-b border-border py-7 sm:px-7 sm:nth-[odd]:border-r sm:nth-[odd]:pl-0" aria-label={group.label}>
+          <h3 class="mb-6 font-mono text-[8px] uppercase text-muted">{group.label}</h3>
+          <ul class="grid list-none gap-4 p-0">
             {group.tools.map((tool) => (
               <li>
-                <a class="group flex items-center gap-3 text-sm no-underline" href={tool.href} target="_blank" rel="noreferrer">
-                  <Icon class="size-5 text-steel transition-transform group-hover:scale-110" name={tool.icon} aria-hidden="true" />
-                  <span class="underline-offset-4 group-hover:underline">{tool.name}</span>
+                <a class="group flex items-center gap-3 text-sm text-muted no-underline transition-colors hover:text-foreground" href={tool.href} target="_blank" rel="noreferrer">
+                  <Icon class="size-4 text-accent" name={tool.icon} aria-hidden="true" />
+                  <span>{tool.name}</span>
                 </a>
               </li>
             ))}
