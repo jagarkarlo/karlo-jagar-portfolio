@@ -50,9 +50,18 @@
     links: [number, number][];
   };
 
+  type Meteor = {
+    phase: number;
+    period: number;
+    spread: number;
+    speed: number;
+    length: number;
+  };
+
   const STAR_COUNT = 170;
   const SATELLITE_COUNT = 26;
   const STATION_LABELS = ["eu-north", "eu-west", "eu-central", "ap-south", "us-east"];
+  const METEOR_COUNT = 7;
 
   // Star positions are the real asterism shapes, normalised into a unit box.
   const CONSTELLATIONS: Constellation[] = [
@@ -194,6 +203,15 @@
       });
 
       const pointer = { x: 0, y: 0, targetX: 0, targetY: 0, canvasX: -9999, canvasY: -9999, active: false };
+      const meteors: Meteor[] = Array.from({ length: METEOR_COUNT }, (_, index) => ({
+        phase: random() * 30,
+        period: 6 + random() * 11,
+        spread: (random() - 0.5) * 1.15,
+        speed: 0.85 + random() * 0.5,
+        length: 120 + random() * 210,
+        // Keeps early meteors from all firing on the first frame.
+        ...(index === 0 ? { phase: 2 } : {}),
+      }));
       let palette: Palette = this.readPalette();
       let width = 0;
       let height = 0;
@@ -329,6 +347,48 @@
           }
         });
         context.textAlign = "start";
+
+        // ---- meteor shower ---------------------------------------------------
+        // Streaks radiate from a single point, the way a real shower does.
+        if (!still) {
+          const radiant = { x: width * 0.76 - pointer.x * 26, y: -height * 0.08 - pointer.y * 16 };
+          const duration = 1.7;
+          meteors.forEach((meteor) => {
+            const elapsed = (seconds + meteor.phase) % meteor.period;
+            if (elapsed > duration) return;
+            const progress = elapsed / duration;
+            const angle = Math.PI * 0.66 + meteor.spread;
+            const direction = { x: Math.cos(angle), y: Math.sin(angle) };
+            const travel = progress * height * 1.5 * meteor.speed;
+            const head = {
+              x: radiant.x + direction.x * travel,
+              y: radiant.y + direction.y * travel,
+            };
+            if (head.y > horizonAt(head.x)) return;
+            const trail = meteor.length * Math.sin(progress * Math.PI);
+            const tail = { x: head.x - direction.x * trail, y: head.y - direction.y * trail };
+            // Meteors keep most of their brightness through the centre, unlike
+            // the persistent network layers.
+            const envelope = Math.sin(progress * Math.PI) ** 0.7 * (0.5 + clarity(head.x, head.y) * 0.5);
+
+            const streak = context.createLinearGradient(tail.x, tail.y, head.x, head.y);
+            streak.addColorStop(0, "transparent");
+            streak.addColorStop(1, palette.accent);
+            context.strokeStyle = streak;
+            context.globalAlpha = envelope;
+            context.lineWidth = 1.8;
+            context.beginPath();
+            context.moveTo(tail.x, tail.y);
+            context.lineTo(head.x, head.y);
+            context.stroke();
+
+            context.beginPath();
+            context.arc(head.x, head.y, 2, 0, Math.PI * 2);
+            context.fillStyle = palette.accent;
+            context.globalAlpha = envelope;
+            context.fill();
+          });
+        }
 
         // ---- atmosphere ------------------------------------------------------
         const glow = context.createLinearGradient(0, horizonY - 190, 0, horizonY + 10);
