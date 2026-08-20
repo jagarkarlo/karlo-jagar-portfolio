@@ -21,6 +21,7 @@
   "dependencies": {
     "@astrojs/rss": "^4.0.19",
     "@types/pdfkit": "^0.17.6",
+    "mermaid": "^11.17.0",
     "pdfkit": "^0.19.1"
   },
   "overrides": {
