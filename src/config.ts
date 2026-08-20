@@ -23,6 +23,8 @@ export const SITE = {
   themeColor: { dark: "#090d10", light: "#edf0ec" },
   socialImage: "/images/azure-traffic-flow.png",
   portrait: "/images/karlo-jagar-portrait.webp",
+  /** Path to a CV file in public/. Leave empty to hide the download link. */
+  cv: "",
   knowsAbout: ["Platform engineering", "Kubernetes", "Observability", "Developer tooling"],
 } as const;
 
@@ -32,7 +34,7 @@ export const NAV: NavItem[] = [
   { label: "Home", href: "/" },
   { label: "About", href: "/about/" },
   { label: "Work", href: "/work/" },
-  { label: "Writing", href: "/writing/" },
+  { label: "Blog", href: "/blog/" },
   { label: "Contact", href: "/contact/" },
 ];
 
