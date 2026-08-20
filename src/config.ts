@@ -24,7 +24,7 @@ export const SITE = {
   socialImage: "/images/azure-traffic-flow.png",
   portrait: "/images/karlo-jagar-portrait.webp",
   /** Path to a CV file in public/. Leave empty to hide the download link. */
-  cv: "",
+  cv: "/CV.pdf",
   knowsAbout: ["Platform engineering", "Kubernetes", "Observability", "Developer tooling"],
 } as const;
 
