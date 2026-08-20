@@ -2,6 +2,7 @@
 import "../styles/global.css";
 import { ClientRouter } from "astro:transitions";
 import Terminal from "../components/Terminal.astro";
+import { SITE, SOCIALS, withBase } from "../config";
 
 interface Props {
   title: string;
@@ -11,36 +12,37 @@ interface Props {
 const { title, description } = Astro.props;
 const canonical = new URL(Astro.url.pathname, Astro.site);
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
-const socialImage = new URL(`${base}/images/azure-traffic-flow.png`, Astro.site);
+const socialImage = new URL(withBase(SITE.socialImage), Astro.site);
 const structuredData = {
   "@context": "https://schema.org",
   "@type": "Person",
-  name: "Karlo Jagar",
+  name: SITE.name,
   url: canonical.toString(),
-  sameAs: ["https://github.com/jagarkarlo", "https://www.linkedin.com/in/karlojagar/"],
-  knowsAbout: ["Platform engineering", "Kubernetes", "Observability", "Developer tooling"],
+  sameAs: SOCIALS.map((social) => social.href),
+  knowsAbout: SITE.knowsAbout,
 };
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang={SITE.locale}>
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width" />
     <meta name="description" content={description} />
-    <meta name="theme-color" content="#090d10" data-theme-color />
-    <script is:inline data-astro-rerun>
+    <meta name="theme-color" content={SITE.themeColor.dark} data-theme-color />
+    <script is:inline data-astro-rerun define:vars={{ themeColor: SITE.themeColor, defaultTheme: SITE.defaultTheme }}>
       (() => {
         const storedTheme = localStorage.getItem("portfolio-theme");
-        const theme = storedTheme === "light" || storedTheme === "dark" ? storedTheme : "dark";
+        const theme = storedTheme === "light" || storedTheme === "dark" ? storedTheme : defaultTheme;
         document.documentElement.dataset.theme = theme;
         document.documentElement.style.colorScheme = theme;
-        document.querySelector("[data-theme-color]")?.setAttribute("content", theme === "dark" ? "#090d10" : "#edf0ec");
+        document.querySelector("[data-theme-color]")?.setAttribute("content", themeColor[theme]);
 
         document.addEventListener("astro:before-swap", (event) => {
-          event.newDocument.documentElement.dataset.theme = document.documentElement.dataset.theme;
+          const active = document.documentElement.dataset.theme;
+          event.newDocument.documentElement.dataset.theme = active;
           event.newDocument.documentElement.style.colorScheme = document.documentElement.style.colorScheme;
-          event.newDocument.querySelector("[data-theme-color]")?.setAttribute("content", document.documentElement.dataset.theme === "dark" ? "#090d10" : "#edf0ec");
+          event.newDocument.querySelector("[data-theme-color]")?.setAttribute("content", themeColor[active]);
         });
       })();
     </script>
