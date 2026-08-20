@@ -4,7 +4,8 @@
   <img src="https://img.shields.io/badge/Astro-BC52EE?style=for-the-badge&logo=astro&logoColor=white" alt="Astro">
   <img src="https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript">
   <img src="https://img.shields.io/badge/Tailwind_CSS-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white" alt="Tailwind CSS">
-  <img src="https://img.shields.io/badge/License-MIT-3FB950?style=for-the-badge" alt="License">
+
+  <img src="https://img.shields.io/badge/License-Source_Available-D29922?style=for-the-badge" alt="License">
 </p>
 
 Personal Astro portfolio for public work in platform engineering, cloud infrastructure, observability, developer tooling, networking, and game systems.
