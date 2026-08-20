@@ -1,5 +1,12 @@
 # Karlo Jagar Portfolio
 
+<p align="center">
+  <img alt="Astro" src="https://img.shields.io/badge/Astro-BC52EE?style=for-the-badge&logo=astro&logoColor=white" />
+  <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white" />
+  <img alt="Tailwind CSS" src="https://img.shields.io/badge/Tailwind CSS-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white" />
+  <img alt="License" src="https://img.shields.io/badge/License-MIT-3FB950?style=for-the-badge" />
+</p>
+
 Personal Astro portfolio for public work in platform engineering, cloud infrastructure, observability, developer tooling, networking, and game systems.
 
 Live at <https://jagarkarlo.github.io/karlo-jagar-portfolio/>.
