@@ -12,7 +12,7 @@ export const SITE = {
     "Karlo Jagar builds observable cloud platforms, reliable delivery workflows, and focused developer tools.",
   tagline:
     "I build observable cloud platforms, reliable delivery workflows, and focused developer tools.",
-  location: "Zagreb",
+  location: "Varaždin",
   discipline: "Platform engineering",
   locale: "en",
   /** Origin only. The subpath belongs in `base`. */
