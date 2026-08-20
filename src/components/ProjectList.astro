@@ -1,8 +1,8 @@
 ---
-import type { Project } from "../data/projects";
+import type { CollectionEntry } from "astro:content";
 
 type Props = {
-  projects: Project[];
+  projects: CollectionEntry<"projects">[];
 };
 
 const { projects } = Astro.props;
@@ -13,18 +13,18 @@ const { projects } = Astro.props;
     <article class="project-window" data-project-window style={`--window-index:${index}`}>
       <header class="project-window__bar">
         <span class="project-window__lights" aria-hidden="true"><i></i><i></i><i></i></span>
-        <span>{project.number} / {project.category}</span>
-        <a href={project.href} target="_blank" rel="noreferrer" aria-label={`Open ${project.title} public repository`}>Repository ↗</a>
+        <span>{String(project.data.order).padStart(2, "0")} / {project.data.category}</span>
+        <a href={project.data.repo} target="_blank" rel="noreferrer" aria-label={`Open ${project.data.title} public repository`}>Repository ↗</a>
       </header>
       <div class="project-window__body">
         <div>
-          <p class="font-mono text-xs uppercase text-accent">{project.category}</p>
-          <h3>{project.title}</h3>
+          <p class="font-mono text-xs uppercase text-accent">{project.data.category}</p>
+          <h3>{project.data.title}</h3>
         </div>
-        <p>{project.summary}</p>
-        <strong>{project.outcome}</strong>
-        <ul aria-label={`${project.title} technologies`}>
-          {project.stack.map((item) => <li>{item}</li>)}
+        <p>{project.data.summary}</p>
+        <strong>{project.data.outcome}</strong>
+        <ul aria-label={`${project.data.title} technologies`}>
+          {project.data.stack.map((item) => <li>{item}</li>)}
         </ul>
       </div>
     </article>
