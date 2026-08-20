@@ -26,10 +26,9 @@ const posts = (await getCollection("blog", ({ data }) => !data.draft)).sort(
     <section class="border-t border-border bg-surface px-6 py-16 sm:px-10 lg:px-[6vw] lg:py-20" aria-labelledby="blog-list-title">
       <h2 class="sr-only" id="blog-list-title">All posts</h2>
       <ol class="mx-auto grid max-w-[94rem] list-none border-t border-border p-0">
-        {posts.map((post, index) => (
+        {posts.map((post) => (
           <li>
-            <a class="group grid gap-2 border-b border-border py-8 no-underline sm:grid-cols-[4rem_1fr_auto] sm:items-baseline sm:gap-6" href={withBase(`/blog/${post.id}/`)}>
-              <span class="font-mono text-xs uppercase text-accent">{String(index + 1).padStart(2, "0")}</span>
+            <a class="group grid gap-2 border-b border-border py-8 no-underline sm:grid-cols-[1fr_auto] sm:items-baseline sm:gap-6" href={withBase(`/blog/${post.id}/`)}>
               <span>
                 <strong class="block text-2xl font-medium transition-colors group-hover:text-accent sm:text-3xl">{post.data.title}</strong>
                 <span class="mt-2 block max-w-2xl text-sm leading-6 text-muted">{post.data.description}</span>
