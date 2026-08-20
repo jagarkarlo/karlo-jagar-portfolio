@@ -9,7 +9,7 @@ stack:
   - Terraform
   - Kubernetes
   - Docker
-repo: https://github.com/kjagar21/devops-challenge
+repo: https://github.com/jagarkarlo/devops-challenge
 featured: true
 ---
 
