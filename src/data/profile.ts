@@ -11,6 +11,7 @@ export type AcademicProject = {
   period: string;
   description: string;
   stack: string[];
+  links?: { label: string; href: string }[];
 };
 
 export const profile = {
@@ -81,6 +82,12 @@ export const profile = {
       description:
         "Team-built interactive 3D firefighting scene with object modelling, animation, shaders, and keyboard interaction.",
       stack: ["JavaScript", "WebCGF", "3D graphics", "Team project"],
+      links: [
+        {
+          label: "Source",
+          href: "https://github.com/jagarkarlo/Faculty-of-Engineering/tree/main/Computer%20Graphics",
+        },
+      ],
     },
     {
       title: "CTRL+ESCAPE: Back to the Start",
@@ -89,6 +96,10 @@ export const profile = {
       description:
         "Augmented-reality game project combining web technologies, Python, and 3D asset work.",
       stack: ["Blender", "HTML", "CSS", "JavaScript", "Python"],
+      links: [
+        { label: "Play", href: "https://ailab-foi.itch.io/prri-ar2024" },
+        { label: "Source", href: "https://github.com/AILab-FOI/PRRI-AR2024" },
+      ],
     },
     {
       title: "Space Conquerors",
