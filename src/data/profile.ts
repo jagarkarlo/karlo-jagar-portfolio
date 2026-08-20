@@ -96,10 +96,6 @@ export const profile = {
       description:
         "Augmented-reality game project combining web technologies, Python, and 3D asset work.",
       stack: ["Blender", "HTML", "CSS", "JavaScript", "Python"],
-      links: [
-        { label: "Play", href: "https://ailab-foi.itch.io/prri-ar2024" },
-        { label: "Source", href: "https://github.com/AILab-FOI/PRRI-AR2024" },
-      ],
     },
     {
       title: "Space Conquerors",
@@ -114,6 +110,12 @@ export const profile = {
       period: "Mar 2024 - Jun 2024",
       description: "Team-designed restaurant application prototype carried into a responsive web interface.",
       stack: ["Figma", "HTML", "CSS", "Bootstrap"],
+      links: [
+        {
+          label: "Source",
+          href: "https://github.com/jagarkarlo/Faculty-of-Organization-and-Informatics/tree/main/Prototype%20of%20the%20international%20cuisine%20restaurant%20application",
+        },
+      ],
     },
     {
       title: "Cleaning service work tracker",
@@ -121,6 +123,12 @@ export const profile = {
       period: "Mar 2023 - Jun 2023",
       description: "Individual Windows Forms application supported by use-case modelling.",
       stack: ["C#", "Windows Forms", "Use cases"],
+      links: [
+        {
+          label: "Source",
+          href: "https://github.com/jagarkarlo/Faculty-of-Organization-and-Informatics/tree/main/Software%20Engineering",
+        },
+      ],
     },
     {
       title: "Children's sports activity finder",
