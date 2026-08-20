@@ -6,6 +6,7 @@ import Recognition from "../components/Recognition.astro";
 import SiteFooter from "../components/SiteFooter.astro";
 import SiteHeader from "../components/SiteHeader.astro";
 import { profile } from "../data/profile";
+import { SITE, withBase } from "../config";
 ---
 
 <BaseLayout
@@ -27,12 +28,19 @@ import { profile } from "../data/profile";
           <div class="border-t border-border py-4 sm:pr-6"><dt class="font-mono text-xs uppercase text-muted">Current study</dt><dd class="m-0 mt-2 text-sm">Business Systems Organization, MSc</dd></div>
           <div class="border-t border-border py-4 sm:pl-6"><dt class="font-mono text-xs uppercase text-muted">International</dt><dd class="m-0 mt-2 text-sm">Erasmus+ at FEUP, Porto</dd></div>
         </dl>
+        {SITE.cv && (
+          <p class="ml-auto mt-10 max-w-5xl">
+            <a class="inline-flex items-center gap-3 border border-border bg-surface px-5 py-3 font-mono text-xs uppercase text-foreground no-underline transition-colors hover:border-accent hover:text-accent" href={withBase(SITE.cv)} download>
+              Download CV <span aria-hidden="true">↓</span>
+            </a>
+          </p>
+        )}
       </div>
     </header>
     <ProfileTimeline id="experience" label="01" title="Experience" items={profile.experience} />
     <ProfileTimeline id="education" label="02" title="Education" items={profile.education} tone="mist" />
-    <Recognition items={profile.recognition} />
-    <Credentials certifications={profile.certifications} languages={profile.languages} />
+    <Recognition items={profile.recognition} index="03" />
+    <Credentials certifications={profile.certifications} languages={profile.languages} index="04" />
   </main>
   <SiteFooter />
 </BaseLayout>
