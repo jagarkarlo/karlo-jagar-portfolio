@@ -93,8 +93,32 @@ const { projects } = Astro.props;
     transition: border-color 180ms ease, box-shadow 180ms ease, transform 160ms ease-out;
   }
 
+  .project-window::before {
+    background: linear-gradient(
+      90deg,
+      var(--theme-accent),
+      var(--theme-cyan),
+      var(--theme-violet),
+      var(--theme-amber)
+    );
+    content: "";
+    height: 1px;
+    inset-inline: 0;
+    opacity: 0.35;
+    pointer-events: none;
+    position: absolute;
+    top: 0;
+    transition: opacity 220ms ease;
+    z-index: 2;
+  }
+
   .project-window::after {
-    background: radial-gradient(circle at var(--window-glow-x) var(--window-glow-y), color-mix(in srgb, var(--theme-accent) 11%, transparent), transparent 34%);
+    background: radial-gradient(
+      circle at var(--window-glow-x) var(--window-glow-y),
+      color-mix(in srgb, var(--theme-cyan) 14%, transparent),
+      color-mix(in srgb, var(--theme-violet) 7%, transparent) 24%,
+      transparent 46%
+    );
     content: "";
     inset: 0;
     pointer-events: none;
@@ -102,8 +126,14 @@ const { projects } = Astro.props;
   }
 
   .project-window:hover {
-    border-color: color-mix(in srgb, var(--theme-accent) 70%, var(--theme-border));
-    box-shadow: 0 2.5rem 6rem rgb(0 0 0 / 24%);
+    border-color: color-mix(in srgb, var(--theme-cyan) 65%, var(--theme-border));
+    box-shadow:
+      0 2.5rem 6rem rgb(0 0 0 / 28%),
+      0 0 2.5rem -0.75rem color-mix(in srgb, var(--theme-cyan) 22%, transparent);
+  }
+
+  .project-window:hover::before {
+    opacity: 1;
   }
 
   .project-window__bar {
@@ -123,9 +153,11 @@ const { projects } = Astro.props;
 
   .project-window__bar a { color: var(--theme-muted); position: relative; text-decoration: none; z-index: 1; }
   .project-window__bar a:hover { color: var(--theme-accent); }
-  .project-window__lights { display: flex; gap: 0.25rem; }
-  .project-window__lights i { background: var(--theme-border); border-radius: 50%; height: 0.35rem; width: 0.35rem; }
-  .project-window__lights i:first-child { background: var(--theme-accent); }
+  .project-window__lights { display: flex; gap: 0.3rem; }
+  .project-window__lights i { background: var(--theme-border); border-radius: 50%; height: 0.38rem; width: 0.38rem; }
+  .project-window__lights i:nth-child(1) { background: var(--theme-accent); }
+  .project-window__lights i:nth-child(2) { background: var(--theme-cyan); }
+  .project-window__lights i:nth-child(3) { background: var(--theme-violet); }
   .project-window__body { display: grid; gap: 1.25rem; min-height: 22rem; padding: clamp(1.5rem, 4vw, 3.25rem); }
   .project-window__body h3 { font-size: clamp(1.55rem, 3vw, 2.4rem); font-weight: 600; line-height: 1.05; margin-top: 0.4rem; }
   .project-window__body > p { color: var(--theme-muted); font-size: 0.9rem; line-height: 1.65; max-width: 42rem; }

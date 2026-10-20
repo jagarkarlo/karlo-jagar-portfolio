@@ -16,7 +16,7 @@ const { projects } = Astro.props;
   </div>
   <div class="grid sm:grid-cols-2">
     {projects.map((project, index) => (
-      <article class="border-t border-border py-7 sm:min-h-80 sm:pr-7 sm:nth-[even]:border-l sm:nth-[even]:pl-7 sm:nth-[even]:pr-0">
+      <article class="astra-card border-t border-border py-7 sm:min-h-80 sm:pr-7 sm:nth-[even]:border-l sm:nth-[even]:pl-7 sm:nth-[even]:pr-0">
         <div class="flex justify-between font-mono text-xs uppercase text-muted">
           <span>{String(index + 1).padStart(2, "0")}</span><time>{project.period}</time>
         </div>
