@@ -233,11 +233,12 @@
   -webkit-box-decoration-break: clone;
   box-decoration-break: clone;
   color: transparent;
-  display: inline-block;
+  display: block;
   line-height: 1.14;
   margin-bottom: -0.14em;
   padding-bottom: 0.16em;
   padding-top: 0.04em;
+  width: fit-content;
 }
 
 .cosmos-card {
