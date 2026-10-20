@@ -132,25 +132,40 @@
     ];
   };
 
-  // Formation 3: Fibonacci Geodesic Orbital Sphere + Equatorial Ring
-  const sampleOrbitalSphere = (index: number, total: number, across: number, depth: number): [number, number, number] => {
-    const ringCut = Math.floor(total * 0.76);
-    if (index < ringCut) {
-        const phi = Math.acos(1 - (2 * (index + 0.5)) / ringCut);
-        const theta = Math.PI * (1 + Math.sqrt(5)) * index;
-        const r = 0.78 + depth * 0.06;
-        return [
-          r * Math.sin(phi) * Math.cos(theta),
-          r * Math.cos(phi),
-          r * Math.sin(phi) * Math.sin(theta),
-        ];
+  // Secret Formation: 3D "KJ" Monolith Emblem + Tilted Planetary Ring
+  const sampleKJMonolith = (u: number, across: number, depth: number): [number, number, number] => {
+    // 7 strokes: K vertical(0), K upper-diag(1), K lower-diag(2), J top-bar(3), J stem(4), J hook(5), Planetary Ring(6)
+    if (u < 0.72) {
+        const sub = u / 0.72;
+        const seg = Math.min(5, Math.floor(sub * 6));
+        const t = sub * 6 - seg;
+        const spreadX = across * 0.038;
+        const spreadY = across * 0.038;
+        const z = depth * 0.09 + Math.sin(t * Math.PI) * 0.04;
+        switch (seg) {
+          case 0: // K vertical spine
+            return [-0.54 + spreadX, lerp(-0.48, 0.48, t), z];
+          case 1: // K upper diagonal
+            return [lerp(-0.52, -0.12, t) + spreadX, lerp(0.02, -0.48, t) + spreadY, z];
+          case 2: // K lower diagonal
+            return [lerp(-0.46, -0.1, t) + spreadX, lerp(-0.04, 0.48, t) + spreadY, z];
+          case 3: // J top bar
+            return [lerp(0.14, 0.56, t), -0.48 + spreadY, z];
+          case 4: // J vertical stem
+            return [0.42 + spreadX, lerp(-0.48, 0.28, t), z];
+          default: { // J bottom curved hook
+            const a = lerp(0, Math.PI, t);
+            return [0.27 + Math.cos(a) * 0.15 + spreadX, 0.28 + Math.sin(a) * 0.2 + spreadY, z];
+          }
+        }
     }
-    const sub = (index - ringCut) / Math.max(1, total - ringCut);
+    // Outer tilted Saturn ring framing the 3D KJ monolith
+    const sub = (u - 0.72) / 0.28;
     const angle = sub * Math.PI * 2;
-    const r = 1.08 + across * 0.08;
+    const r = 1.06 + across * 0.07;
     return [
         Math.cos(angle) * r,
-        Math.sin(angle * 2) * 0.08 + depth * 0.04,
+        Math.sin(angle) * 0.28 + depth * 0.04,
         Math.sin(angle) * r,
     ];
   };
@@ -186,16 +201,48 @@
         let dragLastY = 0;
         let dragDistance = 0;
 
-        // Easter Egg: Gravitational Singularity & Supernova State
-        const singularity = {
-          charge: 0,           // 0..1 gravitational well strength
-          captured: false,     // true when cursor is trapped inside the Event Horizon
-          cursorX: 0,          // simulated trapped cursor X
-          cursorY: 0,          // simulated trapped cursor Y
-          orbitAngle: 0,       // swirling angle of trapped cursor
-          escapeEnergy: 0,     // accumulated mouse velocity trying to break free
-          supernovaTime: -99,  // timestamp of last supernova eruption
-          cooldownUntil: 0,    // brief immunity after escaping so user isn't re-trapped immediately
+        // Easter Egg State:
+        // 1) Press-and-hold 3D Wormhole Hyperspace Flight (`wormholeSpeed`, `wormholeZ`)
+        // 2) Mouse Swirl Gesture ("Spin the Galaxy" by drawing a circle in the air)
+        // 3) Secret 3D "KJ" Monolith formation (`kjActiveUntil`)
+        const cosmosState = {
+          holdingCore: false,
+          wormholeSpeed: 0,      // 0..1 smooth hyperspace warp intensity
+          wormholeTravel: 0,     // accumulated Z travel along the 3D tunnel
+          swirlAccumulator: 0,   // accumulated angular gesture from circular mouse motion
+          swirlBoost: 0,         // extra angular spin velocity when user draws a circle
+          lastAngleToCenter: 0,
+          kjActiveUntil: 0,      // timestamp until which 3D KJ Monolith stays formed
+          supernovaTime: -99,
+        };
+
+        // Zero-dependency WebAudio Space Harmonic Synth (triggered only after user gesture)
+        let audioCtx: AudioContext | null = null;
+        const playCosmicChord = (freqs: number[], duration = 1.4) => {
+          try {
+            const Ctx = window.AudioContext || (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+            if (!Ctx) return;
+            if (!audioCtx) audioCtx = new Ctx();
+            if (audioCtx.state === "suspended") void audioCtx.resume();
+            const now = audioCtx.currentTime;
+            freqs.forEach((f, idx) => {
+              if (!audioCtx) return;
+              const osc = audioCtx.createOscillator();
+              const gain = audioCtx.createGain();
+              osc.type = idx % 2 === 0 ? "sine" : "triangle";
+              osc.frequency.setValueAtTime(f, now);
+              osc.frequency.exponentialRampToValueAtTime(f * 1.015, now + duration);
+              gain.gain.setValueAtTime(0.0001, now);
+              gain.gain.linearRampToValueAtTime(0.032 / freqs.length, now + 0.06);
+              gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+              osc.connect(gain);
+              gain.connect(audioCtx.destination);
+              osc.start(now);
+              osc.stop(now + duration + 0.05);
+            });
+          } catch {
+            // Ignore audio errors if blocked by browser autoplay policy
+          }
         };
 
         // Mode override: "auto" follows scroll, or locked to "spiral" | "helm" | "knot" | "sphere"
@@ -247,7 +294,7 @@
 
           const [k8sX, k8sY, k8sZ] = sampleK8sHelm(u, across * 0.65, depth * 0.65);
           const [knotX, knotY, knotZ] = sampleTrefoilKnot(u, across * 0.65, depth * 0.65);
-          const [sphereX, sphereY, sphereZ] = sampleOrbitalSphere(i, count, across * 0.5, depth * 0.5);
+          const [sphereX, sphereY, sphereZ] = sampleKJMonolith(u, across * 0.65, depth * 0.65);
 
           return {
             arm,
@@ -389,25 +436,17 @@
         };
 
         const eruptSupernova = (cx: number, cy: number, nowSec: number) => {
-          singularity.captured = false;
-          singularity.charge = 0;
-          singularity.escapeEnergy = 0;
-          singularity.supernovaTime = nowSec;
-          singularity.cooldownUntil = nowSec + 2.8;
-          document.body.classList.remove("singularity-captured");
-          document.documentElement.style.setProperty("--singularity-charge", "0");
-          document.documentElement.style.setProperty("--singularity-pull-x", "0px");
-          document.documentElement.style.setProperty("--singularity-pull-y", "0px");
+          cosmosState.holdingCore = false;
+          cosmosState.supernovaTime = nowSec;
+          playCosmicChord([220, 329.63, 440, 659.25], 1.8);
 
-          // Triple chromatic shockwave burst
           triggerShockwave(cx, cy);
           setTimeout(() => triggerShockwave(cx, cy), 90);
           setTimeout(() => triggerShockwave(cx, cy), 190);
 
-          // Radial relativistic blast across all 3D particles
           particles.forEach((p, idx) => {
             const angle = (idx / particles.length) * Math.PI * 24 + p.phase;
-            const speed = 14 + (idx % 7) * 4.5;
+            const speed = 13 + (idx % 7) * 4.2;
             p.vx += Math.cos(angle) * speed;
             p.vy += Math.sin(angle) * speed;
           });
@@ -433,7 +472,9 @@
           let targetKnot = 0;
           let targetSphere = 0;
 
-          if (lockedMode === "auto") {
+          if (seconds < cosmosState.kjActiveUntil) {
+            targetSphere = 1;
+          } else if (lockedMode === "auto") {
             targetHelm = smoothstep(0.14, 0.36, smoothedScroll) * (1 - smoothstep(0.54, 0.74, smoothedScroll));
             targetKnot = smoothstep(0.54, 0.78, smoothedScroll);
             targetSpiral = Math.max(0, 1 - targetHelm - targetKnot);
@@ -473,68 +514,25 @@
 
           const scale = Math.min(width, height) * (width < 640 ? 0.44 : 0.47);
           const centerShiftX =
-            lockedMode === "auto" && width >= 1024 ? Math.sin(smoothedScroll * Math.PI) * width * 0.14 : 0;
+            lockedMode === "auto" && seconds >= cosmosState.kjActiveUntil && width >= 1024
+              ? Math.sin(smoothedScroll * Math.PI) * width * 0.14
+              : 0;
           const cx = width * 0.5 + centerShiftX;
           const cy = height * 0.5;
           const fov = 3.2;
 
-          // ---- Easter Egg: Event Horizon Gravity Well & Cursor Capture ---------
-          if (!still && pointer.active && smoothedScroll < 0.25 && seconds > singularity.cooldownUntil) {
-            const distToCore = Math.hypot(pointer.x - cx, pointer.y - cy);
-            const horizonRadius = singularity.captured ? 235 : 108;
-
-            if (distToCore < horizonRadius) {
-              singularity.charge = clamp(singularity.charge + 0.018, 0, 1);
-              if (singularity.charge > 0.36 && !singularity.captured) {
-                singularity.captured = true;
-                singularity.cursorX = pointer.x;
-                singularity.cursorY = pointer.y;
-                singularity.orbitAngle = Math.atan2(pointer.y - cy, pointer.x - cx);
-                document.body.classList.add("singularity-captured");
-              }
-            } else if (!singularity.captured) {
-              singularity.charge = Math.max(0, singularity.charge - 0.025);
-            }
-
-            if (singularity.captured) {
-              const speedMag = Math.hypot(pointer.vx, pointer.vy);
-              singularity.escapeEnergy = clamp(singularity.escapeEnergy * 0.94 + speedMag * 0.022, 0, 1.5);
-              singularity.orbitAngle += 0.09 + singularity.charge * 0.14;
-
-              // Pull trapped cursor inward along a decaying Schwarzschild spiral while user fights it
-              const struggleOffset = Math.min(82, distToCore * 0.32);
-              const targetX =
-                cx +
-                Math.cos(singularity.orbitAngle) * (18 + struggleOffset * 0.45) +
-                (pointer.x - cx) * 0.18;
-              const targetY =
-                cy +
-                Math.sin(singularity.orbitAngle) * (18 + struggleOffset * 0.45) +
-                (pointer.y - cy) * 0.18;
-              singularity.cursorX = lerp(singularity.cursorX, targetX, 0.22);
-              singularity.cursorY = lerp(singularity.cursorY, targetY, 0.22);
-
-              // Erupt into a Supernova if user shakes cursor fast enough or drags far outside
-              if (singularity.escapeEnergy >= 1.05 || distToCore > 310) {
-                eruptSupernova(cx, cy, seconds);
-              }
-            }
-          } else if (singularity.captured || singularity.charge > 0) {
-            singularity.charge = Math.max(0, singularity.charge - 0.04);
-            if (singularity.charge <= 0.01 && singularity.captured) {
-              singularity.captured = false;
-              document.body.classList.remove("singularity-captured");
-            }
+          // ---- Easter Egg 1 & 2: 3D Wormhole Warp + Swirl Vortex Spin ----------
+          const targetWarp = cosmosState.holdingCore ? 1 : 0;
+          cosmosState.wormholeSpeed = lerp(cosmosState.wormholeSpeed, targetWarp, cosmosState.holdingCore ? 0.05 : 0.08);
+          if (cosmosState.wormholeSpeed > 0.005 && !still) {
+            cosmosState.wormholeTravel += 0.045 * cosmosState.wormholeSpeed;
+            userRotY += 0.022 * cosmosState.wormholeSpeed;
           }
-
-          // Apply subtle gravitational tidal pull to the Hero portrait & split letters
-          if (!still) {
-            document.documentElement.style.setProperty("--singularity-charge", singularity.charge.toFixed(3));
-            const pullX = singularity.captured ? ((pointer.x - cx) * 0.06).toFixed(1) : "0";
-            const pullY = singularity.captured ? ((pointer.y - cy) * 0.06).toFixed(1) : "0";
-            document.documentElement.style.setProperty("--singularity-pull-x", `${pullX}px`);
-            document.documentElement.style.setProperty("--singularity-pull-y", `${pullY}px`);
+          if (cosmosState.swirlBoost > 0.001 && !still) {
+            userRotY += cosmosState.swirlBoost;
+            cosmosState.swirlBoost *= 0.96;
           }
+          cosmosState.swirlAccumulator *= 0.94;
 
           // Ambient deep-space core illumination
           const ambientR = scale * 1.38;
@@ -632,33 +630,38 @@
             const rx1 = wx * cosY + wz * sinY;
             const rz1 = -wx * sinY + wz * cosY;
             const ry2 = wy * cosX - rz1 * sinX;
-            const rz2 = wy * sinX + rz1 * cosX;
+            let rz2 = wy * sinX + rz1 * cosX;
 
-            const perspective = fov / Math.max(0.6, fov - rz2);
+            // If 3D Wormhole Hyperspace is active, stream particles along a 3D cylindrical star-tunnel toward the camera
+            const warp = cosmosState.wormholeSpeed;
+            if (warp > 0.01) {
+              const zLoop = (((p.t + cosmosState.wormholeTravel * (0.8 + p.speed * 8)) % 1) * 2.8) - 1.4;
+              rz2 = lerp(rz2, zLoop, warp);
+            }
+
+            const perspective = fov / Math.max(0.45, fov - rz2);
             let sx = cx + rx1 * scale * perspective + p.ox;
             let sy = cy + ry2 * scale * perspective + p.oy;
 
+            // Gravitational Einstein-Ring Lensing & Vortex Swirl around the cursor when holding or swirling
             if (pointer.active && !still) {
-              if (singularity.charge > 0.05) {
-                // Event Horizon vortex: spiral particles inward toward the singularity core
-                const cdx = cx - sx;
-                const cdy = cy - sy;
-                const cDist = Math.hypot(cdx, cdy) || 1;
-                if (cDist < 380) {
-                  const pull = Math.pow(1 - cDist / 380, 1.5) * singularity.charge * 3.4;
-                  // Inward radial pull + tangential frame-dragging swirl
-                  p.vx += (cdx / cDist) * pull + (-cdy / cDist) * pull * 0.85;
-                  p.vy += (cdy / cDist) * pull + (cdx / cDist) * pull * 0.85;
-                }
-              } else {
-                const dx = sx - pointer.x;
-                const dy = sy - pointer.y;
-                const distSq = dx * dx + dy * dy;
-                const repelRadius = pointer.pressed ? 235 : 168;
-                if (distSq < repelRadius * repelRadius && distSq > 1) {
-                  const dist = Math.sqrt(distSq);
-                  const falloff = Math.pow(1 - dist / repelRadius, 2);
-                  const push = (pointer.pressed ? 4.0 : 1.8) * falloff;
+              const dx = sx - pointer.x;
+              const dy = sy - pointer.y;
+              const distSq = dx * dx + dy * dy;
+              const lensRadius = warp > 0.1 ? 290 : 175;
+              if (distSq < lensRadius * lensRadius && distSq > 4) {
+                const dist = Math.sqrt(distSq);
+                const falloff = Math.pow(1 - dist / lensRadius, 2);
+                if (warp > 0.1) {
+                  // Tangential Einstein-ring lensing swirl around the singularity lens
+                  const tangentX = -dy / dist;
+                  const tangentY = dx / dist;
+                  const ringTarget = 95;
+                  const radialCorrection = ((ringTarget - dist) / lensRadius) * 2.8 * warp;
+                  p.vx += (tangentX * 3.4 * warp + (dx / dist) * radialCorrection) * falloff;
+                  p.vy += (tangentY * 3.4 * warp + (dy / dist) * radialCorrection) * falloff;
+                } else {
+                  const push = 1.8 * falloff;
                   p.vx += (dx / dist) * push + pointer.vx * falloff * 0.14;
                   p.vy += (dy / dist) * push + pointer.vy * falloff * 0.14;
                 }
@@ -703,6 +706,20 @@
             const drawRadius = p.size * perspective * (0.75 + (1 - tFlow) * 0.55) * 4.2;
 
             context.globalAlpha = alpha;
+            // During Wormhole Hyperspace, stretch particles into radial light-speed star streaks!
+            if (warp > 0.06) {
+              const dirX = sx - cx;
+              const dirY = sy - cy;
+              const dirLen = Math.hypot(dirX, dirY) || 1;
+              const streakLen = (12 + perspective * 28) * warp;
+              const [cr, cg, cb] = palette.colors[p.colorIndex] ?? palette.colors[0]!;
+              context.strokeStyle = `rgba(${cr}, ${cg}, ${cb}, ${alpha * 0.85})`;
+              context.lineWidth = Math.max(1, p.size * perspective * 0.9);
+              context.beginPath();
+              context.moveTo(sx - (dirX / dirLen) * streakLen, sy - (dirY / dirLen) * streakLen);
+              context.lineTo(sx, sy);
+              context.stroke();
+            }
             context.drawImage(sprite, sx - drawRadius, sy - drawRadius, drawRadius * 2, drawRadius * 2);
 
             if (p.hero) {
@@ -739,78 +756,10 @@
             drawAnamorphicFlare(h.x, h.y, h.intensity, h.color, h.primary);
           });
 
-          // ---- Render Event Horizon Singularity & Trapped Cursor HUD -----------
-          if (singularity.charge > 0.05) {
-            const ch = singularity.charge;
-            context.save();
-            // Glowing photon ring + relativistic accretion halo
-            const photonR = 26 + ch * 44;
-            const accGrad = context.createRadialGradient(cx, cy, photonR * 0.35, cx, cy, photonR * 2.5);
-            accGrad.addColorStop(0, "rgba(0, 0, 0, 0.92)");
-            accGrad.addColorStop(0.28, `rgba(248, 121, 21, ${0.75 * ch})`);
-            accGrad.addColorStop(0.52, `rgba(109, 203, 244, ${0.55 * ch})`);
-            accGrad.addColorStop(1, "rgba(109, 203, 244, 0)");
-            context.fillStyle = accGrad;
-            context.beginPath();
-            context.arc(cx, cy, photonR * 2.5, 0, Math.PI * 2);
-            context.fill();
-
-            // Dark Schwarzschild event-horizon core
-            context.beginPath();
-            context.arc(cx, cy, photonR * 0.42, 0, Math.PI * 2);
-            context.fillStyle = `rgba(3, 5, 8, ${0.88 * ch})`;
-            context.fill();
-            context.strokeStyle = `rgba(255, 255, 255, ${0.85 * ch})`;
-            context.lineWidth = 1.4;
-            context.stroke();
-
-            if (singularity.captured) {
-              // Gravitational tether line from event horizon to trapped cursor probe
-              const tether = context.createLinearGradient(cx, cy, singularity.cursorX, singularity.cursorY);
-              tether.addColorStop(0, "rgba(248, 121, 21, 0.9)");
-              tether.addColorStop(1, "rgba(109, 203, 244, 0.95)");
-              context.strokeStyle = tether;
-              context.lineWidth = 1.5;
-              context.setLineDash([3, 4]);
-              context.beginPath();
-              context.moveTo(cx, cy);
-              context.lineTo(singularity.cursorX, singularity.cursorY);
-              context.stroke();
-              context.setLineDash([]);
-
-              // Custom trapped cursor probe with spaghettification stretch toward core
-              const angleToCore = Math.atan2(cy - singularity.cursorY, cx - singularity.cursorX);
-              context.save();
-              context.translate(singularity.cursorX, singularity.cursorY);
-              context.rotate(angleToCore);
-              context.scale(1.35 + singularity.escapeEnergy * 0.5, 0.78);
-              context.beginPath();
-              context.arc(0, 0, 7, 0, Math.PI * 2);
-              context.fillStyle = "#f5f6fb";
-              context.fill();
-              context.strokeStyle = "#6dcbf4";
-              context.lineWidth = 2;
-              context.stroke();
-              context.restore();
-
-              // Telemetry warning readout
-              context.font = "500 10px 'IBM Plex Mono', ui-monospace, monospace";
-              context.textAlign = "center";
-              context.fillStyle = "rgba(248, 121, 21, 0.92)";
-              const pct = Math.min(100, Math.round((singularity.escapeEnergy / 1.05) * 100));
-              context.fillText(
-                `EVENT HORIZON CAPTURE · SHAKE CURSOR OR CLICK TO ESCAPE [${pct}%]`,
-                cx,
-                cy + photonR * 2.2 + 18,
-              );
-            }
-            context.restore();
-          }
-
           // Supernova white-hot flash decay
-          const novaAge = seconds - singularity.supernovaTime;
+          const novaAge = seconds - cosmosState.supernovaTime;
           if (novaAge >= 0 && novaAge < 1.3) {
-            const flash = Math.pow(1 - novaAge / 1.3, 2.2) * 0.45;
+            const flash = Math.pow(1 - novaAge / 1.3, 2.2) * 0.38;
             context.fillStyle = `rgba(245, 246, 251, ${flash})`;
             context.fillRect(0, 0, width, height);
           }
@@ -855,16 +804,27 @@
         );
 
         window.addEventListener(
-          "cosmos:singularity",
+          "cosmos:wormhole",
           () => {
-            pointer.active = true;
-            pointer.x = width * 0.5;
-            pointer.y = height * 0.5;
-            singularity.charge = 1;
-            singularity.captured = true;
-            singularity.cursorX = width * 0.5 + 24;
-            singularity.cursorY = height * 0.5;
-            document.body.classList.add("singularity-captured");
+            cosmosState.holdingCore = true;
+            playCosmicChord([146.83, 220, 293.66, 440], 2.4);
+            setTimeout(() => {
+              cosmosState.holdingCore = false;
+              eruptSupernova(width * 0.5, height * 0.5, performance.now() / 1000);
+            }, 3200);
+          },
+          { signal },
+        );
+
+        window.addEventListener(
+          "cosmos:kj",
+          () => {
+            const nowSec = performance.now() / 1000;
+            cosmosState.kjActiveUntil = nowSec + 6.5;
+            userRotX = 0.08;
+            userRotY = 0;
+            triggerShockwave(width * 0.5, height * 0.5);
+            playCosmicChord([261.63, 329.63, 392.0, 523.25], 2.0);
           },
           { signal },
         );
@@ -879,6 +839,26 @@
               pointer.vx = clamp(nx - pointer.x, -45, 45);
               pointer.vy = clamp(ny - pointer.y, -45, 45);
             }
+
+            // Detect circular "Swirl Gesture" around the screen center (no click required!)
+            const angleNow = Math.atan2(ny - height * 0.5, nx - width * 0.5);
+            if (pointer.active && !dragging) {
+              let deltaA = angleNow - cosmosState.lastAngleToCenter;
+              if (deltaA > Math.PI) deltaA -= Math.PI * 2;
+              if (deltaA < -Math.PI) deltaA += Math.PI * 2;
+              if (Math.abs(deltaA) < 0.45) {
+                cosmosState.swirlAccumulator += deltaA;
+                if (Math.abs(cosmosState.swirlAccumulator) > Math.PI * 1.65) {
+                  const dir = Math.sign(cosmosState.swirlAccumulator);
+                  cosmosState.swirlBoost = clamp(cosmosState.swirlBoost + dir * 0.09, -0.22, 0.22);
+                  cosmosState.swirlAccumulator = 0;
+                  triggerShockwave(width * 0.5, height * 0.5);
+                  playCosmicChord([329.63, 493.88, 659.25], 1.1);
+                }
+              }
+            }
+            cosmosState.lastAngleToCenter = angleNow;
+
             pointer.prevX = pointer.x;
             pointer.prevY = pointer.y;
             pointer.x = nx;
@@ -911,6 +891,12 @@
               dragging = true;
               dragLastX = event.clientX;
               dragLastY = event.clientY;
+              // Pressing and holding near the core engages 3D Wormhole Hyperspace & Einstein-Ring Lensing
+              const distToCenter = Math.hypot(event.clientX - width * 0.5, event.clientY - height * 0.5);
+              if (distToCenter < 220) {
+                cosmosState.holdingCore = true;
+                playCosmicChord([196.0, 293.66, 392.0], 1.4);
+              }
             }
           },
           { passive: true, signal },
@@ -920,10 +906,12 @@
           "pointerup",
           (event) => {
             const wasQuickClick = dragging && dragDistance < 6;
+            const wasHoldingWormhole = cosmosState.holdingCore && cosmosState.wormholeSpeed > 0.35;
             pointer.pressed = false;
             dragging = false;
-            if (singularity.captured && wasQuickClick) {
-              eruptSupernova(width * 0.5, height * 0.5, performance.now() / 1000);
+            cosmosState.holdingCore = false;
+            if (wasHoldingWormhole && !reducedMotion.matches) {
+              eruptSupernova(event.clientX, event.clientY, performance.now() / 1000);
             } else if (wasQuickClick && !reducedMotion.matches) {
               triggerShockwave(event.clientX, event.clientY);
             }
@@ -937,6 +925,7 @@
             pointer.active = false;
             pointer.pressed = false;
             dragging = false;
+            cosmosState.holdingCore = false;
           },
           { passive: true, signal },
         );

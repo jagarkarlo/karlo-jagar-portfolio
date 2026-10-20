@@ -138,7 +138,7 @@ const consoleData = {
     "help", "man", "ls", "cd", "cat", "pwd", "tree", "open", "search",
     "neofetch", "whoami", "date", "uptime", "history", "echo", "theme", "banner",
     "skills", "status", "contact", "github", "linkedin",
-    "singularity", "supernova", "warp", "clear", "exit",
+    "wormhole", "kj", "supernova", "warp", "clear", "exit",
   ];
 
   const ALIASES: Record<string, string> = {
@@ -153,7 +153,9 @@ const consoleData = {
     projects: "ls work",
     posts: "ls blog",
     profile: "whoami",
-    blackhole: "singularity",
+    singularity: "wormhole",
+    blackhole: "wormhole",
+    monolith: "kj",
     nova: "supernova",
     overdrive: "warp",
   };
@@ -167,7 +169,8 @@ const consoleData = {
     theme: ["theme [dark|light]", "Switch colour scheme. Toggles when no argument is given."],
     tree: ["tree", "Print the whole site as a directory tree."],
     neofetch: ["neofetch", "Print a summary of this site."],
-    singularity: ["singularity", "Easter egg: collapse the 3D core into an Event Horizon gravity well."],
+    wormhole: ["wormhole", "Easter egg: open a 3D relativistic wormhole star-tunnel."],
+    kj: ["kj", "Easter egg: assemble all 4,000 stars into a 3D 'KJ' monolith emblem."],
     supernova: ["supernova", "Easter egg: detonate a relativistic 3D particle supernova."],
     warp: ["warp", "Easter egg: engage 3D hyperdrive overdrive on the active scene."],
   };
@@ -384,7 +387,7 @@ const consoleData = {
             "NAVIGATE   ls  cd  pwd  cat  tree  open  search",
             "INSPECT    neofetch  whoami  skills  status  contact",
             "SHELL      man  history  uptime  echo  date  theme  banner",
-            "COSMOS     singularity  supernova  warp",
+            "COSMOS     wormhole  kj  supernova  warp",
             "LINKS      github  linkedin",
             "CONTROL    clear  exit",
             "",
@@ -625,10 +628,18 @@ const consoleData = {
           ]);
           break;
 
-        case "singularity":
-          this.write("WARNING: Schwarzschild Event Horizon engaged. Shake cursor or click to escape.", "accent");
+        case "wormhole":
+          this.write("Opening 3D relativistic wormhole tunnel…", "accent");
           this.dialog?.close();
-          window.dispatchEvent(new CustomEvent("cosmos:singularity"));
+          window.dispatchEvent(new CustomEvent("cosmos:wormhole"));
+          window.dispatchEvent(new CustomEvent("cosmos:overdrive"));
+          break;
+
+        case "kj":
+          this.write("Assembling 4,000 stars into the 3D KJ Monolith…", "accent");
+          this.dialog?.close();
+          window.dispatchEvent(new CustomEvent("cosmos:kj"));
+          window.dispatchEvent(new CustomEvent("cosmos:overdrive"));
           break;
 
         case "supernova":

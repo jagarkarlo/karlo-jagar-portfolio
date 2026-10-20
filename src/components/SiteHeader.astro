@@ -14,7 +14,7 @@ const isActive = (href: string) => currentPath === href.replace(/\/$/, "");
 <site-header>
   <header class="sticky top-0 z-40 border-b border-border bg-surface/88 backdrop-blur-xl" data-site-header>
     <div class="mx-auto grid min-h-14 w-full max-w-[106rem] grid-cols-[auto_1fr_auto] items-center px-4 sm:px-8 lg:px-[3vw]">
-      <a class="flex h-10 items-center gap-3 font-mono text-xs font-medium no-underline" href={`${base}/`} aria-label={`${SITE.name}, home`}><span class="grid size-8 place-items-center border border-accent text-accent">{SITE.initials}</span><span class="hidden sm:inline">{SITE.name}</span></a>
+      <a class="flex h-10 items-center gap-3 font-mono text-xs font-medium no-underline" href={`${base}/`} aria-label={`${SITE.name}, home`}><span class="grid size-8 place-items-center border border-accent text-accent transition-transform hover:scale-105" data-kj-badge>{SITE.initials}</span><span class="hidden sm:inline">{SITE.name}</span></a>
       <nav class="mx-auto hidden h-full items-stretch sm:flex" aria-label="Main navigation">
         {links.map((link) => (
           <a
@@ -56,12 +56,31 @@ const isActive = (href: string) => currentPath === href.replace(/\/$/, "");
     connectedCallback() {
       const button = this.querySelector("[data-menu-toggle]");
       const navigation = this.querySelector("[data-mobile-navigation]");
-      if (!(button instanceof HTMLButtonElement) || !(navigation instanceof HTMLElement)) return;
-      button.addEventListener("click", () => {
-        const open = button.getAttribute("aria-expanded") !== "true";
-        button.setAttribute("aria-expanded", String(open));
-        button.setAttribute("aria-label", open ? "Close navigation" : "Open navigation");
-        navigation.classList.toggle("hidden", !open);
+      if (button instanceof HTMLButtonElement && navigation instanceof HTMLElement) {
+        button.addEventListener("click", () => {
+          const open = button.getAttribute("aria-expanded") !== "true";
+          button.setAttribute("aria-expanded", String(open));
+          button.setAttribute("aria-label", open ? "Close navigation" : "Open navigation");
+          navigation.classList.toggle("hidden", !open);
+        });
+      }
+
+      // Easter egg: triple-clicking the KJ badge morphs the 3D starfield into the 3D "KJ" Monolith
+      const badge = this.querySelector("[data-kj-badge]");
+      let clicks = 0;
+      let timer = 0;
+      badge?.addEventListener("click", (event) => {
+        clicks += 1;
+        window.clearTimeout(timer);
+        if (clicks >= 3) {
+          event.preventDefault();
+          clicks = 0;
+          window.dispatchEvent(new CustomEvent("cosmos:kj"));
+        } else {
+          timer = window.setTimeout(() => {
+            clicks = 0;
+          }, 600);
+        }
       });
     }
   }
