@@ -10,7 +10,7 @@ type Props = {
 };
 
 const { id, label, title, items, tone = "paper" } = Astro.props;
-const backgrounds = { paper: "bg-canvas/65 backdrop-blur-md", mist: "bg-surface/68 backdrop-blur-md" };
+const backgrounds = { paper: "bg-canvas/80", mist: "bg-surface/84" };
 ---
 
 <section class:list={["grid gap-12 border-t border-border/80 px-6 py-20 sm:px-10 lg:grid-cols-[.8fr_1.2fr] lg:gap-24 lg:px-[6vw] lg:py-24", backgrounds[tone]]} id={id} aria-labelledby={`${id}-title`}>

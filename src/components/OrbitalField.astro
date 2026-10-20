@@ -55,9 +55,9 @@
     color: [number, number, number];
   };
 
-  const PARTICLE_COUNT_DESKTOP = 4000;
-  const PARTICLE_COUNT_MOBILE = 1800;
-  const HERO_KNOTS = [0.12, 0.24, 0.36, 0.48, 0.6, 0.74, 0.86, 0.94];
+  const PARTICLE_COUNT_DESKTOP = 1500;
+  const PARTICLE_COUNT_MOBILE = 800;
+  const HERO_KNOTS = [0.12, 0.28, 0.44, 0.62, 0.78, 0.92];
 
   const clamp = (v: number, min: number, max: number) => Math.min(max, Math.max(min, v));
   const smoothstep = (edge0: number, edge1: number, x: number) => {
@@ -190,6 +190,8 @@
         let width = 0;
         let height = 0;
         let dpr = 1;
+        let docScrollMax = 1;
+        let rawScroll = 0;
         let palette = this.readPalette();
         let introStart: number | null = null;
         let spinX = 0.52;
@@ -200,6 +202,7 @@
         let dragLastX = 0;
         let dragLastY = 0;
         let dragDistance = 0;
+        let pageVisible = document.visibilityState !== "hidden";
 
         // Easter Egg State:
         // 1) Press-and-hold 3D Wormhole Hyperspace Flight (`wormholeSpeed`, `wormholeZ`)
@@ -327,8 +330,8 @@
 
         let sprites: HTMLCanvasElement[] = [];
         const buildSprites = () => {
-          sprites = palette.colors.map(([r, g, b]) => {
-            const size = 64;
+          sprites = palette.colors.map(([r, g, b], idx) => {
+            const size = 28;
             const off = document.createElement("canvas");
             off.width = size;
             off.height = size;
@@ -336,24 +339,39 @@
             if (!ctx) return off;
             const half = size / 2;
             const grad = ctx.createRadialGradient(half, half, 0, half, half, half);
-            grad.addColorStop(0, "rgba(255, 255, 255, 1)");
-            grad.addColorStop(0.16, `rgba(${r}, ${g}, ${b}, 0.95)`);
-            grad.addColorStop(0.42, `rgba(${r}, ${g}, ${b}, 0.34)`);
-            grad.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0)`);
+            if (palette.light) {
+              // Crisp jewel-toned celestial ink nodes for light mode (never muddy white-on-white)
+              const coreAlpha = idx === 0 ? 0.88 : 1;
+              grad.addColorStop(0, `rgba(${r}, ${g}, ${b}, ${coreAlpha})`);
+              grad.addColorStop(0.28, `rgba(${r}, ${g}, ${b}, 0.72)`);
+              grad.addColorStop(0.58, `rgba(${r}, ${g}, ${b}, 0.18)`);
+              grad.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0)`);
+            } else {
+              grad.addColorStop(0, "rgba(255, 255, 255, 1)");
+              grad.addColorStop(0.18, `rgba(${r}, ${g}, ${b}, 0.95)`);
+              grad.addColorStop(0.45, `rgba(${r}, ${g}, ${b}, 0.32)`);
+              grad.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0)`);
+            }
             ctx.fillStyle = grad;
             ctx.fillRect(0, 0, size, size);
             return off;
           });
         };
 
+        const updateScrollMetrics = () => {
+          docScrollMax = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
+          rawScroll = clamp(window.scrollY / docScrollMax, 0, 1);
+        };
+
         const resize = () => {
           const bounds = this.getBoundingClientRect();
-          dpr = Math.min(window.devicePixelRatio || 1, 2);
+          dpr = Math.min(window.devicePixelRatio || 1, 1.35);
           width = Math.max(1, bounds.width);
           height = Math.max(1, bounds.height);
           canvas.width = Math.round(width * dpr);
           canvas.height = Math.round(height * dpr);
           context.setTransform(dpr, 0, 0, dpr, 0, 0);
+          updateScrollMetrics();
         };
 
         buildSprites();
@@ -369,40 +387,42 @@
         ) => {
           if (intensity <= 0.02) return;
           const [r, g, b] = color;
+          const coreColor = palette.light ? `${r}, ${g}, ${b}` : "255, 255, 255";
+          const alphaScale = palette.light ? 0.55 : 1;
           context.save();
           context.globalCompositeOperation = palette.light ? "source-over" : "lighter";
 
-          const haloR = (primary ? 140 : 72) * (0.7 + intensity * 0.45);
+          const haloR = (primary ? 130 : 66) * (0.7 + intensity * 0.4);
           const halo = context.createRadialGradient(fx, fy, 0, fx, fy, haloR);
-          halo.addColorStop(0, `rgba(255, 255, 255, ${0.55 * intensity})`);
-          halo.addColorStop(0.22, `rgba(${r}, ${g}, ${b}, ${0.32 * intensity})`);
+          halo.addColorStop(0, `rgba(${coreColor}, ${0.52 * intensity * alphaScale})`);
+          halo.addColorStop(0.22, `rgba(${r}, ${g}, ${b}, ${0.28 * intensity * alphaScale})`);
           halo.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0)`);
           context.fillStyle = halo;
           context.beginPath();
           context.arc(fx, fy, haloR, 0, Math.PI * 2);
           context.fill();
 
-          const streakW = (primary ? Math.min(width * 0.48, 540) : 200) * (0.65 + intensity * 0.4);
+          const streakW = (primary ? Math.min(width * 0.44, 480) : 180) * (0.65 + intensity * 0.35);
           const hGrad = context.createLinearGradient(fx - streakW, fy, fx + streakW, fy);
           hGrad.addColorStop(0, `rgba(${r}, ${g}, ${b}, 0)`);
-          hGrad.addColorStop(0.38, `rgba(${r}, ${g}, ${b}, ${0.24 * intensity})`);
-          hGrad.addColorStop(0.5, `rgba(255, 255, 255, ${0.78 * intensity})`);
-          hGrad.addColorStop(0.62, `rgba(${r}, ${g}, ${b}, ${0.24 * intensity})`);
+          hGrad.addColorStop(0.38, `rgba(${r}, ${g}, ${b}, ${0.24 * intensity * alphaScale})`);
+          hGrad.addColorStop(0.5, `rgba(${coreColor}, ${0.72 * intensity * alphaScale})`);
+          hGrad.addColorStop(0.62, `rgba(${r}, ${g}, ${b}, ${0.24 * intensity * alphaScale})`);
           hGrad.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0)`);
           context.strokeStyle = hGrad;
-          context.lineWidth = primary ? 1.85 : 1.15;
+          context.lineWidth = primary ? 1.65 : 1.05;
           context.beginPath();
           context.moveTo(fx - streakW, fy);
           context.lineTo(fx + streakW, fy);
           context.stroke();
 
-          const streakH = (primary ? 120 : 54) * (0.65 + intensity * 0.35);
+          const streakH = (primary ? 105 : 48) * (0.65 + intensity * 0.35);
           const vGrad = context.createLinearGradient(fx, fy - streakH, fx, fy + streakH);
           vGrad.addColorStop(0, `rgba(${r}, ${g}, ${b}, 0)`);
-          vGrad.addColorStop(0.5, `rgba(255, 255, 255, ${0.5 * intensity})`);
+          vGrad.addColorStop(0.5, `rgba(${coreColor}, ${0.46 * intensity * alphaScale})`);
           vGrad.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0)`);
           context.strokeStyle = vGrad;
-          context.lineWidth = 1.1;
+          context.lineWidth = 1.0;
           context.beginPath();
           context.moveTo(fx, fy - streakH);
           context.lineTo(fx, fy + streakH);
@@ -463,9 +483,7 @@
           const introEase = smootherstep(0, 1, introProgress);
           const exhalePulse = Math.sin(introEase * Math.PI) * (1 - introEase) * 0.34;
 
-          const docHeight = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
-          const rawScroll = clamp(window.scrollY / docHeight, 0, 1);
-          smoothedScroll = still ? rawScroll : lerp(smoothedScroll, rawScroll, 0.085);
+          smoothedScroll = still ? rawScroll : lerp(smoothedScroll, rawScroll, 0.09);
 
           let targetSpiral = 0;
           let targetHelm = 0;
@@ -703,18 +721,18 @@
             const alpha = clamp(tip * twinkle * depthBoost * (palette.light ? 0.72 : 0.92), 0.08, 1);
 
             const sprite = sprites[p.colorIndex] ?? sprites[0]!;
-            const drawRadius = p.size * perspective * (0.75 + (1 - tFlow) * 0.55) * 4.2;
+            const drawRadius = p.size * perspective * (0.75 + (1 - tFlow) * 0.55) * (palette.light ? 2.8 : 3.4);
 
             context.globalAlpha = alpha;
-            // During Wormhole Hyperspace, stretch particles into radial light-speed star streaks!
-            if (warp > 0.06) {
+            // During Wormhole Hyperspace, stretch every 2nd particle into radial light-speed star streaks
+            if (warp > 0.06 && i % 2 === 0) {
               const dirX = sx - cx;
               const dirY = sy - cy;
               const dirLen = Math.hypot(dirX, dirY) || 1;
-              const streakLen = (12 + perspective * 28) * warp;
+              const streakLen = (12 + perspective * 26) * warp;
               const [cr, cg, cb] = palette.colors[p.colorIndex] ?? palette.colors[0]!;
-              context.strokeStyle = `rgba(${cr}, ${cg}, ${cb}, ${alpha * 0.85})`;
-              context.lineWidth = Math.max(1, p.size * perspective * 0.9);
+              context.strokeStyle = `rgba(${cr}, ${cg}, ${cb}, ${alpha * 0.78})`;
+              context.lineWidth = Math.max(1, p.size * perspective * 0.85);
               context.beginPath();
               context.moveTo(sx - (dirX / dirLen) * streakLen, sy - (dirY / dirLen) * streakLen);
               context.lineTo(sx, sy);
@@ -765,15 +783,35 @@
           }
 
           context.globalAlpha = 1;
-          if (!still) {
+          if (!still && pageVisible) {
             this.frame = requestAnimationFrame(draw);
           }
         };
 
         const restart = () => {
           cancelAnimationFrame(this.frame);
-          this.frame = requestAnimationFrame(draw);
+          if (pageVisible) {
+            this.frame = requestAnimationFrame(draw);
+          }
         };
+
+        window.addEventListener(
+          "scroll",
+          () => {
+            rawScroll = clamp(window.scrollY / docScrollMax, 0, 1);
+          },
+          { passive: true, signal },
+        );
+
+        document.addEventListener(
+          "visibilitychange",
+          () => {
+            pageVisible = document.visibilityState !== "hidden";
+            if (pageVisible) restart();
+            else cancelAnimationFrame(this.frame);
+          },
+          { signal },
+        );
 
         window.addEventListener(
           "cosmos:replay",
@@ -965,12 +1003,12 @@
           light,
           colors: light
             ? [
-                [15, 23, 34],    // deep ink
-                [15, 108, 189],  // cyan
-                [37, 99, 235],   // royal blue
-                [217, 95, 14],   // solar orange
-                [234, 124, 43],  // warm amber
-                [24, 121, 91],   // emerald
+                [30, 58, 138],   // #1E3A8A celestial indigo
+                [11, 107, 203],  // #0B6BCB royal cyan-blue
+                [109, 40, 217],  // #6D28D9 deep violet
+                [217, 95, 14],   // #D95F0E solar amber
+                [234, 88, 12],   // #EA580C warm tangerine
+                [13, 148, 136],  // #0D9488 emerald teal
               ]
             : [
                 [245, 246, 251], // #F5F6FB stellar white

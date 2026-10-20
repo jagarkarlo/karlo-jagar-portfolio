@@ -82,6 +82,9 @@ const { scene = "globe" } = Astro.props;
       let width = 0;
       let height = 0;
       let dpr = 1;
+      let docScrollMax = 1;
+      let rawScroll = 0;
+      let pageVisible = document.visibilityState !== "hidden";
       let light = document.documentElement.dataset.theme === "light";
       let introStart: number | null = null;
 
@@ -127,7 +130,7 @@ const { scene = "globe" } = Astro.props;
       const gauss = () => (rand() + rand() + rand() + rand() - 2) * 0.5;
 
       const isMobile = () => window.innerWidth < 768;
-      const count = isMobile() ? 1400 : 2800;
+      const count = isMobile() ? 650 : 1150;
 
       const pickColor = (r: number) => {
         if (r < 0.46) return 0;
@@ -320,12 +323,12 @@ const { scene = "globe" } = Astro.props;
       const getColors = (): [number, number, number][] =>
         light
           ? [
-              [15, 23, 34],
-              [15, 108, 189],
-              [37, 99, 235],
-              [217, 95, 14],
-              [234, 124, 43],
-              [24, 121, 91],
+              [30, 58, 138],   // #1E3A8A celestial indigo
+              [11, 107, 203],  // #0B6BCB royal cyan-blue
+              [109, 40, 217],  // #6D28D9 deep violet
+              [217, 95, 14],   // #D95F0E solar amber
+              [234, 88, 12],   // #EA580C warm tangerine
+              [13, 148, 136],  // #0D9488 emerald teal
             ]
           : [
               [245, 246, 251],
@@ -338,8 +341,8 @@ const { scene = "globe" } = Astro.props;
 
       let sprites: HTMLCanvasElement[] = [];
       const buildSprites = () => {
-        sprites = getColors().map(([r, g, b]) => {
-          const size = 56;
+        sprites = getColors().map(([r, g, b], idx) => {
+          const size = 28;
           const off = document.createElement("canvas");
           off.width = size;
           off.height = size;
@@ -347,24 +350,38 @@ const { scene = "globe" } = Astro.props;
           if (!ctx) return off;
           const half = size / 2;
           const grad = ctx.createRadialGradient(half, half, 0, half, half, half);
-          grad.addColorStop(0, "rgba(255, 255, 255, 1)");
-          grad.addColorStop(0.16, `rgba(${r}, ${g}, ${b}, 0.94)`);
-          grad.addColorStop(0.42, `rgba(${r}, ${g}, ${b}, 0.34)`);
-          grad.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0)`);
+          if (light) {
+            const coreAlpha = idx === 0 ? 0.88 : 1;
+            grad.addColorStop(0, `rgba(${r}, ${g}, ${b}, ${coreAlpha})`);
+            grad.addColorStop(0.28, `rgba(${r}, ${g}, ${b}, 0.72)`);
+            grad.addColorStop(0.58, `rgba(${r}, ${g}, ${b}, 0.18)`);
+            grad.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0)`);
+          } else {
+            grad.addColorStop(0, "rgba(255, 255, 255, 1)");
+            grad.addColorStop(0.18, `rgba(${r}, ${g}, ${b}, 0.94)`);
+            grad.addColorStop(0.45, `rgba(${r}, ${g}, ${b}, 0.32)`);
+            grad.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0)`);
+          }
           ctx.fillStyle = grad;
           ctx.fillRect(0, 0, size, size);
           return off;
         });
       };
 
+      const updateScrollMetrics = () => {
+        docScrollMax = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
+        rawScroll = clamp(window.scrollY / docScrollMax, 0, 1);
+      };
+
       const resize = () => {
         const bounds = this.getBoundingClientRect();
-        dpr = Math.min(window.devicePixelRatio || 1, 2);
+        dpr = Math.min(window.devicePixelRatio || 1, 1.35);
         width = Math.max(1, bounds.width);
         height = Math.max(1, bounds.height);
         canvas.width = Math.round(width * dpr);
         canvas.height = Math.round(height * dpr);
         context.setTransform(dpr, 0, 0, dpr, 0, 0);
+        updateScrollMetrics();
       };
 
       buildSprites();
@@ -400,40 +417,42 @@ const { scene = "globe" } = Astro.props;
       ) => {
         if (intensity <= 0.02) return;
         const [r, g, b] = color;
+        const coreColor = light ? `${r}, ${g}, ${b}` : "255, 255, 255";
+        const alphaScale = light ? 0.52 : 1;
         context.save();
         context.globalCompositeOperation = light ? "source-over" : "lighter";
 
-        const haloR = (primary ? 125 : 65) * (0.7 + intensity * 0.45);
+        const haloR = (primary ? 120 : 62) * (0.7 + intensity * 0.4);
         const halo = context.createRadialGradient(fx, fy, 0, fx, fy, haloR);
-        halo.addColorStop(0, `rgba(255, 255, 255, ${0.52 * intensity})`);
-        halo.addColorStop(0.22, `rgba(${r}, ${g}, ${b}, ${0.3 * intensity})`);
+        halo.addColorStop(0, `rgba(${coreColor}, ${0.5 * intensity * alphaScale})`);
+        halo.addColorStop(0.22, `rgba(${r}, ${g}, ${b}, ${0.28 * intensity * alphaScale})`);
         halo.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0)`);
         context.fillStyle = halo;
         context.beginPath();
         context.arc(fx, fy, haloR, 0, Math.PI * 2);
         context.fill();
 
-        const streakW = (primary ? Math.min(width * 0.42, 460) : 175) * (0.65 + intensity * 0.4);
+        const streakW = (primary ? Math.min(width * 0.4, 430) : 165) * (0.65 + intensity * 0.35);
         const hGrad = context.createLinearGradient(fx - streakW, fy, fx + streakW, fy);
         hGrad.addColorStop(0, `rgba(${r}, ${g}, ${b}, 0)`);
-        hGrad.addColorStop(0.38, `rgba(${r}, ${g}, ${b}, ${0.22 * intensity})`);
-        hGrad.addColorStop(0.5, `rgba(255, 255, 255, ${0.72 * intensity})`);
-        hGrad.addColorStop(0.62, `rgba(${r}, ${g}, ${b}, ${0.22 * intensity})`);
+        hGrad.addColorStop(0.38, `rgba(${r}, ${g}, ${b}, ${0.22 * intensity * alphaScale})`);
+        hGrad.addColorStop(0.5, `rgba(${coreColor}, ${0.68 * intensity * alphaScale})`);
+        hGrad.addColorStop(0.62, `rgba(${r}, ${g}, ${b}, ${0.22 * intensity * alphaScale})`);
         hGrad.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0)`);
         context.strokeStyle = hGrad;
-        context.lineWidth = primary ? 1.7 : 1.1;
+        context.lineWidth = primary ? 1.6 : 1.05;
         context.beginPath();
         context.moveTo(fx - streakW, fy);
         context.lineTo(fx + streakW, fy);
         context.stroke();
 
-        const streakH = (primary ? 105 : 48) * (0.65 + intensity * 0.35);
+        const streakH = (primary ? 95 : 44) * (0.65 + intensity * 0.35);
         const vGrad = context.createLinearGradient(fx, fy - streakH, fx, fy + streakH);
         vGrad.addColorStop(0, `rgba(${r}, ${g}, ${b}, 0)`);
-        vGrad.addColorStop(0.5, `rgba(255, 255, 255, ${0.46 * intensity})`);
+        vGrad.addColorStop(0.5, `rgba(${coreColor}, ${0.44 * intensity * alphaScale})`);
         vGrad.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0)`);
         context.strokeStyle = vGrad;
-        context.lineWidth = 1.05;
+        context.lineWidth = 1.0;
         context.beginPath();
         context.moveTo(fx, fy - streakH);
         context.lineTo(fx, fy + streakH);
@@ -452,9 +471,7 @@ const { scene = "globe" } = Astro.props;
         const introEase = smootherstep(0, 1, introT);
         const colors = getColors();
 
-        const docHeight = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
-        const rawScroll = clamp(window.scrollY / docHeight, 0, 1);
-        smoothedScroll = still ? rawScroll : lerp(smoothedScroll, rawScroll, 0.08);
+        smoothedScroll = still ? rawScroll : lerp(smoothedScroll, rawScroll, 0.085);
 
         // Accumulate user drag offset on top of gentle ambient rotation (never snaps back)
         const overdriveBoost = seconds < overdriveUntil ? (overdriveUntil - seconds) * 0.9 : 0;
@@ -655,8 +672,8 @@ const { scene = "globe" } = Astro.props;
 
           const twinkle = still ? 0.85 : 0.66 + Math.sin(seconds * 2.4 + p.phase) * 0.34;
           const depthBoost = clamp((rz2 + 1.4) / 2.8, 0.35, 1.25);
-          const alpha = clamp(twinkle * depthBoost * (light ? 0.68 : 0.9), 0.08, 1);
-          const drawR = p.size * persp * 3.9;
+          const alpha = clamp(twinkle * depthBoost * (light ? 0.76 : 0.9), 0.08, 1);
+          const drawR = p.size * persp * (light ? 2.6 : 3.2);
           const sprite = sprites[p.colorIndex] ?? sprites[0]!;
 
           context.globalAlpha = alpha;
@@ -696,15 +713,35 @@ const { scene = "globe" } = Astro.props;
         });
 
         context.globalAlpha = 1;
-        if (!still) {
+        if (!still && pageVisible) {
           this.frame = requestAnimationFrame(draw);
         }
       };
 
       const restart = () => {
         cancelAnimationFrame(this.frame);
-        this.frame = requestAnimationFrame(draw);
+        if (pageVisible) {
+          this.frame = requestAnimationFrame(draw);
+        }
       };
+
+      window.addEventListener(
+        "scroll",
+        () => {
+          rawScroll = clamp(window.scrollY / docScrollMax, 0, 1);
+        },
+        { passive: true, signal },
+      );
+
+      document.addEventListener(
+        "visibilitychange",
+        () => {
+          pageVisible = document.visibilityState !== "hidden";
+          if (pageVisible) restart();
+          else cancelAnimationFrame(this.frame);
+        },
+        { signal },
+      );
 
       window.addEventListener(
         "pointermove",

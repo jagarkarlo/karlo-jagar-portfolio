@@ -38,19 +38,19 @@
 }
 
 :root[data-theme="light"] {
-  --theme-canvas: #eef2f6;
-  --theme-surface: #f7f9fc;
+  --theme-canvas: #f3f5f8;
+  --theme-surface: #ffffff;
   --theme-raised: #ffffff;
-  --theme-foreground: #0f1722;
-  --theme-muted: #526273;
-  --theme-accent: #0f6cbd;
-  --theme-cyan: #2563eb;
+  --theme-foreground: #0b1320;
+  --theme-muted: #4b5b6e;
+  --theme-accent: #0b6bcb;
+  --theme-cyan: #1d4ed8;
   --theme-violet: #6d28d9;
   --theme-amber: #d95f0e;
-  --theme-warm: #ea7c2b;
-  --theme-emerald: #18795b;
+  --theme-warm: #ea580c;
+  --theme-emerald: #0d9488;
   --theme-rose: #be185d;
-  --theme-border: #cbd5e1;
+  --theme-border: #d5dde7;
   color-scheme: light;
 }
 
@@ -151,6 +151,13 @@
   place-items: center;
   position: relative;
   width: clamp(7.75rem, 15vw, 10.5rem);
+}
+
+:root[data-theme="light"] .portrait-stage {
+  box-shadow:
+    0 0 0 0.55rem color-mix(in srgb, var(--theme-canvas) 84%, transparent),
+    0 0 2.75rem -0.5rem color-mix(in srgb, var(--theme-accent) 24%, transparent),
+    0 1.25rem 3rem rgb(15 23 34 / 12%);
 }
 
 .portrait-stage::after {
