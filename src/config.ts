@@ -20,7 +20,7 @@ export const SITE = {
   /** Set to "/" when deploying to a domain root. */
   base: "/karlo-jagar-portfolio",
   defaultTheme: "dark",
-  themeColor: { dark: "#090d10", light: "#edf0ec" },
+  themeColor: { dark: "#030508", light: "#eef2f6" },
   socialImage: "/images/azure-traffic-flow.png",
   portrait: "/images/karlo-jagar-portrait.webp",
   /** Path to a CV file in public/. Leave empty to hide the download link. */
