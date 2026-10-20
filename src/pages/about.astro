@@ -3,6 +3,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 import Credentials from "../components/Credentials.astro";
 import ProfileTimeline from "../components/ProfileTimeline.astro";
 import Recognition from "../components/Recognition.astro";
+import SignalField from "../components/SignalField.astro";
 import SiteFooter from "../components/SiteFooter.astro";
 import SiteHeader from "../components/SiteHeader.astro";
 import { profile } from "../data/profile";
@@ -15,18 +16,19 @@ import { SITE, withBase } from "../config";
 >
   <SiteHeader />
   <main id="main-content">
-    <header class="bg-canvas px-6 py-20 sm:px-10 lg:px-[6vw] lg:py-28">
-      <div class="mx-auto max-w-[94rem]">
-        <p class="font-mono text-xs uppercase text-accent">About / Profile</p>
-        <h1 class="my-10 text-6xl leading-[.92] font-semibold sm:text-7xl lg:text-8xl">About me</h1>
+    <header class="relative overflow-hidden bg-canvas px-6 py-20 sm:px-10 lg:px-[6vw] lg:py-28">
+      <SignalField />
+      <div class="relative z-10 mx-auto max-w-[94rem]">
+        <p class="inline-flex items-center gap-2.5 font-mono text-xs uppercase text-accent"><span class="size-1.5 rounded-full bg-accent"></span> About / Profile</p>
+        <h1 class="astra-text-gradient my-10 text-6xl leading-[.92] font-semibold sm:text-7xl lg:text-8xl">About me</h1>
         <div class="ml-auto grid max-w-5xl gap-8 text-lg leading-8 text-muted sm:grid-cols-2">
           <p>{profile.summary}</p><p>{profile.perspective}</p>
         </div>
         <dl class="ml-auto mt-12 grid max-w-5xl sm:grid-cols-2" aria-label="Profile summary">
           <div class="border-t border-border py-4 sm:pr-6"><dt class="font-mono text-xs uppercase text-muted">Based in</dt><dd class="m-0 mt-2 text-sm">Varaždin, Croatia · originally Zagreb</dd></div>
-          <div class="border-t border-border py-4 sm:pl-6"><dt class="font-mono text-xs uppercase text-muted">Current role</dt><dd class="m-0 mt-2 text-sm">DevOps Engineer</dd></div>
-          <div class="border-t border-border py-4 sm:pr-6"><dt class="font-mono text-xs uppercase text-muted">Current study</dt><dd class="m-0 mt-2 text-sm">Business Systems Organization, MSc</dd></div>
-          <div class="border-t border-border py-4 sm:pl-6"><dt class="font-mono text-xs uppercase text-muted">International</dt><dd class="m-0 mt-2 text-sm">Erasmus+ at FEUP, Porto</dd></div>
+          <div class="border-t border-border py-4 sm:pl-6"><dt class="font-mono text-xs uppercase text-muted">Current role</dt><dd class="m-0 mt-2 text-sm">DevOps Engineer at SICK Mobilisis</dd></div>
+          <div class="border-t border-border py-4 sm:pr-6"><dt class="font-mono text-xs uppercase text-muted">Current study &amp; thesis</dt><dd class="m-0 mt-2 text-sm">MSc at FOI · Nostekon recovery verification</dd></div>
+          <div class="border-t border-border py-4 sm:pl-6"><dt class="font-mono text-xs uppercase text-muted">International</dt><dd class="m-0 mt-2 text-sm">Erasmus+ at FEUP, University of Porto</dd></div>
         </dl>
         {SITE.cv && (
           <p class="ml-auto mt-10 max-w-5xl">

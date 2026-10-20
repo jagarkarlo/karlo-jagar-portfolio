@@ -1,5 +1,6 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
+import SignalField from "../components/SignalField.astro";
 import SiteFooter from "../components/SiteFooter.astro";
 import SiteHeader from "../components/SiteHeader.astro";
 import { SITE, withBase } from "../config";
@@ -8,10 +9,11 @@ import { SITE, withBase } from "../config";
 <BaseLayout title={`Search | ${SITE.name}`} description={`Search projects and writing by ${SITE.name}.`}>
   <SiteHeader />
   <main id="main-content" class="min-h-[calc(100svh-3.5rem)] bg-canvas">
-    <section class="px-6 py-20 sm:px-10 lg:px-[6vw] lg:py-24">
-      <div class="mx-auto max-w-[62rem]">
-        <p class="font-mono text-xs uppercase text-accent">Search / Projects and writing</p>
-        <h1 class="my-8 text-5xl leading-[.95] font-semibold sm:text-6xl">Search</h1>
+    <section class="relative overflow-hidden px-6 py-20 sm:px-10 lg:px-[6vw] lg:py-24">
+      <SignalField />
+      <div class="relative z-10 mx-auto max-w-[62rem]">
+        <p class="inline-flex items-center gap-2.5 font-mono text-xs uppercase text-accent"><span class="size-1.5 rounded-full bg-accent"></span> Search / Projects and writing</p>
+        <h1 class="astra-text-gradient my-8 text-5xl leading-[.95] font-semibold sm:text-6xl">Search</h1>
 
         <site-search data-endpoint={withBase("/search.json")}>
           <label class="sr-only" for="search-input">Search projects and writing</label>

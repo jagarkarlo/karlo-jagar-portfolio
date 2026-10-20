@@ -2,6 +2,7 @@
 import AcademicProjects from "../components/AcademicProjects.astro";
 import BaseLayout from "../layouts/BaseLayout.astro";
 import ProjectList from "../components/ProjectList.astro";
+import SignalField from "../components/SignalField.astro";
 import SiteFooter from "../components/SiteFooter.astro";
 import SiteHeader from "../components/SiteHeader.astro";
 import { getCollection } from "astro:content";
@@ -18,11 +19,12 @@ const projects = (await getCollection("projects", ({ data }) => !data.draft)).so
 >
   <SiteHeader />
   <main id="main-content">
-    <header class="bg-canvas px-6 py-20 sm:px-10 lg:px-[6vw] lg:py-28">
-      <div class="mx-auto max-w-[94rem]">
-        <p class="font-mono text-xs uppercase text-accent">Work / Public and academic</p>
-        <h1 class="my-10 text-6xl leading-[.92] font-semibold sm:text-7xl lg:text-8xl">Projects</h1>
-        <p class="ml-auto max-w-3xl text-lg leading-8 text-muted sm:text-xl">Projects across platform operations, AI-assisted developer tooling, cloud delivery, network security, resilient desktop software, and game systems.</p>
+    <header class="relative overflow-hidden bg-canvas px-6 py-20 sm:px-10 lg:px-[6vw] lg:py-28">
+      <SignalField />
+      <div class="relative z-10 mx-auto max-w-[94rem]">
+        <p class="inline-flex items-center gap-2.5 font-mono text-xs uppercase text-accent"><span class="size-1.5 rounded-full bg-accent"></span> Work / Public and academic</p>
+        <h1 class="astra-text-gradient my-10 text-6xl leading-[.92] font-semibold sm:text-7xl lg:text-8xl">Projects</h1>
+        <p class="ml-auto max-w-3xl text-lg leading-8 text-muted sm:text-xl">Twelve public engineering repositories and six university projects spanning disaster-recovery verification (Nostekon), AI DevOps benchmarks (OpsBench), Model Context Protocol servers, Kubernetes/Ray diagnostics, semantic Grafana drift detection, SDN security, and game systems.</p>
       </div>
     </header>
     <section class="border-y border-border bg-surface px-5 py-20 sm:px-10 lg:px-[6vw] lg:py-24" aria-labelledby="public-work-title">
