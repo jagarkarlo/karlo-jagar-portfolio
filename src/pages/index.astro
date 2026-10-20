@@ -33,28 +33,11 @@ const rightName = Array.from("Jagar");
           <span class="size-1.5 rounded-full bg-accent shadow-[0_0_10px_var(--theme-accent)]"></span>
           Varaždin · Zagreb / Platform engineering
         </p>
-        <div class="flex flex-wrap items-center gap-2">
-          <div class="hidden items-center border border-border bg-surface/75 p-0.5 font-mono text-xs uppercase backdrop-blur-md sm:inline-flex" role="group" aria-label="3D formation selector">
-            {[
-              { id: "auto", label: "Auto" },
-              { id: "spiral", label: "Spiral" },
-              { id: "helm", label: "Helm" },
-              { id: "knot", label: "Knot" },
-              { id: "sphere", label: "Sphere" },
-            ].map((mode, idx) => (
-              <button
-                type="button"
-                data-cosmos-mode={mode.id}
-                aria-pressed={idx === 0 ? "true" : "false"}
-                class:list={[
-                  "px-2.5 py-1 text-xs uppercase transition-colors",
-                  idx === 0 ? "bg-accent text-canvas" : "text-muted hover:text-foreground",
-                ]}
-              >
-                {mode.label}
-              </button>
-            ))}
-          </div>
+        <div class="flex items-center gap-3">
+          <span class="hidden items-center gap-2 font-mono text-xs uppercase text-muted md:inline-flex">
+            <span class="size-1.5 rounded-full bg-[var(--theme-amber)]"></span>
+            Drag to rotate · Scroll to morph
+          </span>
           <button
             type="button"
             data-cosmos-replay
@@ -193,23 +176,6 @@ const rightName = Array.from("Jagar");
           el.style.animation = "none";
           void el.offsetHeight;
           el.style.animation = "";
-        });
-      });
-    });
-
-    const modeButtons = document.querySelectorAll<HTMLButtonElement>("[data-cosmos-mode]");
-    modeButtons.forEach((btn) => {
-      if (btn.dataset.bound === "true") return;
-      btn.dataset.bound = "true";
-      btn.addEventListener("click", () => {
-        const mode = btn.dataset.cosmosMode ?? "auto";
-        window.dispatchEvent(new CustomEvent("cosmos:mode", { detail: mode }));
-        modeButtons.forEach((other) => {
-          const active = other === btn;
-          other.setAttribute("aria-pressed", String(active));
-          other.classList.toggle("bg-accent", active);
-          other.classList.toggle("text-canvas", active);
-          other.classList.toggle("text-muted", !active);
         });
       });
     });

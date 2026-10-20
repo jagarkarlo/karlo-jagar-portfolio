@@ -1,24 +1,45 @@
 ---
-// 3D Particle Stream & Constellation Header:
-// Renders a 3D sweeping logarithmic particle ribbon with dynamic constellation links,
-// additive glow sprites, anamorphic optical lens flares, and spring-physics cursor smear.
+// Bespoke 3D Cosmic Scene Engine for Portfolio Pages:
+// Each page receives its own tailored 3D mathematical particle formation,
+// interactive 3D drag/pointer rotation, spring-physics cursor smear,
+// click shockwaves, and anamorphic optical lens flares:
+// - "globe"   (About)    : 3D Geodesic Orbital Sphere + Great-Circle Trajectory Arcs (Zagreb · Varaždin · Porto)
+// - "cluster" (Work)     : 3D 7-Spoke Kubernetes / Platform Helm Topology + Satellite Pods
+// - "helix"   (Blog)     : 3D Double-Helix Knowledge Stream + Rung Bridges (Blog & Case Studies)
+// - "bridge"  (Contact)  : 3D Dual-Core Binary Star & Figure-Eight Entangled Relay Stream
+// - "radar"   (Search)   : 3D Concentric Radar Pulse Lattice & Scanning Beam
+interface Props {
+  scene?: "globe" | "cluster" | "helix" | "bridge" | "radar";
+}
+
+const { scene = "globe" } = Astro.props;
 ---
 
-<signal-field class="signal-field" aria-hidden="true">
+<signal-field class="signal-field" data-scene={scene} aria-hidden="true">
+  <div class="signal-field__ambient"></div>
   <canvas data-signal-field></canvas>
-  <div class="signal-field__fade"></div>
 </signal-field>
 
 <script>
-  type StreamParticle = {
+  type SceneKind = "globe" | "cluster" | "helix" | "bridge" | "radar";
+
+  type SceneParticle = {
     u: number;
+    v: number;
     across: number;
     depth: number;
     speed: number;
+    bx: number;
+    by: number;
+    bz: number;
+    ex: number;
+    ey: number;
+    ez: number;
     colorIndex: number;
     size: number;
     hero: boolean;
     anchor: boolean;
+    arcGroup: number;
     phase: number;
     vx: number;
     vy: number;
@@ -26,13 +47,25 @@
     oy: number;
   };
 
+  type Shockwave = {
+    x: number;
+    y: number;
+    born: number;
+    color: [number, number, number];
+  };
+
+  const clamp = (v: number, min: number, max: number) => Math.min(max, Math.max(min, v));
+  const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
+  const smootherstep = (edge0: number, edge1: number, x: number) => {
+    const t = clamp((x - edge0) / Math.max(1e-5, edge1 - edge0), 0, 1);
+    return t * t * t * (t * (t * 6 - 15) + 10);
+  };
+
   class SignalFieldElement extends HTMLElement {
     private controller?: AbortController;
     private resizeObserver?: ResizeObserver;
-    private visibilityObserver?: IntersectionObserver;
     private themeObserver?: MutationObserver;
     private frame = 0;
-    private visible = true;
 
     connectedCallback() {
       const canvas = this.querySelector("[data-signal-field]");
@@ -45,32 +78,236 @@
       const { signal } = this.controller;
       const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 
-      const pointer = { x: -9999, y: -9999, vx: 0, vy: 0, active: false };
+      const scene = (this.dataset.scene as SceneKind) || "globe";
       let width = 0;
       let height = 0;
+      let dpr = 1;
       let light = document.documentElement.dataset.theme === "light";
+      let introStart = performance.now();
 
-      let state = 135792468;
+      const defaultSpinX = scene === "radar" ? 0.68 : scene === "cluster" ? 0.44 : 0.32;
+      const defaultSpinY = scene === "helix" ? -0.35 : -0.24;
+      let spinX = defaultSpinX;
+      let spinY = defaultSpinY;
+      let targetSpinX = defaultSpinX;
+      let targetSpinY = defaultSpinY;
+      let dragging = false;
+      let dragLastX = 0;
+      let dragLastY = 0;
+      let dragDistance = 0;
+
+      const pointer = {
+        x: -9999,
+        y: -9999,
+        vx: 0,
+        vy: 0,
+        normX: 0,
+        normY: 0,
+        active: false,
+        pressed: false,
+      };
+
+      const shockwaves: Shockwave[] = [];
+
+      let seedState =
+        scene === "globe"
+          ? 202601
+          : scene === "cluster"
+            ? 202602
+            : scene === "helix"
+              ? 202603
+              : scene === "bridge"
+                ? 202604
+                : 202605;
       const rand = () => {
-        state = (state * 1664525 + 1013904223) >>> 0;
-        return state / 0x100000000;
+        seedState = (seedState * 1664525 + 1013904223) >>> 0;
+        return seedState / 0x100000000;
       };
       const gauss = () => (rand() + rand() + rand() + rand() - 2) * 0.5;
 
-      const count = 1100;
-      const particles: StreamParticle[] = Array.from({ length: count }, (_, i) => {
+      const isMobile = () => window.innerWidth < 768;
+      const count = isMobile() ? 1400 : 2800;
+
+      const pickColor = (r: number) => {
+        if (r < 0.46) return 0;
+        if (r < 0.64) return 1;
+        if (r < 0.80) return 2;
+        if (r < 0.88) return 3;
+        if (r < 0.94) return 4;
+        return 5;
+      };
+
+      const buildParticleGeometry = (i: number): {
+        bx: number;
+        by: number;
+        bz: number;
+        ex: number;
+        ey: number;
+        ez: number;
+        arcGroup: number;
+      } => {
+        const u = i / count;
+        const v = rand();
+        const g1 = gauss();
+        const g2 = gauss();
+
+        if (scene === "globe") {
+          const sphereCut = Math.floor(count * 0.68);
+          const arcCut = Math.floor(count * 0.86);
+          if (i < sphereCut) {
+            const phi = Math.acos(1 - (2 * (i + 0.5)) / sphereCut);
+            const theta = Math.PI * (1 + Math.sqrt(5)) * i;
+            const r = 0.78 + g1 * 0.025;
+            const bx = r * Math.sin(phi) * Math.cos(theta);
+            const by = r * Math.cos(phi);
+            const bz = r * Math.sin(phi) * Math.sin(theta);
+            return { bx, by, bz, ex: bx * 1.12, ey: by * 1.12, ez: bz * 1.12, arcGroup: 0 };
+          } else if (i < arcCut) {
+            const sub = (i - sphereCut) / Math.max(1, arcCut - sphereCut);
+            const arcIdx = i % 3;
+            const t = sub * Math.PI - Math.PI * 0.5;
+            const tilt = (arcIdx - 1) * 0.58;
+            const r = 0.82 + Math.cos(t) * 0.28;
+            const x0 = Math.sin(t) * r;
+            const y0 = Math.sin(t * 0.8) * Math.sin(tilt) * r;
+            const z0 = Math.cos(t) * r;
+            return { bx: x0, by: y0, bz: z0, ex: x0, ey: y0 * 1.2, ez: z0, arcGroup: arcIdx + 1 };
+          } else {
+            const sub = (i - arcCut) / Math.max(1, count - arcCut);
+            const angle = sub * Math.PI * 2;
+            const r = 1.16 + g1 * 0.04;
+            const bx = Math.cos(angle) * r;
+            const by = Math.sin(angle) * 0.24 + g2 * 0.02;
+            const bz = Math.sin(angle) * r;
+            return { bx, by, bz, ex: bx * 0.94, ey: by, ez: bz * 0.94, arcGroup: 4 };
+          }
+        }
+
+        if (scene === "cluster") {
+          const spokes = 7;
+          let bx = 0;
+          let by = 0;
+          let bz = 0;
+          if (u < 0.44) {
+            const sub = u / 0.44;
+            const outer = sub < 0.72;
+            const ringR = outer ? 0.82 : 0.26;
+            const angle = (outer ? sub / 0.72 : (sub - 0.72) / 0.28) * Math.PI * 2;
+            const sector = (Math.PI * 2) / spokes;
+            const localA = ((angle % sector) + sector) % sector - sector * 0.5;
+            const poly = outer ? Math.cos(sector * 0.5) / Math.max(0.5, Math.cos(localA * 0.65)) : 1;
+            const r = ringR * poly + g1 * 0.032;
+            bx = Math.cos(angle) * r;
+            by = Math.sin(angle) * r;
+            bz = Math.sin(angle * spokes) * 0.1 + g2 * 0.05;
+          } else if (u < 0.86) {
+            const sub = (u - 0.44) / 0.42;
+            const spokeIdx = Math.min(spokes - 1, Math.floor(sub * spokes));
+            const radialT = sub * spokes - spokeIdx;
+            const angle = (spokeIdx / spokes) * Math.PI * 2 - Math.PI * 0.5;
+            const r = lerp(0.24, 1.0, radialT);
+            const knob = radialT > 0.84 ? 2.1 : 0.7;
+            bx = Math.cos(angle) * r + -Math.sin(angle) * g1 * 0.028 * knob;
+            by = Math.sin(angle) * r + Math.cos(angle) * g1 * 0.028 * knob;
+            bz = Math.cos(radialT * Math.PI) * 0.12 + g2 * 0.05;
+          } else {
+            const angle = u * Math.PI * 14;
+            const r = 1.15 + g1 * 0.08;
+            bx = Math.cos(angle) * r;
+            by = Math.sin(angle) * r;
+            bz = (v - 0.5) * 0.5;
+          }
+
+          const kt = u * Math.PI * 2;
+          const ex = (Math.sin(kt) + 2 * Math.sin(2 * kt)) * 0.32 + g1 * 0.04;
+          const ey = (Math.cos(kt) - 2 * Math.cos(2 * kt)) * 0.32 + g2 * 0.04;
+          const ez = -Math.sin(3 * kt) * 0.35;
+          return { bx, by, bz, ex, ey, ez, arcGroup: i % spokes };
+        }
+
+        if (scene === "helix") {
+          const turns = 3.2;
+          const strandCut = Math.floor(count * 0.74);
+          if (i < strandCut) {
+            const strand = i % 2 === 0 ? 0 : Math.PI;
+            const sub = i / strandCut;
+            const y = (sub - 0.5) * 2.1;
+            const angle = sub * Math.PI * 2 * turns + strand;
+            const r = 0.56 + g1 * 0.045;
+            const bx = Math.cos(angle) * r;
+            const by = y;
+            const bz = Math.sin(angle) * r + g2 * 0.045;
+            return { bx, by, bz, ex: bx * 1.15, ey: by, ez: bz * 1.15, arcGroup: i % 2 };
+          } else {
+            const rungCount = 22;
+            const sub = (i - strandCut) / Math.max(1, count - strandCut);
+            const rungIdx = Math.floor(sub * rungCount);
+            const acrossT = (sub * rungCount - rungIdx) * 2 - 1;
+            const yNorm = (rungIdx + 0.5) / rungCount;
+            const y = (yNorm - 0.5) * 2.0;
+            const angle = yNorm * Math.PI * 2 * turns;
+            const r = 0.55 * acrossT;
+            const bx = Math.cos(angle) * r;
+            const by = y + g1 * 0.015;
+            const bz = Math.sin(angle) * r;
+            return { bx, by, bz, ex: bx, ey: by, ez: bz, arcGroup: 2 };
+          }
+        }
+
+        if (scene === "bridge") {
+          const coreCut = Math.floor(count * 0.28);
+          if (i < coreCut) {
+            const leftCore = i % 2 === 0;
+            const centerX = leftCore ? -0.58 : 0.58;
+            const phi = Math.acos(1 - 2 * v);
+            const theta = u * Math.PI * 24;
+            const r = Math.pow(rand(), 0.6) * 0.26;
+            const bx = centerX + r * Math.sin(phi) * Math.cos(theta);
+            const by = r * Math.cos(phi);
+            const bz = r * Math.sin(phi) * Math.sin(theta);
+            return { bx, by, bz, ex: bx, ey: by, ez: bz, arcGroup: leftCore ? 1 : 2 };
+          } else {
+            const sub = (i - coreCut) / Math.max(1, count - coreCut);
+            const t = sub * Math.PI * 2;
+            const denom = 1 + Math.sin(t) * Math.sin(t);
+            const scaleL = 1.12;
+            const bx = (scaleL * Math.cos(t)) / denom + g1 * 0.05;
+            const by = (scaleL * Math.sin(t) * Math.cos(t)) / denom + g2 * 0.05;
+            const bz = Math.sin(t * 2) * 0.28 + g1 * 0.04;
+            return { bx, by, bz, ex: bx * 1.05, ey: by * 1.05, ez: bz, arcGroup: 0 };
+          }
+        }
+
+        const ringCount = 7;
+        const ringIdx = i % ringCount;
+        const r = ((ringIdx + 1) / ringCount) * 1.05 + g1 * 0.02;
+        const angle = u * Math.PI * 2 * ringCount;
+        const bx = Math.cos(angle) * r;
+        const by = Math.sin(angle) * r;
+        const bz = Math.cos(r * Math.PI * 2.5) * 0.16 + g2 * 0.03;
+        return { bx, by, bz, ex: bx, ey: by, ez: bz, arcGroup: ringIdx };
+      };
+
+      const particles: SceneParticle[] = Array.from({ length: count }, (_, i) => {
         const r = rand();
-        const colorIndex = r < 0.48 ? 0 : r < 0.66 ? 1 : r < 0.82 ? 2 : r < 0.9 ? 3 : r < 0.96 ? 4 : 5;
-        const isHero = i < 5;
+        const isHero = i < 7;
+        const geom = buildParticleGeometry(i);
+        let colorIndex = pickColor(r);
+        if (isHero) colorIndex = i % 2 === 0 ? 1 : 3;
+        else if (scene === "bridge" && geom.arcGroup === 2 && r > 0.35) colorIndex = 3;
+        else if (scene === "globe" && geom.arcGroup > 0 && geom.arcGroup < 4) colorIndex = geom.arcGroup === 2 ? 3 : 1;
+
         return {
           u: i / count,
-          across: isHero ? 0 : gauss() * 0.26,
-          depth: isHero ? 0 : gauss() * 0.25,
-          speed: 0.038 + rand() * 0.035,
-          colorIndex: isHero ? (i % 2 === 0 ? 1 : 3) : colorIndex,
-          size: isHero ? 3.6 : rand() > 0.92 ? 2.15 : rand() > 0.68 ? 1.38 : 0.82,
+          v: rand(),
+          across: gauss() * 0.15,
+          depth: gauss() * 0.15,
+          speed: 0.05 + rand() * 0.04,
+          ...geom,
+          colorIndex,
+          size: isHero ? 4.0 : rand() > 0.94 ? 2.15 : rand() > 0.7 ? 1.32 : 0.78,
           hero: isHero,
-          anchor: i % 22 === 0,
+          anchor: i % 34 === 0,
           phase: rand() * Math.PI * 2,
           vx: 0,
           vy: 0,
@@ -101,7 +338,7 @@
       let sprites: HTMLCanvasElement[] = [];
       const buildSprites = () => {
         sprites = getColors().map(([r, g, b]) => {
-          const size = 48;
+          const size = 56;
           const off = document.createElement("canvas");
           off.width = size;
           off.height = size;
@@ -110,8 +347,8 @@
           const half = size / 2;
           const grad = ctx.createRadialGradient(half, half, 0, half, half, half);
           grad.addColorStop(0, "rgba(255, 255, 255, 1)");
-          grad.addColorStop(0.18, `rgba(${r}, ${g}, ${b}, 0.92)`);
-          grad.addColorStop(0.45, `rgba(${r}, ${g}, ${b}, 0.32)`);
+          grad.addColorStop(0.16, `rgba(${r}, ${g}, ${b}, 0.94)`);
+          grad.addColorStop(0.42, `rgba(${r}, ${g}, ${b}, 0.34)`);
           grad.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0)`);
           ctx.fillStyle = grad;
           ctx.fillRect(0, 0, size, size);
@@ -121,145 +358,254 @@
 
       const resize = () => {
         const bounds = this.getBoundingClientRect();
-        const ratio = Math.min(window.devicePixelRatio || 1, 2);
+        dpr = Math.min(window.devicePixelRatio || 1, 2);
         width = Math.max(1, bounds.width);
         height = Math.max(1, bounds.height);
-        canvas.width = Math.round(width * ratio);
-        canvas.height = Math.round(height * ratio);
-        canvas.style.width = `${width}px`;
-        canvas.style.height = `${height}px`;
-        context.setTransform(ratio, 0, 0, ratio, 0, 0);
+        canvas.width = Math.round(width * dpr);
+        canvas.height = Math.round(height * dpr);
+        context.setTransform(dpr, 0, 0, dpr, 0, 0);
       };
 
       buildSprites();
 
-      const draw = (time = 0) => {
-        if (width === 0 || height === 0) return;
-        context.clearRect(0, 0, width, height);
+      let smoothedScroll = 0;
 
+      const triggerShockwave = (x: number, y: number) => {
+        const colors = getColors();
+        const colorPick = colors[(shockwaves.length + 1) % colors.length] ?? colors[1]!;
+        shockwaves.push({ x, y, born: performance.now() / 1000, color: colorPick });
+        if (shockwaves.length > 5) shockwaves.shift();
+      };
+
+      const drawAnamorphicFlare = (
+        fx: number,
+        fy: number,
+        intensity: number,
+        color: [number, number, number],
+        primary: boolean,
+      ) => {
+        if (intensity <= 0.02) return;
+        const [r, g, b] = color;
+        context.save();
+        context.globalCompositeOperation = light ? "source-over" : "lighter";
+
+        const haloR = (primary ? 125 : 65) * (0.7 + intensity * 0.45);
+        const halo = context.createRadialGradient(fx, fy, 0, fx, fy, haloR);
+        halo.addColorStop(0, `rgba(255, 255, 255, ${0.52 * intensity})`);
+        halo.addColorStop(0.22, `rgba(${r}, ${g}, ${b}, ${0.3 * intensity})`);
+        halo.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0)`);
+        context.fillStyle = halo;
+        context.beginPath();
+        context.arc(fx, fy, haloR, 0, Math.PI * 2);
+        context.fill();
+
+        const streakW = (primary ? Math.min(width * 0.42, 460) : 175) * (0.65 + intensity * 0.4);
+        const hGrad = context.createLinearGradient(fx - streakW, fy, fx + streakW, fy);
+        hGrad.addColorStop(0, `rgba(${r}, ${g}, ${b}, 0)`);
+        hGrad.addColorStop(0.38, `rgba(${r}, ${g}, ${b}, ${0.22 * intensity})`);
+        hGrad.addColorStop(0.5, `rgba(255, 255, 255, ${0.72 * intensity})`);
+        hGrad.addColorStop(0.62, `rgba(${r}, ${g}, ${b}, ${0.22 * intensity})`);
+        hGrad.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0)`);
+        context.strokeStyle = hGrad;
+        context.lineWidth = primary ? 1.7 : 1.1;
+        context.beginPath();
+        context.moveTo(fx - streakW, fy);
+        context.lineTo(fx + streakW, fy);
+        context.stroke();
+
+        const streakH = (primary ? 105 : 48) * (0.65 + intensity * 0.35);
+        const vGrad = context.createLinearGradient(fx, fy - streakH, fx, fy + streakH);
+        vGrad.addColorStop(0, `rgba(${r}, ${g}, ${b}, 0)`);
+        vGrad.addColorStop(0.5, `rgba(255, 255, 255, ${0.46 * intensity})`);
+        vGrad.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0)`);
+        context.strokeStyle = vGrad;
+        context.lineWidth = 1.05;
+        context.beginPath();
+        context.moveTo(fx, fy - streakH);
+        context.lineTo(fx, fy + streakH);
+        context.stroke();
+
+        context.restore();
+      };
+
+      const draw = (now = performance.now()) => {
+        if (width === 0 || height === 0) return;
         const still = reducedMotion.matches;
-        const seconds = still ? 8 : time / 1000;
+        const seconds = still ? 10 : now / 1000;
+        const introElapsed = still ? 4 : (now - introStart) / 1000;
+        const introEase = smootherstep(0, 1, clamp(introElapsed / 2.6, 0, 1));
         const colors = getColors();
 
-        pointer.vx *= 0.85;
-        pointer.vy *= 0.85;
+        const docHeight = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
+        const rawScroll = clamp(window.scrollY / docHeight, 0, 1);
+        smoothedScroll = still ? rawScroll : lerp(smoothedScroll, rawScroll, 0.08);
 
-        // Ambient deep-space backdrop glow on the right half of the header
-        const amb = context.createRadialGradient(
-          width * 0.72,
-          height * 0.45,
-          0,
-          width * 0.72,
-          height * 0.45,
-          Math.max(width, height) * 0.55,
-        );
+        if (!dragging && !still) {
+          targetSpinY = defaultSpinY + seconds * (scene === "globe" ? 0.16 : 0.12) + (pointer.active ? pointer.normX * 0.36 : 0);
+          targetSpinX = defaultSpinX + Math.cos(seconds * 0.22) * 0.1 + (pointer.active ? pointer.normY * 0.26 : 0);
+        }
+        spinX = lerp(spinX, targetSpinX, 0.07);
+        spinY = lerp(spinY, targetSpinY, 0.07);
+
+        pointer.vx *= 0.86;
+        pointer.vy *= 0.86;
+
+        context.clearRect(0, 0, width, height);
+
+        const scale = Math.min(width, height) * (width < 640 ? 0.42 : 0.45);
+        const cx = width >= 1024 ? width * (scene === "bridge" || scene === "radar" ? 0.56 : 0.64) : width * 0.5;
+        const cy = height * 0.46;
+        const fov = 3.2;
+
+        const ambR = scale * 1.35;
+        const amb = context.createRadialGradient(cx, cy, 0, cx, cy, ambR);
         if (light) {
-          amb.addColorStop(0, "rgba(15, 108, 189, 0.10)");
+          amb.addColorStop(0, "rgba(15, 108, 189, 0.11)");
+          amb.addColorStop(0.5, "rgba(109, 40, 217, 0.05)");
           amb.addColorStop(1, "rgba(238, 242, 246, 0)");
         } else {
-          amb.addColorStop(0, "rgba(35, 67, 95, 0.42)");
-          amb.addColorStop(0.5, "rgba(248, 121, 21, 0.06)");
+          amb.addColorStop(0, "rgba(35, 67, 95, 0.44)");
+          amb.addColorStop(0.42, "rgba(22, 42, 74, 0.22)");
+          amb.addColorStop(0.75, "rgba(248, 121, 21, 0.06)");
           amb.addColorStop(1, "rgba(3, 5, 8, 0)");
         }
         context.fillStyle = amb;
         context.fillRect(0, 0, width, height);
 
+        const cosX = Math.cos(spinX + smoothedScroll * 0.4);
+        const sinX = Math.sin(spinX + smoothedScroll * 0.4);
+        const cosY = Math.cos(spinY + smoothedScroll * 0.75);
+        const sinY = Math.sin(spinY + smoothedScroll * 0.75);
+
         context.save();
         context.globalCompositeOperation = light ? "source-over" : "lighter";
 
-        const flares: { x: number; y: number; color: [number, number, number] }[] = [];
-        const anchors: { x: number; y: number }[] = [];
+        const flares: { x: number; y: number; intensity: number; color: [number, number, number]; primary: boolean }[] = [];
 
         for (let i = 0; i < particles.length; i += 1) {
           const p = particles[i]!;
-          const t = ((p.u + seconds * p.speed) % 1 + 1) % 1;
-          const angle = t * Math.PI * 2.2 - 0.6;
-          const baseX = t * width * 1.1 - width * 0.05;
-          const waveY =
-            height * 0.48 +
-            Math.sin(angle + seconds * 0.35) * height * 0.24 +
-            Math.cos(angle * 1.7 - seconds * 0.22) * height * 0.1;
 
-          const perspective = 2.6 / Math.max(0.8, 2.6 - (p.depth + Math.sin(angle) * 0.35));
-          let sx = baseX + p.across * 95 * perspective + p.ox;
-          let sy = waveY + p.across * 115 * perspective + p.oy;
+          let wx = lerp(p.bx, p.ex, smoothedScroll);
+          let wy = lerp(p.by, p.ey, smoothedScroll);
+          let wz = lerp(p.bz, p.ez, smoothedScroll);
+
+          if (scene === "helix" && !still) {
+            const wave = Math.sin(seconds * 1.4 + p.u * Math.PI * 4) * 0.05;
+            wx += wave;
+            wz += Math.cos(seconds * 1.4 + p.u * Math.PI * 4) * 0.05;
+          } else if (scene === "bridge" && p.arcGroup === 0 && !still) {
+            const tFlow = ((p.u + seconds * p.speed * 0.45) % 1) * Math.PI * 2;
+            const denom = 1 + Math.sin(tFlow) * Math.sin(tFlow);
+            wx = (1.12 * Math.cos(tFlow)) / denom + p.across * 0.25;
+            wy = (1.12 * Math.sin(tFlow) * Math.cos(tFlow)) / denom + p.depth * 0.25;
+            wz = Math.sin(tFlow * 2) * 0.28;
+          } else if (scene === "radar" && !still) {
+            const rDist = Math.hypot(wx, wy);
+            const ripple = Math.sin(rDist * 8 - seconds * 2.6) * 0.09;
+            wz += ripple;
+          }
+
+          wx *= introEase;
+          wy *= introEase;
+          wz *= introEase;
+
+          const rx1 = wx * cosY + wz * sinY;
+          const rz1 = -wx * sinY + wz * cosY;
+          const ry2 = wy * cosX - rz1 * sinX;
+          const rz2 = wy * sinX + rz1 * cosX;
+
+          const persp = fov / Math.max(0.6, fov - rz2);
+          let sx = cx + rx1 * scale * persp + p.ox;
+          let sy = cy + ry2 * scale * persp + p.oy;
 
           if (pointer.active && !still) {
             const dx = sx - pointer.x;
             const dy = sy - pointer.y;
             const dSq = dx * dx + dy * dy;
-            if (dSq < 155 * 155 && dSq > 1) {
+            const rad = pointer.pressed ? 220 : 160;
+            if (dSq < rad * rad && dSq > 1) {
               const d = Math.sqrt(dSq);
-              const f = Math.pow(1 - d / 155, 2);
-              p.vx += (dx / d) * f * 1.65 + pointer.vx * f * 0.12;
-              p.vy += (dy / d) * f * 1.65 + pointer.vy * f * 0.12;
+              const f = Math.pow(1 - d / rad, 2);
+              const push = (pointer.pressed ? 3.6 : 1.7) * f;
+              p.vx += (dx / d) * push + pointer.vx * f * 0.14;
+              p.vy += (dy / d) * push + pointer.vy * f * 0.14;
             }
           }
 
-          p.vx += -p.ox * 0.08;
-          p.vy += -p.oy * 0.08;
+          for (let sIdx = 0; sIdx < shockwaves.length; sIdx += 1) {
+            const sw = shockwaves[sIdx]!;
+            const age = seconds - sw.born;
+            if (age < 0 || age > 1.8) continue;
+            const waveR = age * 440;
+            const dx = sx - sw.x;
+            const dy = sy - sw.y;
+            const dist = Math.hypot(dx, dy) || 1;
+            const band = Math.abs(dist - waveR);
+            if (band < 44) {
+              const strength = (1 - band / 44) * (1 - age / 1.8) * 2.2;
+              p.vx += (dx / dist) * strength;
+              p.vy += (dy / dist) * strength;
+            }
+          }
+
+          p.vx += -p.ox * 0.085;
+          p.vy += -p.oy * 0.085;
           p.vx *= 0.84;
           p.vy *= 0.84;
           p.ox += p.vx;
           p.oy += p.vy;
 
-          sx = baseX + p.across * 95 * perspective + p.ox;
-          sy = waveY + p.across * 115 * perspective + p.oy;
+          sx = cx + rx1 * scale * persp + p.ox;
+          sy = cy + ry2 * scale * persp + p.oy;
 
-          const env = Math.sin(t * Math.PI);
-          const twinkle = still ? 0.8 : 0.65 + Math.sin(seconds * 2.5 + p.phase) * 0.35;
-          const alpha = env * twinkle * (light ? 0.65 : 0.88);
-          const r = p.size * perspective * 3.8;
+          if (sx < -40 || sx > width + 40 || sy < -40 || sy > height + 40) continue;
+
+          const twinkle = still ? 0.85 : 0.66 + Math.sin(seconds * 2.4 + p.phase) * 0.34;
+          const depthBoost = clamp((rz2 + 1.4) / 2.8, 0.35, 1.25);
+          const alpha = clamp(twinkle * depthBoost * (light ? 0.68 : 0.9), 0.08, 1);
+          const drawR = p.size * persp * 3.9;
           const sprite = sprites[p.colorIndex] ?? sprites[0]!;
 
           context.globalAlpha = alpha;
-          context.drawImage(sprite, sx - r, sy - r, r * 2, r * 2);
-
-          if (p.anchor) {
-            anchors.push({ x: sx, y: sy });
-          }
+          context.drawImage(sprite, sx - drawR, sy - drawR, drawR * 2, drawR * 2);
 
           if (p.hero) {
-            flares.push({ x: sx, y: sy, color: colors[p.colorIndex] ?? colors[0]! });
+            flares.push({
+              x: sx,
+              y: sy,
+              intensity: clamp(alpha * persp * 0.82, 0.2, 1.1),
+              color: colors[p.colorIndex] ?? colors[0]!,
+              primary: i === 0,
+            });
           }
         }
 
-        // Subtle constellation filaments connecting nearby anchor stars
-        context.lineWidth = 0.65;
-        for (let i = 0; i < anchors.length; i += 1) {
-          const a = anchors[i]!;
-          for (let j = i + 1; j < anchors.length; j += 1) {
-            const b = anchors[j]!;
-            const dist = Math.hypot(a.x - b.x, a.y - b.y);
-            if (dist < 115) {
-              const strength = (1 - dist / 115) * (light ? 0.16 : 0.22);
-              context.strokeStyle = light ? `rgba(15, 108, 189, ${strength})` : `rgba(109, 203, 244, ${strength})`;
-              context.beginPath();
-              context.moveTo(a.x, a.y);
-              context.lineTo(b.x, b.y);
-              context.stroke();
-            }
+        for (let i = shockwaves.length - 1; i >= 0; i -= 1) {
+          const sw = shockwaves[i]!;
+          const age = seconds - sw.born;
+          if (age > 1.8) {
+            shockwaves.splice(i, 1);
+            continue;
           }
-        }
-
-        flares.forEach(({ x, y, color }) => {
-          const [r, g, b] = color;
-          const sw = 185;
-          const grad = context.createLinearGradient(x - sw, y, x + sw, y);
-          grad.addColorStop(0, `rgba(${r}, ${g}, ${b}, 0)`);
-          grad.addColorStop(0.5, "rgba(255, 255, 255, 0.68)");
-          grad.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0)`);
-          context.strokeStyle = grad;
-          context.lineWidth = 1.25;
+          const progress = age / 1.8;
+          const [r, g, b] = sw.color;
           context.beginPath();
-          context.moveTo(x - sw, y);
-          context.lineTo(x + sw, y);
+          context.arc(sw.x, sw.y, progress * 440, 0, Math.PI * 2);
+          context.strokeStyle = `rgba(${r}, ${g}, ${b}, ${(1 - progress) ** 1.6 * 0.55})`;
+          context.lineWidth = 1.5;
           context.stroke();
-        });
+        }
 
         context.restore();
+
+        flares.forEach((f) => {
+          drawAnamorphicFlare(f.x, f.y, f.intensity, f.color, f.primary);
+        });
+
         context.globalAlpha = 1;
-        if (!still && this.visible) this.frame = requestAnimationFrame(draw);
+        if (!still) {
+          this.frame = requestAnimationFrame(draw);
+        }
       };
 
       const restart = () => {
@@ -267,50 +613,87 @@
         draw(performance.now());
       };
 
+      window.addEventListener(
+        "pointermove",
+        (event) => {
+          if (reducedMotion.matches) return;
+          const nx = event.clientX;
+          const ny = event.clientY;
+          if (pointer.active) {
+            pointer.vx = clamp(nx - pointer.x, -45, 45);
+            pointer.vy = clamp(ny - pointer.y, -45, 45);
+          }
+          pointer.x = nx;
+          pointer.y = ny;
+          pointer.normX = (nx / Math.max(1, width)) * 2 - 1;
+          pointer.normY = (ny / Math.max(1, height)) * 2 - 1;
+          pointer.active = true;
+
+          if (dragging) {
+            const dx = nx - dragLastX;
+            const dy = ny - dragLastY;
+            dragDistance += Math.hypot(dx, dy);
+            dragLastX = nx;
+            dragLastY = ny;
+            targetSpinY = clamp(targetSpinY + dx * 0.0055, -Math.PI, Math.PI);
+            targetSpinX = clamp(targetSpinX + dy * 0.0055, -1.2, 1.2);
+          }
+        },
+        { passive: true, signal },
+      );
+
+      window.addEventListener(
+        "pointerdown",
+        (event) => {
+          if (reducedMotion.matches) return;
+          pointer.pressed = true;
+          dragDistance = 0;
+          const target = event.target as HTMLElement | null;
+          if (!target?.closest("a, button, input, dialog")) {
+            dragging = true;
+            dragLastX = event.clientX;
+            dragLastY = event.clientY;
+          }
+        },
+        { passive: true, signal },
+      );
+
+      window.addEventListener(
+        "pointerup",
+        (event) => {
+          const wasQuickClick = dragging && dragDistance < 6;
+          pointer.pressed = false;
+          dragging = false;
+          if (wasQuickClick && !reducedMotion.matches) {
+            triggerShockwave(event.clientX, event.clientY);
+          }
+        },
+        { passive: true, signal },
+      );
+
+      window.addEventListener(
+        "pointerleave",
+        () => {
+          pointer.active = false;
+          pointer.pressed = false;
+          dragging = false;
+        },
+        { passive: true, signal },
+      );
+
       this.resizeObserver = new ResizeObserver(() => {
         resize();
         restart();
       });
-      this.visibilityObserver = new IntersectionObserver(([entry]) => {
-        this.visible = entry?.isIntersecting ?? true;
-        if (this.visible) restart();
-        else cancelAnimationFrame(this.frame);
-      });
+      this.resizeObserver.observe(this);
+
       this.themeObserver = new MutationObserver(() => {
         light = document.documentElement.dataset.theme === "light";
         buildSprites();
         restart();
       });
-
-      this.resizeObserver.observe(this);
-      this.visibilityObserver.observe(this);
       this.themeObserver.observe(document.documentElement, { attributeFilter: ["data-theme"] });
 
-      const parentSection = this.parentElement ?? this;
-      parentSection.addEventListener(
-        "pointermove",
-        (event) => {
-          if (reducedMotion.matches) return;
-          const bounds = this.getBoundingClientRect();
-          const nx = event.clientX - bounds.left;
-          const ny = event.clientY - bounds.top;
-          if (pointer.active) {
-            pointer.vx = nx - pointer.x;
-            pointer.vy = ny - pointer.y;
-          }
-          pointer.x = nx;
-          pointer.y = ny;
-          pointer.active = true;
-        },
-        { signal },
-      );
-      parentSection.addEventListener(
-        "pointerleave",
-        () => {
-          pointer.active = false;
-        },
-        { signal },
-      );
       reducedMotion.addEventListener("change", restart, { signal });
 
       resize();
@@ -321,7 +704,6 @@
       cancelAnimationFrame(this.frame);
       this.controller?.abort();
       this.resizeObserver?.disconnect();
-      this.visibilityObserver?.disconnect();
       this.themeObserver?.disconnect();
     }
   }
@@ -336,21 +718,28 @@
     inset: 0;
     overflow: hidden;
     pointer-events: none;
+    position: fixed;
+    z-index: 0;
+  }
+
+  .signal-field__ambient {
+    background:
+      radial-gradient(circle at 62% 44%, rgb(35 67 95 / 34%) 0%, transparent 60%),
+      radial-gradient(circle at 70% 38%, rgb(248 121 21 / 8%) 0%, transparent 45%);
+    inset: 0;
+    pointer-events: none;
     position: absolute;
+  }
+
+  :global(:root[data-theme="light"]) .signal-field__ambient {
+    background:
+      radial-gradient(circle at 62% 44%, rgb(15 108 189 / 9%) 0%, transparent 60%),
+      radial-gradient(circle at 70% 38%, rgb(217 95 14 / 5%) 0%, transparent 45%);
   }
 
   .signal-field canvas {
     display: block;
     height: 100%;
     width: 100%;
-  }
-
-  .signal-field__fade {
-    background:
-      radial-gradient(circle at 16% 50%, color-mix(in srgb, var(--theme-canvas) 78%, transparent) 0%, transparent 55%),
-      linear-gradient(180deg, transparent 58%, var(--theme-canvas) 100%);
-    inset: 0;
-    pointer-events: none;
-    position: absolute;
   }
 </style>

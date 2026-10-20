@@ -19,9 +19,9 @@ const { title, description, eyebrow, meta = [], backHref, backLabel } = Astro.pr
 
 <BaseLayout title={title} description={description}>
   <SiteHeader />
-  <main id="main-content" class="bg-canvas">
-    <header class="relative overflow-hidden border-b border-border px-6 py-16 sm:px-10 lg:px-[6vw] lg:py-24">
-      <SignalField />
+  <SignalField scene="helix" />
+  <main id="main-content" class="relative z-10">
+    <header class="relative overflow-hidden border-b border-border/80 px-6 py-16 sm:px-10 lg:px-[6vw] lg:py-24">
       <div class="relative z-10 mx-auto max-w-[62rem]">
         <a class="font-mono text-xs uppercase text-muted no-underline transition-colors hover:text-accent" href={backHref}>
           <span aria-hidden="true">←</span> {backLabel}
@@ -36,7 +36,7 @@ const { title, description, eyebrow, meta = [], backHref, backLabel } = Astro.pr
         )}
       </div>
     </header>
-    <div class="px-6 py-16 sm:px-10 lg:px-[6vw] lg:py-20">
+    <div class="bg-canvas/72 px-6 py-16 backdrop-blur-md sm:px-10 lg:px-[6vw] lg:py-20">
       <article class="prose mx-auto max-w-[62rem]">
         <slot />
       </article>

@@ -10,10 +10,10 @@ type Props = {
 };
 
 const { id, label, title, items, tone = "paper" } = Astro.props;
-const backgrounds = { paper: "bg-canvas", mist: "bg-surface" };
+const backgrounds = { paper: "bg-canvas/65 backdrop-blur-md", mist: "bg-surface/68 backdrop-blur-md" };
 ---
 
-<section class:list={["grid gap-12 border-t border-border px-6 py-20 sm:px-10 lg:grid-cols-[.8fr_1.2fr] lg:gap-24 lg:px-[6vw] lg:py-24", backgrounds[tone]]} id={id} aria-labelledby={`${id}-title`}>
+<section class:list={["grid gap-12 border-t border-border/80 px-6 py-20 sm:px-10 lg:grid-cols-[.8fr_1.2fr] lg:gap-24 lg:px-[6vw] lg:py-24", backgrounds[tone]]} id={id} aria-labelledby={`${id}-title`}>
   <div class="self-start lg:sticky lg:top-28">
     <p class="font-mono text-xs uppercase text-accent">{label}</p>
     <h2 class="mt-4 text-4xl leading-tight font-semibold sm:text-5xl" id={`${id}-title`}>{title}</h2>
