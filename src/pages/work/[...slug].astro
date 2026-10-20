@@ -2,6 +2,7 @@
 import { getCollection, render } from "astro:content";
 import ArticleLayout from "../../layouts/ArticleLayout.astro";
 import NostekonDrillSim from "../../components/NostekonDrillSim.astro";
+import RaywhySim from "../../components/RaywhySim.astro";
 import { withBase } from "../../config";
 
 export async function getStaticPaths() {
@@ -24,6 +25,7 @@ const { title, category, summary, outcome, stack, repo, order } = project.data;
 >
   <p class="lead">{outcome}</p>
   {project.id === "nostekon" && <NostekonDrillSim />}
+  {project.id === "raywhy" && <RaywhySim />}
   <Content />
   <p>
     <a href={repo} target="_blank" rel="noreferrer">View the repository ↗</a>

@@ -1,73 +1,304 @@
 ---
 import { Icon } from "astro-icon/components";
+import { withBase } from "../config";
 
 const groups = [
   {
     label: "Platform & recovery",
     tone: "var(--theme-accent)",
     tools: [
-      { name: "Kubernetes", icon: "simple-icons:kubernetes", href: "https://kubernetes.io/" },
-      { name: "Argo CD", icon: "simple-icons:argo", href: "https://argo-cd.readthedocs.io/" },
-      { name: "Docker", icon: "simple-icons:docker", href: "https://www.docker.com/" },
-      { name: "PostgreSQL", icon: "simple-icons:postgresql", href: "https://www.postgresql.org/" },
+      {
+        name: "Kubernetes",
+        icon: "simple-icons:kubernetes",
+        summary: "Multi-tenant cluster operations, disposable verification namespaces, and KubeRay scheduling diagnostics.",
+        projects: [
+          { label: "Nostekon", href: withBase("/work/nostekon/") },
+          { label: "raywhy", href: withBase("/work/raywhy/") },
+          { label: "OpsBench", href: withBase("/work/opsbench/") },
+        ],
+      },
+      {
+        name: "Argo CD",
+        icon: "simple-icons:argo",
+        summary: "GitOps rollout orchestration, declarative cluster state sync, and drift verification across environments.",
+        projects: [
+          { label: "Nostekon", href: withBase("/work/nostekon/") },
+          { label: "DashDrift", href: withBase("/work/dashdrift/") },
+        ],
+      },
+      {
+        name: "Docker",
+        icon: "simple-icons:docker",
+        summary: "Hermetic drill runners, reproducible CI/CD containers, and sandboxed benchmark environments.",
+        projects: [
+          { label: "Nostekon", href: withBase("/work/nostekon/") },
+          { label: "OpsBench", href: withBase("/work/opsbench/") },
+        ],
+      },
+      {
+        name: "PostgreSQL",
+        icon: "simple-icons:postgresql",
+        summary: "Automated logical/physical backup restore drills, schema checksum verification, and V0–V4 evidence scoring.",
+        projects: [
+          { label: "Nostekon", href: withBase("/work/nostekon/") },
+        ],
+      },
     ],
   },
   {
     label: "Cloud & infrastructure",
     tone: "var(--theme-cyan)",
     tools: [
-      { name: "Azure", icon: "simple-icons:microsoftazure", href: "https://azure.microsoft.com/" },
-      { name: "Terraform", icon: "simple-icons:terraform", href: "https://www.terraform.io/" },
-      { name: "Linux", icon: "simple-icons:linux", href: "https://www.linux.org/" },
-      { name: "Ray / KubeRay", icon: "simple-icons:ray", href: "https://docs.ray.io/" },
+      {
+        name: "Azure",
+        icon: "simple-icons:microsoftazure",
+        summary: "AKS cluster workloads, cloud networking, identity integration, and production platform reliability.",
+        projects: [
+          { label: "About / Experience", href: withBase("/about/") },
+        ],
+      },
+      {
+        name: "Terraform",
+        icon: "simple-icons:terraform",
+        summary: "Declarative infrastructure provisioning, state safety checks, and reproducible environment baselines.",
+        projects: [
+          { label: "OpsBench", href: withBase("/work/opsbench/") },
+          { label: "Agent Skillbook", href: withBase("/work/agent-skillbook/") },
+        ],
+      },
+      {
+        name: "Linux",
+        icon: "simple-icons:linux",
+        summary: "Systems diagnostics, namespaces, network namespaces/Mininet, and container runtime troubleshooting.",
+        projects: [
+          { label: "SDN Security", href: withBase("/work/sdn-security-aspects/") },
+          { label: "Nostekon", href: withBase("/work/nostekon/") },
+        ],
+      },
+      {
+        name: "Ray / KubeRay",
+        icon: "simple-icons:ray",
+        summary: "Causal PENDING-job triage across GPU/CPU node pools, autoscaler caps, and resource quotas.",
+        projects: [
+          { label: "raywhy", href: withBase("/work/raywhy/") },
+        ],
+      },
     ],
   },
   {
     label: "Observability",
     tone: "var(--theme-amber)",
     tools: [
-      { name: "Prometheus", icon: "simple-icons:prometheus", href: "https://prometheus.io/" },
-      { name: "Grafana", icon: "simple-icons:grafana", href: "https://grafana.com/" },
-      { name: "Loki", icon: "simple-icons:grafana", href: "https://grafana.com/oss/loki/" },
-      { name: "OpenFlow / Ryu", icon: "lucide:network", href: "https://github.com/jagarkarlo/SDN-security-aspects" },
+      {
+        name: "Prometheus",
+        icon: "simple-icons:prometheus",
+        summary: "PromQL AST inspection, metric-to-panel cross-checking, and SLO burn-rate incident replay.",
+        projects: [
+          { label: "DashDrift", href: withBase("/work/dashdrift/") },
+          { label: "Reliability Replay", href: withBase("/work/reliability-replay/") },
+          { label: "raywhy", href: withBase("/work/raywhy/") },
+        ],
+      },
+      {
+        name: "Grafana",
+        icon: "simple-icons:grafana",
+        summary: "Dashboard-as-code validation, broken variable/datasource detection, and telemetry visualization.",
+        projects: [
+          { label: "DashDrift", href: withBase("/work/dashdrift/") },
+          { label: "Reliability Replay", href: withBase("/work/reliability-replay/") },
+        ],
+      },
+      {
+        name: "Loki",
+        icon: "simple-icons:grafana",
+        summary: "Log aggregation pipelines and correlated incident timeline reconstruction.",
+        projects: [
+          { label: "Reliability Replay", href: withBase("/work/reliability-replay/") },
+          { label: "OpsBench", href: withBase("/work/opsbench/") },
+        ],
+      },
+      {
+        name: "OpenFlow / Ryu",
+        icon: "lucide:network",
+        summary: "Software-defined networking flow-table telemetry and automated port-scan / DoS mitigation.",
+        projects: [
+          { label: "SDN Security", href: withBase("/work/sdn-security-aspects/") },
+        ],
+      },
     ],
   },
   {
     label: "Languages & tooling",
     tone: "var(--theme-violet)",
     tools: [
-      { name: "Go", icon: "simple-icons:go", href: "https://go.dev/" },
-      { name: "TypeScript", icon: "simple-icons:typescript", href: "https://www.typescriptlang.org/" },
-      { name: "Python", icon: "simple-icons:python", href: "https://www.python.org/" },
-      { name: "GitLab & MCP", icon: "simple-icons:gitlab", href: "https://about.gitlab.com/" },
+      {
+        name: "Go",
+        icon: "simple-icons:go",
+        summary: "Single-binary recovery verification CLI, parallel restore orchestration, and deterministic evidence signing.",
+        projects: [
+          { label: "Nostekon", href: withBase("/work/nostekon/") },
+        ],
+      },
+      {
+        name: "TypeScript",
+        icon: "simple-icons:typescript",
+        summary: "Model Context Protocol (MCP) servers, SQLite FTS5 knowledge indexing, and interactive web systems.",
+        projects: [
+          { label: "ContextLoom MCP", href: withBase("/work/gitlab-jira-context-mcp/") },
+          { label: "Copilot Knowledge Base", href: withBase("/work/copilot-knowledge-base/") },
+          { label: "Reliability Replay", href: withBase("/work/reliability-replay/") },
+        ],
+      },
+      {
+        name: "Python",
+        icon: "simple-icons:python",
+        summary: "Kubernetes/Ray diagnostic CLIs, Grafana/Prometheus static analyzers, and SDN controller automation.",
+        projects: [
+          { label: "OpsBench", href: withBase("/work/opsbench/") },
+          { label: "raywhy", href: withBase("/work/raywhy/") },
+          { label: "DashDrift", href: withBase("/work/dashdrift/") },
+        ],
+      },
+      {
+        name: "GitLab & MCP",
+        icon: "simple-icons:gitlab",
+        summary: "Read-only engineering context federation across GitLab, Jira, Confluence, and Prometheus.",
+        projects: [
+          { label: "ContextLoom MCP", href: withBase("/work/gitlab-jira-context-mcp/") },
+          { label: "Copilot Knowledge Base", href: withBase("/work/copilot-knowledge-base/") },
+        ],
+      },
     ],
   },
 ];
+
+const defaultTool = groups[0]!.tools[0]!;
 ---
 
-<section class="border-y border-border/80 bg-canvas/80 px-6 py-20 sm:px-10 lg:px-[6vw] lg:py-24" aria-labelledby="stack-title" data-reveal>
-  <div class="mx-auto grid max-w-[94rem] gap-12 lg:grid-cols-[.6fr_1.4fr] lg:gap-20">
-    <div>
-      <p class="font-mono text-xs uppercase text-accent">02 // Platform Helm · Technical stack</p>
-      <h2 class="mt-4 text-4xl leading-tight font-semibold sm:text-5xl" id="stack-title">Tools I use</h2>
-      <p class="mt-6 max-w-sm text-sm leading-6 text-muted">The platform, cloud, telemetry, and development tools that recur across my work.</p>
-    </div>
-    <div class="grid border-t border-border sm:grid-cols-2">
-      {groups.map((group) => (
-        <section class="cosmos-card border-b border-border py-7 sm:px-7 sm:nth-[odd]:border-r sm:nth-[odd]:pl-0" style={`--stack-tone:${group.tone}`} aria-label={group.label}>
-          <h3 class="mb-6 flex items-center gap-2.5 font-mono text-xs uppercase text-muted"><span class="size-1.5 rounded-full" style={`background:${group.tone}`}></span>{group.label}</h3>
-          <ul class="grid list-none gap-4 p-0">
-            {group.tools.map((tool) => (
-              <li>
-                <a class="group flex items-center gap-3 text-sm text-muted no-underline transition-all hover:translate-x-1 hover:text-foreground" href={tool.href} target="_blank" rel="noreferrer">
-                  <Icon class="size-4 transition-transform group-hover:scale-110" style={`color:${group.tone}`} name={tool.icon} aria-hidden="true" />
-                  <span>{tool.name}</span>
-                </a>
-              </li>
+<tech-stack-inspector class="block">
+  <section class="border-y border-border/80 bg-canvas/80 px-6 py-20 sm:px-10 lg:px-[6vw] lg:py-24" aria-labelledby="stack-title" data-reveal>
+    <div class="mx-auto grid max-w-[94rem] gap-12 lg:grid-cols-[.68fr_1.32fr] lg:gap-20">
+      <div class="flex flex-col justify-between gap-8">
+        <div>
+          <p class="font-mono text-xs uppercase text-accent">Technical stack</p>
+          <h2 class="mt-4 text-4xl leading-tight font-semibold sm:text-5xl" id="stack-title">Tools I use</h2>
+          <p class="mt-6 max-w-sm text-sm leading-6 text-muted">
+            Select or hover any tool to inspect how it is used across my repositories.
+          </p>
+        </div>
+
+        <!-- Live interactive stack inspector card -->
+        <div
+          class="cosmos-card border border-border bg-surface/90 p-5"
+          data-stack-detail
+          aria-live="polite"
+        >
+          <div class="flex items-center justify-between gap-2 border-b border-border/70 pb-3">
+            <span class="font-mono text-xs uppercase text-accent" data-detail-name>{defaultTool.name}</span>
+            <span class="font-mono text-[11px] uppercase text-muted" data-detail-group>{groups[0]!.label}</span>
+          </div>
+          <p class="mt-3 mb-4 text-sm leading-6 text-muted" data-detail-summary>
+            {defaultTool.summary}
+          </p>
+          <div class="flex flex-wrap items-center gap-2" data-detail-projects>
+            {defaultTool.projects.map((proj) => (
+              <a
+                href={proj.href}
+                class="border border-border bg-raised px-2.5 py-1 font-mono text-xs uppercase text-foreground no-underline transition-colors hover:border-accent hover:text-accent"
+              >
+                {proj.label} →
+              </a>
             ))}
-          </ul>
-        </section>
-      ))}
+          </div>
+        </div>
+      </div>
+
+      <div class="grid border-t border-border sm:grid-cols-2">
+        {groups.map((group) => (
+          <section class="cosmos-card border-b border-border py-7 sm:px-7 sm:nth-[odd]:border-r sm:nth-[odd]:pl-0" style={`--stack-tone:${group.tone}`} aria-label={group.label}>
+            <h3 class="mb-6 flex items-center gap-2.5 font-mono text-xs uppercase text-muted">
+              <span class="size-1.5 rounded-full" style={`background:${group.tone}`}></span>
+              {group.label}
+            </h3>
+            <ul class="grid list-none gap-3 p-0">
+              {group.tools.map((tool) => (
+                <li>
+                  <button
+                    type="button"
+                    data-stack-item
+                    data-tool-name={tool.name}
+                    data-tool-group={group.label}
+                    data-tool-summary={tool.summary}
+                    data-tool-projects={JSON.stringify(tool.projects)}
+                    class="group flex w-full cursor-pointer items-center justify-between gap-3 border border-transparent bg-transparent px-2.5 py-1.5 text-left text-sm text-muted transition-all hover:border-border hover:bg-surface/70 hover:text-foreground"
+                  >
+                    <span class="flex items-center gap-3">
+                      <Icon class="size-4 transition-transform group-hover:scale-110" style={`color:${group.tone}`} name={tool.icon} aria-hidden="true" />
+                      <span>{tool.name}</span>
+                    </span>
+                    <span class="font-mono text-[11px] uppercase text-muted/70 group-hover:text-accent">
+                      {tool.projects.length} {tool.projects.length === 1 ? "repo" : "repos"}
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ))}
+      </div>
     </div>
-  </div>
-</section>
+  </section>
+</tech-stack-inspector>
+
+<script>
+  class TechStackInspector extends HTMLElement {
+    connectedCallback() {
+      const nameEl = this.querySelector<HTMLElement>("[data-detail-name]");
+      const groupEl = this.querySelector<HTMLElement>("[data-detail-group]");
+      const summaryEl = this.querySelector<HTMLElement>("[data-detail-summary]");
+      const projectsEl = this.querySelector<HTMLElement>("[data-detail-projects]");
+      const items = this.querySelectorAll<HTMLButtonElement>("[data-stack-item]");
+      if (!nameEl || !groupEl || !summaryEl || !projectsEl) return;
+
+      const selectTool = (btn: HTMLButtonElement) => {
+        items.forEach((b) => {
+          const active = b === btn;
+          b.classList.toggle("border-border", active);
+          b.classList.toggle("bg-surface/70", active);
+          b.classList.toggle("text-foreground", active);
+        });
+
+        nameEl.textContent = btn.dataset.toolName ?? "";
+        groupEl.textContent = btn.dataset.toolGroup ?? "";
+        summaryEl.textContent = btn.dataset.toolSummary ?? "";
+
+        try {
+          const projects = JSON.parse(btn.dataset.toolProjects ?? "[]") as { label: string; href: string }[];
+          projectsEl.replaceChildren(
+            ...projects.map((p) => {
+              const a = document.createElement("a");
+              a.href = p.href;
+              a.className =
+                "border border-border bg-raised px-2.5 py-1 font-mono text-xs uppercase text-foreground no-underline transition-colors hover:border-accent hover:text-accent";
+              a.textContent = `${p.label} →`;
+              return a;
+            }),
+          );
+        } catch {
+          // ignore malformed JSON
+        }
+      };
+
+      items.forEach((btn, idx) => {
+        if (idx === 0) selectTool(btn);
+        btn.addEventListener("pointerenter", () => selectTool(btn));
+        btn.addEventListener("click", () => selectTool(btn));
+      });
+    }
+  }
+
+  if (!customElements.get("tech-stack-inspector")) {
+    customElements.define("tech-stack-inspector", TechStackInspector);
+  }
+</script>
+

@@ -27,33 +27,26 @@ const rightName = Array.from("Jagar");
       class="relative flex min-h-[calc(100svh-3.5rem)] flex-col justify-between overflow-hidden px-6 py-8 sm:px-10 sm:py-10 lg:px-[5vw]"
       aria-labelledby="hero-title"
     >
-      <!-- Top HUD bar -->
+      <!-- Top bar -->
       <div class="flex flex-wrap items-center justify-between gap-4">
         <p class="m-0 flex items-center gap-3 font-mono text-xs uppercase text-muted">
           <span class="size-1.5 rounded-full bg-accent shadow-[0_0_10px_var(--theme-accent)]"></span>
-          Varaždin · Zagreb / Platform engineering
+          Varaždin · Zagreb
         </p>
-        <div class="flex items-center gap-3">
-          <span class="hidden items-center gap-2 font-mono text-xs uppercase text-muted md:inline-flex">
-            <span class="size-1.5 rounded-full bg-[var(--theme-amber)]"></span>
-            Drag to rotate · Scroll to morph
-          </span>
-          <button
-            type="button"
-            data-cosmos-replay
-            class="inline-flex items-center gap-2 border border-border bg-surface/75 px-3 py-1.5 font-mono text-xs uppercase text-muted backdrop-blur-md transition-colors hover:border-accent hover:text-accent"
-            aria-label="Replay spiral field animation"
-            title="Replay spiral field animation"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 20 20" aria-hidden="true">
-              <path
-                fill="currentColor"
-                d="M10 1.834a8.167 8.167 0 1 1-7.965 9.98.876.876 0 0 1 1.707-.387A6.416 6.416 0 1 0 4.5 6.695h1.45a.876.876 0 0 1 0 1.75H2.71a.875.875 0 0 1-.876-.875V3.924a.875.875 0 1 1 1.75 0V4.95A8.15 8.15 0 0 1 10 1.834"
-              />
-            </svg>
-            <span>Replay</span>
-          </button>
-        </div>
+        <button
+          type="button"
+          data-cosmos-replay
+          class="inline-flex size-8 items-center justify-center border border-border bg-surface/75 text-muted transition-colors hover:border-accent hover:text-accent"
+          aria-label="Replay animation"
+          title="Replay animation"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 20 20" aria-hidden="true">
+            <path
+              fill="currentColor"
+              d="M10 1.834a8.167 8.167 0 1 1-7.965 9.98.876.876 0 0 1 1.707-.387A6.416 6.416 0 1 0 4.5 6.695h1.45a.876.876 0 0 1 0 1.75H2.71a.875.875 0 0 1-.876-.875V3.924a.875.875 0 1 1 1.75 0V4.95A8.15 8.15 0 0 1 10 1.834"
+            />
+          </svg>
+        </button>
       </div>
 
       <!-- Center Stage: Left Label ("Karlo") · Accretion Core + Portrait · Right Label ("Jagar") -->
@@ -131,10 +124,12 @@ const rightName = Array.from("Jagar");
       </div>
 
       <!-- Bottom scroll cue -->
-      <div class="flex items-center justify-between font-mono text-xs uppercase text-muted">
-        <span>01 // Spiral Convergence · Drag to rotate · Click to pulse</span>
-        <a href="#stack-section" class="inline-flex items-center gap-2 text-muted no-underline transition-colors hover:text-accent">
-          <span>Scroll to morph</span>
+      <div class="flex justify-center">
+        <a
+          href="#stack-section"
+          aria-label="Scroll to technical stack"
+          class="inline-flex size-8 items-center justify-center text-muted no-underline transition-colors hover:text-accent"
+        >
           <span aria-hidden="true">↓</span>
         </a>
       </div>
@@ -151,7 +146,7 @@ const rightName = Array.from("Jagar");
     >
       <div class="mx-auto mb-16 flex max-w-[94rem] flex-col items-start justify-between gap-8 sm:flex-row sm:items-end">
         <div>
-          <p class="font-mono text-xs uppercase text-accent">03 // Telemetry Knot · Selected work</p>
+          <p class="font-mono text-xs uppercase text-accent">Selected work</p>
           <h2 class="mt-4 text-4xl leading-tight font-semibold sm:text-5xl" id="selected-work-title">Featured projects</h2>
         </div>
         <a

@@ -1,0 +1,129 @@
+---
+// Interactive KubeRay PENDING-Job Diagnostic Simulator for the raywhy project page
+---
+
+<raywhy-sim class="my-10 block border border-border bg-surface/90 p-5 sm:p-6">
+  <div class="flex flex-wrap items-center justify-between gap-3 border-b border-border pb-4">
+    <div>
+      <p class="m-0 font-mono text-xs uppercase text-accent">Interactive Verdict Engine · raywhy CLI</p>
+      <h3 class="m-0 mt-1 text-lg font-medium text-foreground">Simulate a Stuck PENDING Ray Job</h3>
+    </div>
+    <span class="border border-accent/50 bg-raised px-2.5 py-1 font-mono text-xs uppercase text-accent" data-raywhy-badge>
+      UNSATISFIABLE
+    </span>
+  </div>
+
+  <div class="mt-4 flex flex-wrap gap-2" role="group" aria-label="Select KubeRay failure scenario">
+    <button
+      type="button"
+      data-raywhy-case="unsatisfiable"
+      class="cursor-pointer border border-accent bg-accent px-3 py-1.5 font-mono text-xs uppercase text-canvas transition-colors"
+    >
+      01 / GPU Shape Mismatch
+    </button>
+    <button
+      type="button"
+      data-raywhy-case="contended"
+      class="cursor-pointer border border-border bg-raised px-3 py-1.5 font-mono text-xs uppercase text-muted transition-colors hover:border-accent hover:text-foreground"
+    >
+      02 / Multi-Tenant Contention
+    </button>
+    <button
+      type="button"
+      data-raywhy-case="throttled"
+      class="cursor-pointer border border-border bg-raised px-3 py-1.5 font-mono text-xs uppercase text-muted transition-colors hover:border-accent hover:text-foreground"
+    >
+      03 / Quota &amp; Autoscaler Cap
+    </button>
+    <button
+      type="button"
+      data-raywhy-case="unavailable"
+      class="cursor-pointer border border-border bg-raised px-3 py-1.5 font-mono text-xs uppercase text-muted transition-colors hover:border-accent hover:text-foreground"
+    >
+      04 / Cordoned Node Pool
+    </button>
+  </div>
+
+  <pre
+    class="mt-4 mb-0 overflow-x-auto border border-border bg-canvas p-4 font-mono text-xs leading-6 text-foreground"
+    data-raywhy-terminal
+  ></pre>
+</raywhy-sim>
+
+<script>
+  const CASES: Record<
+    string,
+    { badge: string; output: string }
+  > = {
+    unsatisfiable: {
+      badge: "UNSATISFIABLE",
+      output: `$ raywhy job raysubmit_train_7b --namespace ml-team-a
+[raywhy] Inspecting RayJob raysubmit_train_7b (status: PENDING, age: 14m22s)
+├─ Requested bundle : { CPU: 32, memory: 128Gi, nvidia.com/gpu: 4 (A100-80GB) }
+├─ Worker groups    : gpu-a100-pool (max: 2 GPUs/node, 64Gi RAM)
+├─ VERDICT          : UNSATISFIABLE — Single placement bundle exceeds largest node shape
+└─ REMEDY           : Split placement group into 2x { GPU: 2, CPU: 16, memory: 64Gi } bundles`,
+    },
+    contended: {
+      badge: "CONTENDED",
+      output: `$ raywhy job raysubmit_eval_batch --namespace ml-team-b
+[raywhy] Inspecting RayJob raysubmit_eval_batch (status: PENDING, age: 06m48s)
+├─ Requested bundle : { CPU: 8, memory: 32Gi, nvidia.com/gpu: 1 }
+├─ Cluster state    : 8/8 GPUs allocated in gpu-l4-pool (3 active RayJobs)
+├─ VERDICT          : CONTENDED — Shape is valid; queued behind active tenant workloads
+└─ REMEDY           : Wait ~4m (est. completion of raysubmit_ sweep_12) or lower priority class`,
+    },
+    throttled: {
+      badge: "THROTTLED / CAPPED",
+      output: `$ raywhy job raysubmit_embed_idx --namespace search-ops
+[raywhy] Inspecting RayJob raysubmit_embed_idx (status: PENDING, age: 21m05s)
+├─ Requested bundle : { CPU: 16, memory: 64Gi } x 4 workers
+├─ Quota & limits   : ResourceQuota 'search-ops-quota' requests.cpu at 64/64 cores
+├─ VERDICT          : THROTTLED / CAPPED — Namespace ResourceQuota blocks KubeRay scale-up
+└─ REMEDY           : Release 2 idle RayCluster replicas in search-ops or raise CPU quota to 96`,
+    },
+    unavailable: {
+      badge: "UNAVAILABLE",
+      output: `$ raywhy job raysubmit_vision_v3 --namespace robotics
+[raywhy] Inspecting RayJob raysubmit_vision_v3 (status: PENDING, age: 09m11s)
+├─ Requested bundle : { CPU: 12, memory: 48Gi, nvidia.com/gpu: 1 }
+├─ Node readiness   : node 'aks-gpupool-29104-vmss000002' is Cordoned (SchedulingDisabled)
+├─ VERDICT          : UNAVAILABLE — Target node pool has capacity but nodes are unschedulable
+└─ REMEDY           : Uncordon drained GPU node or allow fallback to spot-gpu-pool`,
+    },
+  };
+
+  class RaywhySimElement extends HTMLElement {
+    connectedCallback() {
+      const badgeEl = this.querySelector<HTMLElement>("[data-raywhy-badge]");
+      const termEl = this.querySelector<HTMLElement>("[data-raywhy-terminal]");
+      const buttons = this.querySelectorAll<HTMLButtonElement>("[data-raywhy-case]");
+      if (!badgeEl || !termEl) return;
+
+      const selectCase = (key: string) => {
+        const entry = CASES[key] ?? CASES.unsatisfiable!;
+        badgeEl.textContent = entry.badge;
+        termEl.textContent = entry.output;
+
+        buttons.forEach((btn) => {
+          const active = btn.dataset.raywhyCase === key;
+          btn.classList.toggle("bg-accent", active);
+          btn.classList.toggle("text-canvas", active);
+          btn.classList.toggle("border-accent", active);
+          btn.classList.toggle("bg-raised", !active);
+          btn.classList.toggle("text-muted", !active);
+          btn.classList.toggle("border-border", !active);
+        });
+      };
+
+      selectCase("unsatisfiable");
+      buttons.forEach((btn) => {
+        btn.addEventListener("click", () => selectCase(btn.dataset.raywhyCase ?? "unsatisfiable"));
+      });
+    }
+  }
+
+  if (!customElements.get("raywhy-sim")) {
+    customElements.define("raywhy-sim", RaywhySimElement);
+  }
+</script>
