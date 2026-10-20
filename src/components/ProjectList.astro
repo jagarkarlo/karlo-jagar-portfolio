@@ -79,7 +79,6 @@ const allStacks = Array.from(new Set(projects.flatMap((p) => p.data.stack)));
       this.controller?.abort();
       const controller = new AbortController();
       this.controller = controller;
-      const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 
       const windows = this.querySelectorAll<HTMLElement>("[data-project-window]");
       const filterButtons = this.querySelectorAll<HTMLButtonElement>("[data-stack-filter]");
@@ -111,6 +110,8 @@ const allStacks = Array.from(new Set(projects.flatMap((p) => p.data.stack)));
               ? `${visibleCount} active repositories`
               : `${visibleCount} matching ${selected}`;
         }
+
+        window.dispatchEvent(new Event("resize"));
       };
 
       filterButtons.forEach((btn) => {
@@ -135,7 +136,7 @@ const allStacks = Array.from(new Set(projects.flatMap((p) => p.data.stack)));
 
       windows.forEach((projectWindow) => {
         projectWindow.addEventListener("pointermove", (event) => {
-          if (reducedMotion.matches || window.innerWidth < 768) return;
+          if (window.innerWidth < 768) return;
           const bounds = projectWindow.getBoundingClientRect();
           const x = (event.clientX - bounds.left) / bounds.width - 0.5;
           const y = (event.clientY - bounds.top) / bounds.height - 0.5;

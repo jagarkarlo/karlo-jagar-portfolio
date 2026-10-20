@@ -5,7 +5,11 @@
 ---
 
 <script>
+  let mermaidThemeObserver: MutationObserver | null = null;
+
   const renderMermaidDiagrams = async () => {
+    mermaidThemeObserver?.disconnect();
+    mermaidThemeObserver = null;
     const nodes = document.querySelectorAll<HTMLElement>("pre.mermaid");
     if (nodes.length === 0) return;
 
@@ -81,7 +85,8 @@
     };
 
     await render();
-    new MutationObserver(render).observe(document.documentElement, {
+    mermaidThemeObserver = new MutationObserver(render);
+    mermaidThemeObserver.observe(document.documentElement, {
       attributeFilter: ["data-theme"],
     });
   };

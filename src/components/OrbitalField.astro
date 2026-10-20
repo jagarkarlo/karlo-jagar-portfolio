@@ -175,6 +175,7 @@
     private resizeObserver?: ResizeObserver;
     private themeObserver?: MutationObserver;
     private frame = 0;
+    private watchdog = 0;
 
     connectedCallback() {
         const canvas = this.querySelector("[data-orbital-canvas]");
@@ -185,7 +186,6 @@
         this.controller?.abort();
         this.controller = new AbortController();
         const { signal } = this.controller;
-        const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 
         let width = 0;
         let height = 0;
@@ -194,6 +194,7 @@
         let rawScroll = 0;
         let palette = this.readPalette();
         let introStart: number | null = null;
+        let lastSeconds = performance.now() / 1000;
         let spinX = 0.52;
         let spinY = -0.22;
         let userRotX = 0;
@@ -202,7 +203,6 @@
         let dragLastX = 0;
         let dragLastY = 0;
         let dragDistance = 0;
-        let pageVisible = document.visibilityState !== "hidden";
 
         // Easter Egg State:
         // 1) Press-and-hold 3D Wormhole Hyperspace Flight (`wormholeSpeed`, `wormholeZ`)
@@ -366,8 +366,8 @@
         const resize = () => {
           const bounds = this.getBoundingClientRect();
           dpr = Math.min(window.devicePixelRatio || 1, 1.35);
-          width = Math.max(1, bounds.width);
-          height = Math.max(1, bounds.height);
+          width = Math.max(1, bounds.width || window.innerWidth || 1);
+          height = Math.max(1, bounds.height || window.innerHeight || 1);
           canvas.width = Math.round(width * dpr);
           canvas.height = Math.round(height * dpr);
           context.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -385,14 +385,14 @@
           color: [number, number, number],
           primary: boolean,
         ) => {
-          if (intensity <= 0.02) return;
+          if (!Number.isFinite(fx) || !Number.isFinite(fy) || !Number.isFinite(intensity) || intensity <= 0.02) return;
           const [r, g, b] = color;
           const coreColor = palette.light ? `${r}, ${g}, ${b}` : "255, 255, 255";
           const alphaScale = palette.light ? 0.55 : 1;
           context.save();
           context.globalCompositeOperation = palette.light ? "source-over" : "lighter";
 
-          const haloR = (primary ? 130 : 66) * (0.7 + intensity * 0.4);
+          const haloR = Math.max(1, (primary ? 130 : 66) * (0.7 + intensity * 0.4));
           const halo = context.createRadialGradient(fx, fy, 0, fx, fy, haloR);
           halo.addColorStop(0, `rgba(${coreColor}, ${0.52 * intensity * alphaScale})`);
           halo.addColorStop(0.22, `rgba(${r}, ${g}, ${b}, ${0.28 * intensity * alphaScale})`);
@@ -402,7 +402,7 @@
           context.arc(fx, fy, haloR, 0, Math.PI * 2);
           context.fill();
 
-          const streakW = (primary ? Math.min(width * 0.44, 480) : 180) * (0.65 + intensity * 0.35);
+          const streakW = Math.max(1, (primary ? Math.min(width * 0.44, 480) : 180) * (0.65 + intensity * 0.35));
           const hGrad = context.createLinearGradient(fx - streakW, fy, fx + streakW, fy);
           hGrad.addColorStop(0, `rgba(${r}, ${g}, ${b}, 0)`);
           hGrad.addColorStop(0.38, `rgba(${r}, ${g}, ${b}, ${0.24 * intensity * alphaScale})`);
@@ -416,7 +416,7 @@
           context.lineTo(fx + streakW, fy);
           context.stroke();
 
-          const streakH = (primary ? 105 : 48) * (0.65 + intensity * 0.35);
+          const streakH = Math.max(1, (primary ? 105 : 48) * (0.65 + intensity * 0.35));
           const vGrad = context.createLinearGradient(fx, fy - streakH, fx, fy + streakH);
           vGrad.addColorStop(0, `rgba(${r}, ${g}, ${b}, 0)`);
           vGrad.addColorStop(0.5, `rgba(${coreColor}, ${0.46 * intensity * alphaScale})`);
@@ -450,8 +450,9 @@
         const fyClamp = (val: number, maxH: number) => clamp(val, 0, maxH);
 
         const triggerShockwave = (x: number, y: number) => {
+          if (!Number.isFinite(x) || !Number.isFinite(y)) return;
           const colorPick = palette.colors[(shockwaves.length + 1) % palette.colors.length] ?? palette.colors[1]!;
-          shockwaves.push({ x, y, born: performance.now() / 1000, color: colorPick });
+          shockwaves.push({ x, y, born: lastSeconds, color: colorPick });
           if (shockwaves.length > 5) shockwaves.shift();
         };
 
@@ -473,11 +474,15 @@
         };
 
         const draw = (now = performance.now()) => {
-          if (width === 0 || height === 0) return;
-          if (introStart === null) introStart = now;
-          const still = reducedMotion.matches;
-          const seconds = still ? 12 : now / 1000;
-          const introElapsed = still ? 6 : Math.max(0, (now - introStart) / 1000);
+          this.frame = 0;
+          if (!this.isConnected) return;
+          try {
+            if (width <= 1 || height <= 1) resize();
+            if (introStart === null) introStart = now;
+            const still = false;
+            const seconds = now / 1000;
+            lastSeconds = seconds;
+            const introElapsed = Math.max(0, (now - introStart) / 1000);
 
           const introProgress = clamp(introElapsed / 3.5, 0, 1);
           const introEase = smootherstep(0, 1, introProgress);
@@ -703,12 +708,16 @@
               }
             }
 
-            p.vx += -p.ox * 0.085;
-            p.vy += -p.oy * 0.085;
-            p.vx *= 0.84;
-            p.vy *= 0.84;
-            p.ox += p.vx;
-            p.oy += p.vy;
+            p.vx = clamp((p.vx - p.ox * 0.085) * 0.84, -40, 40);
+            p.vy = clamp((p.vy - p.oy * 0.085) * 0.84, -40, 40);
+            p.ox = clamp(p.ox + p.vx, -520, 520);
+            p.oy = clamp(p.oy + p.vy, -520, 520);
+            if (!Number.isFinite(p.ox) || !Number.isFinite(p.oy)) {
+              p.ox = 0;
+              p.oy = 0;
+              p.vx = 0;
+              p.vy = 0;
+            }
 
             sx = cx + rx1 * scale * perspective + p.ox;
             sy = cy + ry2 * scale * perspective + p.oy;
@@ -759,10 +768,13 @@
               shockwaves.splice(i, 1);
               continue;
             }
-            const progress = age / 1.8;
+            if (age <= 0) continue;
+            const progress = clamp(age / 1.8, 0, 1);
+            const ringRadius = Math.max(0.5, progress * 460);
+            if (!Number.isFinite(sw.x) || !Number.isFinite(sw.y) || !Number.isFinite(ringRadius)) continue;
             const [r, g, b] = sw.color;
             context.beginPath();
-            context.arc(sw.x, sw.y, progress * 460, 0, Math.PI * 2);
+            context.arc(sw.x, sw.y, ringRadius, 0, Math.PI * 2);
             context.strokeStyle = `rgba(${r}, ${g}, ${b}, ${(1 - progress) ** 1.6 * 0.55})`;
             context.lineWidth = 1.6;
             context.stroke();
@@ -783,32 +795,40 @@
           }
 
           context.globalAlpha = 1;
-          if (!still && pageVisible) {
-            this.frame = requestAnimationFrame(draw);
+          } catch {
+            // Ensure canvas state is restored if any transient error occurs
+            try { context.restore(); } catch { /* noop */ }
+            context.setTransform(dpr, 0, 0, dpr, 0, 0);
+            context.globalAlpha = 1;
+          } finally {
+            if (this.isConnected) {
+              this.frame = requestAnimationFrame(draw);
+            }
           }
         };
 
         const restart = () => {
           cancelAnimationFrame(this.frame);
-          if (pageVisible) {
-            this.frame = requestAnimationFrame(draw);
+          this.frame = 0;
+          if (this.isConnected) {
+            draw(performance.now());
           }
         };
 
         window.addEventListener(
           "scroll",
           () => {
-            rawScroll = clamp(window.scrollY / docScrollMax, 0, 1);
+            updateScrollMetrics();
           },
           { passive: true, signal },
         );
 
+        window.addEventListener("resize", resize, { passive: true, signal });
+
         document.addEventListener(
           "visibilitychange",
           () => {
-            pageVisible = document.visibilityState !== "hidden";
-            if (pageVisible) restart();
-            else cancelAnimationFrame(this.frame);
+            if (document.visibilityState !== "hidden") restart();
           },
           { signal },
         );
@@ -870,7 +890,6 @@
         window.addEventListener(
           "pointermove",
           (event) => {
-            if (reducedMotion.matches) return;
             const nx = event.clientX;
             const ny = event.clientY;
             if (pointer.active) {
@@ -921,7 +940,6 @@
         window.addEventListener(
           "pointerdown",
           (event) => {
-            if (reducedMotion.matches) return;
             pointer.pressed = true;
             dragDistance = 0;
             const target = event.target as HTMLElement | null;
@@ -949,9 +967,9 @@
             pointer.pressed = false;
             dragging = false;
             cosmosState.holdingCore = false;
-            if (wasHoldingWormhole && !reducedMotion.matches) {
+            if (wasHoldingWormhole) {
               eruptSupernova(event.clientX, event.clientY, performance.now() / 1000);
-            } else if (wasQuickClick && !reducedMotion.matches) {
+            } else if (wasQuickClick) {
               triggerShockwave(event.clientX, event.clientY);
             }
           },
@@ -982,14 +1000,23 @@
         });
         this.themeObserver.observe(document.documentElement, { attributeFilter: ["data-theme"] });
 
-        reducedMotion.addEventListener("change", restart, { signal });
-
         resize();
         restart();
+
+        window.clearInterval(this.watchdog);
+        this.watchdog = window.setInterval(() => {
+          if (!this.isConnected) return;
+          if (performance.now() / 1000 - lastSeconds > 0.08) {
+            cancelAnimationFrame(this.frame);
+            this.frame = 0;
+            draw(performance.now());
+          }
+        }, 75);
     }
 
     disconnectedCallback() {
         cancelAnimationFrame(this.frame);
+        window.clearInterval(this.watchdog);
         this.controller?.abort();
         this.resizeObserver?.disconnect();
         this.themeObserver?.disconnect();

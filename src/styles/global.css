@@ -205,7 +205,7 @@
     transform: translate3d(var(--cosmos-letter-shift, 0px), 10px, 0) scale(0.96);
   }
   to {
-    filter: blur(0);
+    filter: none;
     opacity: 1;
     transform: translate3d(0, 0, 0) scale(1);
   }
@@ -215,7 +215,9 @@
   animation: cosmos-letter-reveal var(--cosmos-letter-duration, 0.95s) cubic-bezier(0.16, 1, 0.3, 1) both;
   animation-delay: var(--cosmos-letter-delay, 0s);
   display: inline-block;
-  will-change: transform, opacity, filter;
+  line-height: 1.16;
+  margin-bottom: -0.14em;
+  padding-bottom: 0.14em;
 }
 
 .cosmos-text-gradient {
@@ -228,7 +230,14 @@
   );
   -webkit-background-clip: text;
   background-clip: text;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
   color: transparent;
+  display: inline-block;
+  line-height: 1.14;
+  margin-bottom: -0.14em;
+  padding-bottom: 0.16em;
+  padding-top: 0.04em;
 }
 
 .cosmos-card {
