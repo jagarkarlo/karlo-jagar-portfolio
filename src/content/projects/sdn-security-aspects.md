@@ -1,6 +1,6 @@
 ---
 title: SDN Security Aspects
-order: 2
+order: 8
 category: Network security
 summary: A Ryu and Mininet security lab that learns Layer 2 paths, enforces an SSH ACL, detects rapid port scanning, and reports events in a live dashboard.
 outcome: Repeatable scenarios validate connectivity, ACL drops, allowed HTTP traffic, scan detection, and installed OpenFlow rules.
@@ -10,7 +10,7 @@ stack:
   - OpenFlow
   - Mininet
 repo: https://github.com/jagarkarlo/SDN-security-aspects
-featured: true
+featured: false
 ---
 
 A software-defined networking lab where the controller is the security control

@@ -1,33 +1,36 @@
 ---
-title: GitLab Jira Context MCP
+title: ContextLoom MCP
 order: 3
 category: AI-assisted operations
-summary: A local TypeScript MCP server connecting GitLab, Jira, Confluence, Grafana, and optional GitHub context to coding assistants.
-outcome: Read tools stay read-only; Jira mutations and GitHub file writes require explicit confirmation and scoped tokens.
+summary: A local TypeScript MCP server connecting GitLab, Jira, Confluence, Grafana, and optional GitHub context to coding assistants, read-only by default with explicit confirmation for writes.
+outcome: Read tools stay read-only; Jira comments/worklogs and GitHub file writes require explicit confirmation and scoped tokens.
 stack:
   - TypeScript
   - MCP
   - GitLab
   - Jira
-repo: https://github.com/jagarkarlo/gitlab-jira-context-mcp
+  - Grafana
+repo: https://github.com/jagarkarlo/contextloom-mcp
+featured: true
 ---
 
-Context plumbing for coding assistants, built on the principle that the default
-posture is read-only and every write is deliberate.
+Context plumbing for coding assistants (renamed from `gitlab-jira-context-mcp`),
+built on the principle that the default posture is read-only and every write is
+deliberate.
 
 ## Context flow
 
 ```mermaid
 flowchart LR
-  C["MCP client"] <-->|"stdio"| S["Local MCP server"]
-  S --> G["GitLab client"]
-  S --> J["Jira client"]
-  G --> GP["Projects and merge requests"]
-  J --> JP["Issues and comments"]
-  GP --> C
-  JP --> C
+  C["VS Code / MCP client"] <-->|"stdio"| S["contextloom-mcp"]
+  S -->|"REST API"| G["GitLab projects, MRs & pipelines"]
+  S -->|"REST API"| J["Jira issues & JQL search"]
+  S -.->|"optional REST API"| CF["Confluence pages"]
+  S -.->|"optional REST API"| GF["Grafana dashboards"]
+  S -.->|"confirmed writes"| GH["GitHub repositories"]
 ```
 
-The server stays local and exposes narrowly scoped read tools. GitLab and Jira
-responses are fetched only from the configured endpoints, while credentials
-remain in the local environment rather than in MCP messages or source control.
+The server runs locally over `stdio` and exposes narrowly scoped tools across
+GitLab, Jira, Confluence, Grafana, and GitHub. Service tokens remain in the
+local `.env` or process environment rather than in MCP messages or source
+control.

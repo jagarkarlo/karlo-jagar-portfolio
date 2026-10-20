@@ -1,6 +1,6 @@
 ---
 title: Azure DevOps Challenge
-order: 1
+order: 4
 category: Cloud delivery
 summary: A documented Azure delivery system spanning a hardened Linux VM, containerized Nginx, AKS, Traefik ingress, and Terraform infrastructure definitions.
 outcome: Verified with real Azure and kubectl captures, traffic-flow diagrams, Kubernetes manifests, and Terraform plans.

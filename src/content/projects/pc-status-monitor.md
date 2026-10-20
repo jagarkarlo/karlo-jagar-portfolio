@@ -1,6 +1,6 @@
 ---
 title: PC Status Monitor
-order: 6
+order: 12
 category: Resilient web application
 summary: An Angular and FastAPI monitor for latency, CPU, and memory using REST polling and a live WebSocket stream.
 outcome: Exercises simulated HTTP faults, forced disconnects, loading states, bounded history, and exponential-backoff recovery.
