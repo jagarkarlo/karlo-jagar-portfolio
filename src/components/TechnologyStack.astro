@@ -54,7 +54,7 @@ const groups = [
     </div>
     <div class="grid border-t border-border sm:grid-cols-2">
       {groups.map((group) => (
-        <section class="astra-card border-b border-border py-7 sm:px-7 sm:nth-[odd]:border-r sm:nth-[odd]:pl-0" style={`--stack-tone:${group.tone}`} aria-label={group.label}>
+        <section class="cosmos-card border-b border-border py-7 sm:px-7 sm:nth-[odd]:border-r sm:nth-[odd]:pl-0" style={`--stack-tone:${group.tone}`} aria-label={group.label}>
           <h3 class="mb-6 flex items-center gap-2.5 font-mono text-xs uppercase text-muted"><span class="size-1.5 rounded-full" style={`background:${group.tone}`}></span>{group.label}</h3>
           <ul class="grid list-none gap-4 p-0">
             {group.tools.map((tool) => (

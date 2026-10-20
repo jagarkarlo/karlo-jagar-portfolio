@@ -174,11 +174,11 @@
   }
 }
 
-@keyframes astra-letter-reveal {
+@keyframes cosmos-letter-reveal {
   from {
     filter: blur(10px);
     opacity: 0;
-    transform: translate3d(var(--astra-letter-shift, 0px), 10px, 0) scale(0.96);
+    transform: translate3d(var(--cosmos-letter-shift, 0px), 10px, 0) scale(0.96);
   }
   to {
     filter: blur(0);
@@ -187,14 +187,14 @@
   }
 }
 
-.astra-split-letter {
-  animation: astra-letter-reveal var(--astra-letter-duration, 0.95s) cubic-bezier(0.16, 1, 0.3, 1) both;
-  animation-delay: var(--astra-letter-delay, 0s);
+.cosmos-split-letter {
+  animation: cosmos-letter-reveal var(--cosmos-letter-duration, 0.95s) cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: var(--cosmos-letter-delay, 0s);
   display: inline-block;
   will-change: transform, opacity, filter;
 }
 
-.astra-text-gradient {
+.cosmos-text-gradient {
   background: linear-gradient(
     110deg,
     var(--theme-foreground) 12%,
@@ -207,12 +207,12 @@
   color: transparent;
 }
 
-.astra-card {
+.cosmos-card {
   position: relative;
   transition: border-color 220ms ease, transform 220ms ease, box-shadow 220ms ease;
 }
 
-.astra-card::before {
+.cosmos-card::before {
   background: linear-gradient(
     90deg,
     var(--theme-accent),
@@ -230,7 +230,7 @@
   transition: opacity 220ms ease;
 }
 
-.astra-card:hover::before {
+.cosmos-card:hover::before {
   opacity: 0.9;
 }
 

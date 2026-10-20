@@ -28,19 +28,36 @@ const rightName = Array.from("Jagar");
       aria-labelledby="hero-title"
     >
       <!-- Top HUD bar -->
-      <div class="flex items-center justify-between gap-4">
+      <div class="flex flex-wrap items-center justify-between gap-4">
         <p class="m-0 flex items-center gap-3 font-mono text-xs uppercase text-muted">
           <span class="size-1.5 rounded-full bg-accent shadow-[0_0_10px_var(--theme-accent)]"></span>
           Varaždin · Zagreb / Platform engineering
         </p>
-        <div class="flex items-center gap-3">
-          <span class="hidden items-center gap-2 font-mono text-xs uppercase text-muted md:inline-flex">
-            <span class="size-1.5 rounded-full bg-[var(--theme-amber)]"></span>
-            Drag to rotate 3D field · Scroll to morph
-          </span>
+        <div class="flex flex-wrap items-center gap-2">
+          <div class="hidden items-center border border-border bg-surface/75 p-0.5 font-mono text-xs uppercase backdrop-blur-md sm:inline-flex" role="group" aria-label="3D formation selector">
+            {[
+              { id: "auto", label: "Auto" },
+              { id: "spiral", label: "Spiral" },
+              { id: "helm", label: "Helm" },
+              { id: "knot", label: "Knot" },
+              { id: "sphere", label: "Sphere" },
+            ].map((mode, idx) => (
+              <button
+                type="button"
+                data-cosmos-mode={mode.id}
+                aria-pressed={idx === 0 ? "true" : "false"}
+                class:list={[
+                  "px-2.5 py-1 text-xs uppercase transition-colors",
+                  idx === 0 ? "bg-accent text-canvas" : "text-muted hover:text-foreground",
+                ]}
+              >
+                {mode.label}
+              </button>
+            ))}
+          </div>
           <button
             type="button"
-            data-astra-replay
+            data-cosmos-replay
             class="inline-flex items-center gap-2 border border-border bg-surface/75 px-3 py-1.5 font-mono text-xs uppercase text-muted backdrop-blur-md transition-colors hover:border-accent hover:text-accent"
             aria-label="Replay spiral field animation"
             title="Replay spiral field animation"
@@ -56,19 +73,19 @@ const rightName = Array.from("Jagar");
         </div>
       </div>
 
-      <!-- Center Astra Stage: Left Label ("Karlo") · Accretion Core + Portrait · Right Label ("Jagar") -->
+      <!-- Center Stage: Left Label ("Karlo") · Accretion Core + Portrait · Right Label ("Jagar") -->
       <div class="pointer-events-none my-auto mx-auto grid w-full max-w-[94rem] items-center gap-6 py-8 md:grid-cols-[1fr_auto_1fr] md:gap-10">
         <p
           aria-hidden="true"
           class="m-0 hidden select-none text-right text-5xl font-semibold tracking-tight text-foreground drop-shadow-[0_0_28px_rgba(109,203,244,0.35)] md:block lg:text-7xl xl:text-8xl"
-          data-astra-split
+          data-cosmos-split
         >
           {leftName.map((letter, idx) => {
             const order = leftName.length - idx - 1;
             return (
               <span
-                class="astra-split-letter"
-                style={`--astra-letter-delay:${(0.35 + order * 0.09).toFixed(2)}s;--astra-letter-duration:0.95s;--astra-letter-shift:-44px`}
+                class="cosmos-split-letter"
+                style={`--cosmos-letter-delay:${(0.35 + order * 0.09).toFixed(2)}s;--cosmos-letter-duration:0.95s;--cosmos-letter-shift:-44px`}
               >
                 {letter}
               </span>
@@ -90,7 +107,7 @@ const rightName = Array.from("Jagar");
           </div>
 
           <p class="mt-6 mb-2 font-mono text-xs uppercase tracking-widest text-accent">DevOps &amp; Platform Engineer</p>
-          <h1 class="astra-text-gradient text-5xl leading-none font-semibold sm:text-6xl md:sr-only" id="hero-title">
+          <h1 class="cosmos-text-gradient text-5xl leading-none font-semibold sm:text-6xl md:sr-only" id="hero-title">
             Karlo Jagar
           </h1>
           <p class="mx-auto mt-4 max-w-xl text-base leading-7 text-foreground/90 drop-shadow-[0_2px_14px_rgba(0,0,0,0.75)] sm:text-lg">
@@ -115,12 +132,12 @@ const rightName = Array.from("Jagar");
         <p
           aria-hidden="true"
           class="m-0 hidden select-none text-left text-5xl font-semibold tracking-tight text-foreground drop-shadow-[0_0_28px_rgba(248,121,21,0.3)] md:block lg:text-7xl xl:text-8xl"
-          data-astra-split
+          data-cosmos-split
         >
           {rightName.map((letter, idx) => (
             <span
-              class="astra-split-letter"
-              style={`--astra-letter-delay:${(0.35 + idx * 0.09).toFixed(2)}s;--astra-letter-duration:0.95s;--astra-letter-shift:44px`}
+              class="cosmos-split-letter"
+              style={`--cosmos-letter-delay:${(0.35 + idx * 0.09).toFixed(2)}s;--cosmos-letter-duration:0.95s;--cosmos-letter-shift:44px`}
             >
               {letter}
             </span>
@@ -130,7 +147,7 @@ const rightName = Array.from("Jagar");
 
       <!-- Bottom scroll cue -->
       <div class="flex items-center justify-between font-mono text-xs uppercase text-muted">
-        <span>01 // Spiral Convergence</span>
+        <span>01 // Spiral Convergence · Drag to rotate · Click to pulse</span>
         <a href="#stack-section" class="inline-flex items-center gap-2 text-muted no-underline transition-colors hover:text-accent">
           <span>Scroll to morph</span>
           <span aria-hidden="true">↓</span>
@@ -166,22 +183,39 @@ const rightName = Array.from("Jagar");
 </BaseLayout>
 
 <script>
-  const bindReplayButtons = () => {
-    document.querySelectorAll<HTMLButtonElement>("[data-astra-replay]").forEach((btn) => {
+  const bindHeroControls = () => {
+    document.querySelectorAll<HTMLButtonElement>("[data-cosmos-replay]").forEach((btn) => {
       if (btn.dataset.bound === "true") return;
       btn.dataset.bound = "true";
       btn.addEventListener("click", () => {
-        window.dispatchEvent(new CustomEvent("astra:replay"));
-        document.querySelectorAll<HTMLElement>(".astra-split-letter").forEach((el) => {
+        window.dispatchEvent(new CustomEvent("cosmos:replay"));
+        document.querySelectorAll<HTMLElement>(".cosmos-split-letter").forEach((el) => {
           el.style.animation = "none";
           void el.offsetHeight;
           el.style.animation = "";
         });
       });
     });
+
+    const modeButtons = document.querySelectorAll<HTMLButtonElement>("[data-cosmos-mode]");
+    modeButtons.forEach((btn) => {
+      if (btn.dataset.bound === "true") return;
+      btn.dataset.bound = "true";
+      btn.addEventListener("click", () => {
+        const mode = btn.dataset.cosmosMode ?? "auto";
+        window.dispatchEvent(new CustomEvent("cosmos:mode", { detail: mode }));
+        modeButtons.forEach((other) => {
+          const active = other === btn;
+          other.setAttribute("aria-pressed", String(active));
+          other.classList.toggle("bg-accent", active);
+          other.classList.toggle("text-canvas", active);
+          other.classList.toggle("text-muted", !active);
+        });
+      });
+    });
   };
 
-  document.addEventListener("astro:page-load", bindReplayButtons);
-  bindReplayButtons();
+  document.addEventListener("astro:page-load", bindHeroControls);
+  bindHeroControls();
 </script>
 

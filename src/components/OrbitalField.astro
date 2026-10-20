@@ -1,11 +1,11 @@
 ---
-// Astra 3D Spiral & Scroll-Morphing Engine:
-// Modelled directly after OpenAI's GPT-6 Astra experience:
-// - 3,600 3D particles in logarithmic spiral arms + dense accretion core
-// - Exact Astra spectrum (#6DCBF4, #7AB1FE, #F87915, #FA994C, #F5F6FB, #7DD3B0)
-// - Intro accretion-exhale convergence + replay trigger (`astra:replay`)
-// - Scroll-driven 3D morphing from Spiral -> Helm/K8s Heptagon Wheel -> GitOps Infinity Knot
-// - Anamorphic optical lens flares, chromatic ghosts, and spring-physics cursor smear
+// 3D Orbital & Scroll-Morphing Particle Engine:
+// - 4,200 3D particles in logarithmic spiral arms + dense accretion core
+// - Multi-spectrum palette (#6DCBF4, #7AB1FE, #F87915, #FA994C, #F5F6FB, #7DD3B0)
+// - Intro accretion-exhale convergence + replay trigger (`cosmos:replay`)
+// - Scroll-driven or interactive 3D morphing across 4 formations:
+//   0: Spiral Galaxy · 1: Platform Helm Wheel · 2: Telemetry Trefoil Knot · 3: Constellation Sphere
+// - Click/double-click shockwave impulse, 3D orbital wireframe rings, anamorphic lens flares, and spring cursor physics
 ---
 
 <orbital-field class="orbital-field" aria-hidden="true">
@@ -35,6 +35,9 @@
     knotX: number;
     knotY: number;
     knotZ: number;
+    sphereX: number;
+    sphereY: number;
+    sphereZ: number;
     colorIndex: number;
     size: number;
     hero: boolean;
@@ -45,9 +48,16 @@
     oy: number;
   };
 
-  const PARTICLE_COUNT_DESKTOP = 3600;
-  const PARTICLE_COUNT_MOBILE = 1700;
-  const HERO_KNOTS = [0.14, 0.27, 0.39, 0.52, 0.64, 0.82, 0.93];
+  type Shockwave = {
+    x: number;
+    y: number;
+    born: number;
+    color: [number, number, number];
+  };
+
+  const PARTICLE_COUNT_DESKTOP = 4000;
+  const PARTICLE_COUNT_MOBILE = 1800;
+  const HERO_KNOTS = [0.12, 0.24, 0.36, 0.48, 0.6, 0.74, 0.86, 0.94];
 
   const clamp = (v: number, min: number, max: number) => Math.min(max, Math.max(min, v));
   const smoothstep = (edge0: number, edge1: number, x: number) => {
@@ -63,62 +73,85 @@
   const seeded = (seed: number) => {
     let state = seed >>> 0;
     return () => {
-      state = (state * 1664525 + 1013904223) >>> 0;
-      return state / 0x100000000;
+        state = (state * 1664525 + 1013904223) >>> 0;
+        return state / 0x100000000;
     };
   };
 
-  // Sample a 7-spoke Kubernetes/Platform helm wheel in normalized [-1, 1] space
+  // Formation 1: 7-spoke Kubernetes/Platform helm wheel in normalized [-1, 1] space
   const sampleK8sHelm = (u: number, across: number, depth: number): [number, number, number] => {
     const spokes = 7;
     if (u < 0.42) {
-      const sub = u / 0.42;
-      const ringRadius = sub < 0.72 ? 0.78 : 0.24;
-      const angle = (sub < 0.72 ? sub / 0.72 : (sub - 0.72) / 0.28) * Math.PI * 2;
-      const sector = (Math.PI * 2) / spokes;
-      const localA = ((angle % sector) + sector) % sector - sector * 0.5;
-      const polygonFactor = sub < 0.72 ? Math.cos(sector * 0.5) / Math.max(0.5, Math.cos(localA * 0.65)) : 1;
-      const r = ringRadius * polygonFactor + across * 0.045;
-      return [
-        Math.cos(angle) * r,
-        Math.sin(angle) * r,
-        Math.sin(angle * spokes) * 0.12 + depth * 0.08,
-      ];
+        const sub = u / 0.42;
+        const ringRadius = sub < 0.72 ? 0.8 : 0.25;
+        const angle = (sub < 0.72 ? sub / 0.72 : (sub - 0.72) / 0.28) * Math.PI * 2;
+        const sector = (Math.PI * 2) / spokes;
+        const localA = ((angle % sector) + sector) % sector - sector * 0.5;
+        const polygonFactor = sub < 0.72 ? Math.cos(sector * 0.5) / Math.max(0.5, Math.cos(localA * 0.65)) : 1;
+        const r = ringRadius * polygonFactor + across * 0.045;
+        return [
+          Math.cos(angle) * r,
+          Math.sin(angle) * r,
+          Math.sin(angle * spokes) * 0.12 + depth * 0.08,
+        ];
     } else if (u < 0.86) {
-      const sub = (u - 0.42) / 0.44;
-      const spokeIdx = Math.min(spokes - 1, Math.floor(sub * spokes));
-      const radialT = sub * spokes - spokeIdx;
-      const angle = (spokeIdx / spokes) * Math.PI * 2 - Math.PI * 0.5;
-      const r = lerp(0.22, 0.96, radialT);
-      const perpX = -Math.sin(angle);
-      const perpY = Math.cos(angle);
-      const handleKnob = radialT > 0.84 ? 2.1 : 0.7;
-      return [
-        Math.cos(angle) * r + perpX * across * 0.032 * handleKnob,
-        Math.sin(angle) * r + perpY * across * 0.032 * handleKnob,
-        Math.cos(radialT * Math.PI) * 0.14 + depth * 0.07,
-      ];
+        const sub = (u - 0.42) / 0.44;
+        const spokeIdx = Math.min(spokes - 1, Math.floor(sub * spokes));
+        const radialT = sub * spokes - spokeIdx;
+        const angle = (spokeIdx / spokes) * Math.PI * 2 - Math.PI * 0.5;
+        const r = lerp(0.22, 0.98, radialT);
+        const perpX = -Math.sin(angle);
+        const perpY = Math.cos(angle);
+        const handleKnob = radialT > 0.84 ? 2.2 : 0.7;
+        return [
+          Math.cos(angle) * r + perpX * across * 0.032 * handleKnob,
+          Math.sin(angle) * r + perpY * across * 0.032 * handleKnob,
+          Math.cos(radialT * Math.PI) * 0.14 + depth * 0.07,
+        ];
     } else {
-      const sub = (u - 0.86) / 0.14;
-      const angle = sub * Math.PI * 12;
-      const r = Math.sqrt(sub) * 0.19;
-      return [Math.cos(angle) * r, Math.sin(angle) * r, depth * 0.15];
+        const sub = (u - 0.86) / 0.14;
+        const angle = sub * Math.PI * 12;
+        const r = Math.sqrt(sub) * 0.2;
+        return [Math.cos(angle) * r, Math.sin(angle) * r, depth * 0.15];
     }
   };
 
-  // Sample a 3D Trefoil / Infinity GitOps loop in normalized [-1, 1] space
+  // Formation 2: 3D Trefoil / Telemetry loop in normalized [-1, 1] space
   const sampleTrefoilKnot = (u: number, across: number, depth: number): [number, number, number] => {
     const t = u * Math.PI * 2;
     const x = (Math.sin(t) + 2 * Math.sin(2 * t)) * 0.31;
     const y = (Math.cos(t) - 2 * Math.cos(2 * t)) * 0.31;
-    const z = -Math.sin(3 * t) * 0.34;
+    const z = -Math.sin(3 * t) * 0.35;
     const nx = Math.cos(t) + 4 * Math.cos(2 * t);
     const ny = -Math.sin(t) + 4 * Math.sin(2 * t);
     const len = Math.hypot(nx, ny) || 1;
     return [
-      x + (-ny / len) * across * 0.09,
-      y + (nx / len) * across * 0.09,
-      z + depth * 0.12,
+        x + (-ny / len) * across * 0.09,
+        y + (nx / len) * across * 0.09,
+        z + depth * 0.12,
+    ];
+  };
+
+  // Formation 3: Fibonacci Geodesic Orbital Sphere + Equatorial Ring
+  const sampleOrbitalSphere = (index: number, total: number, across: number, depth: number): [number, number, number] => {
+    const ringCut = Math.floor(total * 0.76);
+    if (index < ringCut) {
+        const phi = Math.acos(1 - (2 * (index + 0.5)) / ringCut);
+        const theta = Math.PI * (1 + Math.sqrt(5)) * index;
+        const r = 0.78 + depth * 0.06;
+        return [
+          r * Math.sin(phi) * Math.cos(theta),
+          r * Math.cos(phi),
+          r * Math.sin(phi) * Math.sin(theta),
+        ];
+    }
+    const sub = (index - ringCut) / Math.max(1, total - ringCut);
+    const angle = sub * Math.PI * 2;
+    const r = 1.08 + across * 0.08;
+    return [
+        Math.cos(angle) * r,
+        Math.sin(angle * 2) * 0.08 + depth * 0.04,
+        Math.sin(angle) * r,
     ];
   };
 
@@ -129,516 +162,639 @@
     private frame = 0;
 
     connectedCallback() {
-      const canvas = this.querySelector("[data-orbital-canvas]");
-      if (!(canvas instanceof HTMLCanvasElement)) return;
-      const context = canvas.getContext("2d", { alpha: true });
-      if (!context) return;
+        const canvas = this.querySelector("[data-orbital-canvas]");
+        if (!(canvas instanceof HTMLCanvasElement)) return;
+        const context = canvas.getContext("2d", { alpha: true });
+        if (!context) return;
 
-      this.controller?.abort();
-      this.controller = new AbortController();
-      const { signal } = this.controller;
-      const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+        this.controller?.abort();
+        this.controller = new AbortController();
+        const { signal } = this.controller;
+        const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 
-      let width = 0;
-      let height = 0;
-      let dpr = 1;
-      let palette = this.readPalette();
-      let introStart = performance.now();
+        let width = 0;
+        let height = 0;
+        let dpr = 1;
+        let palette = this.readPalette();
+        let introStart = performance.now();
         let spinX = 0.52;
-      let spinY = -0.22;
-      let targetSpinX = 0.52;
-      let targetSpinY = -0.22;
-      let dragging = false;
-      let dragLastX = 0;
-      let dragLastY = 0;
+        let spinY = -0.22;
+        let targetSpinX = 0.52;
+        let targetSpinY = -0.22;
+        let dragging = false;
+        let dragLastX = 0;
+        let dragLastY = 0;
+        let dragDistance = 0;
 
-      const pointer = {
-        x: -9999,
-        y: -9999,
-        prevX: -9999,
-        prevY: -9999,
-        vx: 0,
-        vy: 0,
-        normX: 0,
-        normY: 0,
-        active: false,
-        pressed: false,
-      };
+        // Mode override: "auto" follows scroll, or locked to "spiral" | "helm" | "knot" | "sphere"
+        let lockedMode: "auto" | "spiral" | "helm" | "knot" | "sphere" = "auto";
+        const morphWeights = { spiral: 1, helm: 0, knot: 0, sphere: 0 };
 
-      const isMobile = () => window.innerWidth < 768;
-      const count = isMobile() ? PARTICLE_COUNT_MOBILE : PARTICLE_COUNT_DESKTOP;
-      const rand = seeded(20261019);
-      const gauss = () => (rand() + rand() + rand() + rand() - 2) * 0.5;
-
-      // Color weights matching OpenAI Astra:
-      // 0: #F5F6FB (50%), 1: #6DCBF4 (16%), 2: #7AB1FE (16%), 3: #F87915 (7%), 4: #FA994C (6%), 5: #7DD3B0 (5%)
-      const pickColorIndex = (r: number) => {
-        if (r < 0.5) return 0;
-        if (r < 0.66) return 1;
-        if (r < 0.82) return 2;
-        if (r < 0.89) return 3;
-        if (r < 0.95) return 4;
-        return 5;
-      };
-
-      const particles: Particle[] = Array.from({ length: count }, (_, i) => {
-        // 3 distinct logarithmic spiral streams + a 12% ambient deep-space halo
-        const isAmbient = i % 9 === 0;
-        const arm = i % 3;
-        const u = (i + rand() * 0.85) / count;
-        const t = Math.pow(u, 1.32);
-        // Tight ribbon width so the 3 spiral arms read as crisp luminous streams
-        const across = isAmbient
-          ? (rand() - 0.5) * 1.4
-          : gauss() * (0.018 + Math.pow(t, 1.4) * 0.065);
-        const depth = isAmbient
-          ? (rand() - 0.5) * 0.9
-          : gauss() * (0.025 + t * 0.075);
-        const isHero = i < HERO_KNOTS.length;
-        const heroT = isHero ? HERO_KNOTS[i]! : t;
-
-        const [k8sX, k8sY, k8sZ] = sampleK8sHelm(u, across * 0.65, depth * 0.65);
-        const [knotX, knotY, knotZ] = sampleTrefoilKnot(u, across * 0.65, depth * 0.65);
-
-        return {
-          arm,
-          t: heroT,
-          across: isHero ? 0 : across,
-          depth: isHero ? 0 : depth,
-          speed: (0.055 + rand() * 0.025) * (isAmbient ? 0.25 : 1),
-          sx: (rand() - 0.5) * 2.6,
-          sy: (rand() - 0.5) * 2.2,
-          sz: (rand() - 0.5) * 1.4,
-          k8sX,
-          k8sY,
-          k8sZ,
-          knotX,
-          knotY,
-          knotZ,
-          colorIndex: isHero ? (i % 2 === 0 ? 1 : 3) : pickColorIndex(rand()),
-          size: isHero ? 4.2 : rand() > 0.95 ? 2.2 : rand() > 0.72 ? 1.35 : 0.78,
-          hero: isHero,
-          phase: rand() * Math.PI * 2,
+        const pointer = {
+          x: -9999,
+          y: -9999,
+          prevX: -9999,
+          prevY: -9999,
           vx: 0,
           vy: 0,
-          ox: 0,
-          oy: 0,
+          normX: 0,
+          normY: 0,
+          active: false,
+          pressed: false,
         };
-      });
 
-      let sprites: HTMLCanvasElement[] = [];
-      const buildSprites = () => {
-        sprites = palette.colors.map(([r, g, b]) => {
-          const size = 64;
-          const off = document.createElement("canvas");
-          off.width = size;
-          off.height = size;
-          const ctx = off.getContext("2d");
-          if (!ctx) return off;
-          const half = size / 2;
-          const grad = ctx.createRadialGradient(half, half, 0, half, half, half);
-          grad.addColorStop(0, `rgba(255, 255, 255, 1)`);
-          grad.addColorStop(0.16, `rgba(${r}, ${g}, ${b}, 0.95)`);
-          grad.addColorStop(0.42, `rgba(${r}, ${g}, ${b}, 0.34)`);
-          grad.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0)`);
-          ctx.fillStyle = grad;
-          ctx.fillRect(0, 0, size, size);
-          return off;
+        const shockwaves: Shockwave[] = [];
+
+        const isMobile = () => window.innerWidth < 768;
+        const count = isMobile() ? PARTICLE_COUNT_MOBILE : PARTICLE_COUNT_DESKTOP;
+        const rand = seeded(20261020);
+        const gauss = () => (rand() + rand() + rand() + rand() - 2) * 0.5;
+
+        const pickColorIndex = (r: number) => {
+          if (r < 0.48) return 0;
+          if (r < 0.65) return 1;
+          if (r < 0.81) return 2;
+          if (r < 0.89) return 3;
+          if (r < 0.95) return 4;
+          return 5;
+        };
+
+        const particles: Particle[] = Array.from({ length: count }, (_, i) => {
+          const isAmbient = i % 9 === 0;
+          const arm = i % 3;
+          const u = (i + rand() * 0.85) / count;
+          const t = Math.pow(u, 1.32);
+          const across = isAmbient
+            ? (rand() - 0.5) * 1.4
+            : gauss() * (0.018 + Math.pow(t, 1.4) * 0.065);
+          const depth = isAmbient
+            ? (rand() - 0.5) * 0.9
+            : gauss() * (0.025 + t * 0.075);
+          const isHero = i < HERO_KNOTS.length;
+          const heroT = isHero ? HERO_KNOTS[i]! : t;
+
+          const [k8sX, k8sY, k8sZ] = sampleK8sHelm(u, across * 0.65, depth * 0.65);
+          const [knotX, knotY, knotZ] = sampleTrefoilKnot(u, across * 0.65, depth * 0.65);
+          const [sphereX, sphereY, sphereZ] = sampleOrbitalSphere(i, count, across * 0.5, depth * 0.5);
+
+          return {
+            arm,
+            t: heroT,
+            across: isHero ? 0 : across,
+            depth: isHero ? 0 : depth,
+            speed: (0.055 + rand() * 0.025) * (isAmbient ? 0.25 : 1),
+            sx: (rand() - 0.5) * 2.6,
+            sy: (rand() - 0.5) * 2.2,
+            sz: (rand() - 0.5) * 1.4,
+            k8sX,
+            k8sY,
+            k8sZ,
+            knotX,
+            knotY,
+            knotZ,
+            sphereX,
+            sphereY,
+            sphereZ,
+            colorIndex: isHero ? (i % 2 === 0 ? 1 : 3) : pickColorIndex(rand()),
+            size: isHero ? 4.3 : rand() > 0.95 ? 2.25 : rand() > 0.72 ? 1.38 : 0.8,
+            hero: isHero,
+            phase: rand() * Math.PI * 2,
+            vx: 0,
+            vy: 0,
+            ox: 0,
+            oy: 0,
+          };
         });
-      };
 
-      const resize = () => {
-        const bounds = this.getBoundingClientRect();
-        dpr = Math.min(window.devicePixelRatio || 1, 2);
-        width = Math.max(1, bounds.width);
-        height = Math.max(1, bounds.height);
-        canvas.width = Math.round(width * dpr);
-        canvas.height = Math.round(height * dpr);
-        context.setTransform(dpr, 0, 0, dpr, 0, 0);
-      };
+        let sprites: HTMLCanvasElement[] = [];
+        const buildSprites = () => {
+          sprites = palette.colors.map(([r, g, b]) => {
+            const size = 64;
+            const off = document.createElement("canvas");
+            off.width = size;
+            off.height = size;
+            const ctx = off.getContext("2d");
+            if (!ctx) return off;
+            const half = size / 2;
+            const grad = ctx.createRadialGradient(half, half, 0, half, half, half);
+            grad.addColorStop(0, "rgba(255, 255, 255, 1)");
+            grad.addColorStop(0.16, `rgba(${r}, ${g}, ${b}, 0.95)`);
+            grad.addColorStop(0.42, `rgba(${r}, ${g}, ${b}, 0.34)`);
+            grad.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0)`);
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, size, size);
+            return off;
+          });
+        };
 
-      buildSprites();
+        const resize = () => {
+          const bounds = this.getBoundingClientRect();
+          dpr = Math.min(window.devicePixelRatio || 1, 2);
+          width = Math.max(1, bounds.width);
+          height = Math.max(1, bounds.height);
+          canvas.width = Math.round(width * dpr);
+          canvas.height = Math.round(height * dpr);
+          context.setTransform(dpr, 0, 0, dpr, 0, 0);
+        };
 
-      let smoothedScroll = 0;
+        buildSprites();
 
-      const drawAnamorphicFlare = (
-        fx: number,
-        fy: number,
-        intensity: number,
-        color: [number, number, number],
-        primary: boolean,
-      ) => {
-        if (intensity <= 0.02) return;
-        const [r, g, b] = color;
-        context.save();
-        context.globalCompositeOperation = palette.light ? "source-over" : "lighter";
+        let smoothedScroll = 0;
 
-        const haloR = (primary ? 135 : 70) * (0.7 + intensity * 0.45);
-        const halo = context.createRadialGradient(fx, fy, 0, fx, fy, haloR);
-        halo.addColorStop(0, `rgba(255, 255, 255, ${0.55 * intensity})`);
-        halo.addColorStop(0.22, `rgba(${r}, ${g}, ${b}, ${0.32 * intensity})`);
-        halo.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0)`);
-        context.fillStyle = halo;
-        context.beginPath();
-        context.arc(fx, fy, haloR, 0, Math.PI * 2);
-        context.fill();
+        const drawAnamorphicFlare = (
+          fx: number,
+          fy: number,
+          intensity: number,
+          color: [number, number, number],
+          primary: boolean,
+        ) => {
+          if (intensity <= 0.02) return;
+          const [r, g, b] = color;
+          context.save();
+          context.globalCompositeOperation = palette.light ? "source-over" : "lighter";
 
-        const streakW = (primary ? Math.min(width * 0.46, 520) : 190) * (0.65 + intensity * 0.4);
-        const hGrad = context.createLinearGradient(fx - streakW, fy, fx + streakW, fy);
-        hGrad.addColorStop(0, `rgba(${r}, ${g}, ${b}, 0)`);
-        hGrad.addColorStop(0.38, `rgba(${r}, ${g}, ${b}, ${0.22 * intensity})`);
-        hGrad.addColorStop(0.5, `rgba(255, 255, 255, ${0.75 * intensity})`);
-        hGrad.addColorStop(0.62, `rgba(${r}, ${g}, ${b}, ${0.22 * intensity})`);
-        hGrad.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0)`);
-        context.strokeStyle = hGrad;
-        context.lineWidth = primary ? 1.8 : 1.1;
-        context.beginPath();
-        context.moveTo(fx - streakW, fy);
-        context.lineTo(fx + streakW, fy);
-        context.stroke();
+          const haloR = (primary ? 140 : 72) * (0.7 + intensity * 0.45);
+          const halo = context.createRadialGradient(fx, fy, 0, fx, fy, haloR);
+          halo.addColorStop(0, `rgba(255, 255, 255, ${0.55 * intensity})`);
+          halo.addColorStop(0.22, `rgba(${r}, ${g}, ${b}, ${0.32 * intensity})`);
+          halo.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0)`);
+          context.fillStyle = halo;
+          context.beginPath();
+          context.arc(fx, fy, haloR, 0, Math.PI * 2);
+          context.fill();
 
-        const streakH = (primary ? 115 : 52) * (0.65 + intensity * 0.35);
-        const vGrad = context.createLinearGradient(fx, fy - streakH, fx, fy + streakH);
-        vGrad.addColorStop(0, `rgba(${r}, ${g}, ${b}, 0)`);
-        vGrad.addColorStop(0.5, `rgba(255, 255, 255, ${0.48 * intensity})`);
-        vGrad.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0)`);
-        context.strokeStyle = vGrad;
-        context.lineWidth = 1.1;
-        context.beginPath();
-        context.moveTo(fx, fy - streakH);
-        context.lineTo(fx, fy + streakH);
-        context.stroke();
+          const streakW = (primary ? Math.min(width * 0.48, 540) : 200) * (0.65 + intensity * 0.4);
+          const hGrad = context.createLinearGradient(fx - streakW, fy, fx + streakW, fy);
+          hGrad.addColorStop(0, `rgba(${r}, ${g}, ${b}, 0)`);
+          hGrad.addColorStop(0.38, `rgba(${r}, ${g}, ${b}, ${0.24 * intensity})`);
+          hGrad.addColorStop(0.5, `rgba(255, 255, 255, ${0.78 * intensity})`);
+          hGrad.addColorStop(0.62, `rgba(${r}, ${g}, ${b}, ${0.24 * intensity})`);
+          hGrad.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0)`);
+          context.strokeStyle = hGrad;
+          context.lineWidth = primary ? 1.85 : 1.15;
+          context.beginPath();
+          context.moveTo(fx - streakW, fy);
+          context.lineTo(fx + streakW, fy);
+          context.stroke();
 
-        if (primary && !palette.light) {
-          const axisX = width * 0.5 - fx;
-          const axisY = height * 0.5 - fy;
-          const ghostScales = [0.75, 1.32, 1.78];
-          ghostScales.forEach((gs, gi) => {
-            const gx = fx + axisX * gs;
-            const gy = fy + axisY * gs;
-            const gr = 14 + gi * 9;
+          const streakH = (primary ? 120 : 54) * (0.65 + intensity * 0.35);
+          const vGrad = context.createLinearGradient(fx, fy - streakH, fx, fy + streakH);
+          vGrad.addColorStop(0, `rgba(${r}, ${g}, ${b}, 0)`);
+          vGrad.addColorStop(0.5, `rgba(255, 255, 255, ${0.5 * intensity})`);
+          vGrad.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0)`);
+          context.strokeStyle = vGrad;
+          context.lineWidth = 1.1;
+          context.beginPath();
+          context.moveTo(fx, fy - streakH);
+          context.lineTo(fx, fy + streakH);
+          context.stroke();
+
+          if (primary && !palette.light) {
+            const axisX = width * 0.5 - fx;
+            const axisY = height * 0.5 - fy;
+            const ghostScales = [0.75, 1.32, 1.78];
+            ghostScales.forEach((gs, gi) => {
+              const gx = fx + axisX * gs;
+              const gy = fy + axisY * gs;
+              const gr = 14 + gi * 9;
+              context.beginPath();
+              context.arc(gx, gy, gr, 0, Math.PI * 2);
+              context.strokeStyle = gi === 1 ? `rgba(109, 203, 244, ${0.15 * intensity})` : `rgba(248, 121, 21, ${0.12 * intensity})`;
+              context.lineWidth = 1.2;
+              context.stroke();
+            });
+          }
+
+          context.restore();
+        };
+
+        const fyClamp = (val: number, maxH: number) => clamp(val, 0, maxH);
+
+        const triggerShockwave = (x: number, y: number) => {
+          const colorPick = palette.colors[(shockwaves.length + 1) % palette.colors.length] ?? palette.colors[1]!;
+          shockwaves.push({ x, y, born: performance.now() / 1000, color: colorPick });
+          if (shockwaves.length > 5) shockwaves.shift();
+        };
+
+        const draw = (now = performance.now()) => {
+          if (width === 0 || height === 0) return;
+          const still = reducedMotion.matches;
+          const seconds = still ? 12 : now / 1000;
+          const introElapsed = still ? 6 : (now - introStart) / 1000;
+
+          const introProgress = clamp(introElapsed / 3.5, 0, 1);
+          const introEase = smootherstep(0, 1, introProgress);
+          const exhalePulse = Math.sin(introEase * Math.PI) * (1 - introEase) * 0.34;
+
+          const docHeight = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
+          const rawScroll = clamp(window.scrollY / docHeight, 0, 1);
+          smoothedScroll = still ? rawScroll : lerp(smoothedScroll, rawScroll, 0.085);
+
+          let targetSpiral = 0;
+          let targetHelm = 0;
+          let targetKnot = 0;
+          let targetSphere = 0;
+
+          if (lockedMode === "auto") {
+            targetHelm = smoothstep(0.14, 0.36, smoothedScroll) * (1 - smoothstep(0.54, 0.74, smoothedScroll));
+            targetKnot = smoothstep(0.54, 0.78, smoothedScroll);
+            targetSpiral = Math.max(0, 1 - targetHelm - targetKnot);
+          } else if (lockedMode === "spiral") {
+            targetSpiral = 1;
+          } else if (lockedMode === "helm") {
+            targetHelm = 1;
+          } else if (lockedMode === "knot") {
+            targetKnot = 1;
+          } else if (lockedMode === "sphere") {
+            targetSphere = 1;
+          }
+
+          const morphRate = still ? 1 : 0.08;
+          morphWeights.spiral = lerp(morphWeights.spiral, targetSpiral, morphRate);
+          morphWeights.helm = lerp(morphWeights.helm, targetHelm, morphRate);
+          morphWeights.knot = lerp(morphWeights.knot, targetKnot, morphRate);
+          morphWeights.sphere = lerp(morphWeights.sphere, targetSphere, morphRate);
+
+          const wSpiral = morphWeights.spiral;
+          const wK8s = morphWeights.helm;
+          const wKnot = morphWeights.knot;
+          const wSphere = morphWeights.sphere;
+
+          if (!dragging && !still) {
+            const autoY = -0.18 + Math.sin(seconds * 0.24) * 0.24 + (pointer.active ? pointer.normX * 0.42 : 0);
+            const autoX = 0.52 + Math.cos(seconds * 0.19) * 0.12 + (pointer.active ? pointer.normY * 0.3 : 0);
+            targetSpinY = autoY;
+            targetSpinX = autoX;
+          }
+          spinX = lerp(spinX, targetSpinX, 0.07);
+          spinY = lerp(spinY, targetSpinY, 0.07);
+
+          pointer.vx *= 0.86;
+          pointer.vy *= 0.86;
+
+          context.clearRect(0, 0, width, height);
+
+          const scale = Math.min(width, height) * (width < 640 ? 0.44 : 0.47);
+          const centerShiftX =
+            lockedMode === "auto" && width >= 1024 ? Math.sin(smoothedScroll * Math.PI) * width * 0.14 : 0;
+          const cx = width * 0.5 + centerShiftX;
+          const cy = height * 0.5;
+          const fov = 3.2;
+
+          // Ambient deep-space core illumination
+          const ambientR = scale * 1.38;
+          const ambGrad = context.createRadialGradient(cx, cy, 0, cx, fyClamp(cy, height), ambientR);
+          if (palette.light) {
+            ambGrad.addColorStop(0, "rgba(15, 108, 189, 0.12)");
+            ambGrad.addColorStop(0.45, "rgba(109, 40, 217, 0.06)");
+            ambGrad.addColorStop(1, "rgba(238, 242, 246, 0)");
+          } else {
+            ambGrad.addColorStop(0, "rgba(35, 67, 95, 0.46)");
+            ambGrad.addColorStop(0.38, "rgba(22, 42, 74, 0.25)");
+            ambGrad.addColorStop(0.72, "rgba(248, 121, 21, 0.06)");
+            ambGrad.addColorStop(1, "rgba(3, 5, 8, 0)");
+          }
+          context.fillStyle = ambGrad;
+          context.fillRect(0, 0, width, height);
+
+          const rotOffset = lockedMode === "auto" ? smoothedScroll : 0;
+          const cosX = Math.cos(spinX + rotOffset * 0.55);
+          const sinX = Math.sin(spinX + rotOffset * 0.55);
+          const cosY = Math.cos(spinY + rotOffset * 0.9);
+          const sinY = Math.sin(spinY + rotOffset * 0.9);
+
+          // Subtle 3D orbital telemetry rings around the core
+          context.save();
+          context.strokeStyle = palette.light ? "rgba(15, 108, 189, 0.12)" : "rgba(109, 203, 244, 0.11)";
+          context.lineWidth = 0.85;
+          [0.42, 0.78, 1.08].forEach((ringR, idx) => {
             context.beginPath();
-            context.arc(gx, gy, gr, 0, Math.PI * 2);
-            context.strokeStyle = gi === 1 ? `rgba(109, 203, 244, ${0.14 * intensity})` : `rgba(248, 121, 21, ${0.11 * intensity})`;
-            context.lineWidth = 1.2;
+            const steps = 72;
+            for (let s = 0; s <= steps; s += 1) {
+              const a = (s / steps) * Math.PI * 2;
+              const wx = Math.cos(a) * ringR;
+              const wy = Math.sin(a) * ringR * (idx === 1 ? 0.35 : 1);
+              const wz = idx === 1 ? Math.sin(a) * ringR * 0.9 : 0;
+              const rx1 = wx * cosY + wz * sinY;
+              const rz1 = -wx * sinY + wz * cosY;
+              const ry2 = wy * cosX - rz1 * sinX;
+              const rz2 = wy * sinX + rz1 * cosX;
+              const persp = fov / Math.max(0.6, fov - rz2);
+              const px = cx + rx1 * scale * persp;
+              const py = cy + ry2 * scale * persp;
+              if (s === 0) context.moveTo(px, py);
+              else context.lineTo(px, py);
+            }
             context.stroke();
           });
-        }
+          context.restore();
 
-        context.restore();
-      };
+          context.save();
+          context.globalCompositeOperation = palette.light ? "source-over" : "lighter";
 
-      const fyClamp = (val: number, maxH: number) => clamp(val, 0, maxH);
+          const heroScreens: { x: number; y: number; intensity: number; color: [number, number, number]; primary: boolean }[] = [];
 
-      const draw = (now = performance.now()) => {
-        if (width === 0 || height === 0) return;
-        const still = reducedMotion.matches;
-        const seconds = still ? 12 : now / 1000;
-        const introElapsed = still ? 6 : (now - introStart) / 1000;
+          const turns = 2.65;
+          const flowOffset = still ? 0 : seconds * 0.05;
 
-        const introProgress = clamp(introElapsed / 3.6, 0, 1);
-        const introEase = smootherstep(0, 1, introProgress);
-        const exhalePulse = Math.sin(introEase * Math.PI) * (1 - introEase) * 0.32;
+          for (let i = 0; i < particles.length; i += 1) {
+            const p = particles[i]!;
+            const tFlow = ((p.t - flowOffset * p.speed) % 1 + 1) % 1;
+            const armAngle = (p.arm * (Math.PI * 2)) / 3;
+            const theta = tFlow * Math.PI * 2 * turns + armAngle - seconds * 0.18;
+            const spiralRadius = (0.025 + Math.pow(tFlow, 0.92) * 1.15) * (1 + exhalePulse);
 
-        const docHeight = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
-        const rawScroll = clamp(window.scrollY / docHeight, 0, 1);
-        smoothedScroll = still ? rawScroll : lerp(smoothedScroll, rawScroll, 0.085);
+            const baseCos = Math.cos(theta);
+            const baseSin = Math.sin(theta);
+            const spX = baseCos * spiralRadius - baseSin * p.across;
+            const spY = baseSin * spiralRadius + baseCos * p.across;
+            const funnelZ = -Math.exp(-tFlow * 4.5) * 0.34 + Math.sin(theta + p.phase * 0.2) * 0.06;
+            const spZ = funnelZ + p.depth;
 
-        const wK8s = smoothstep(0.14, 0.36, smoothedScroll) * (1 - smoothstep(0.54, 0.74, smoothedScroll));
-        const wKnot = smoothstep(0.54, 0.78, smoothedScroll);
-        const wSpiral = Math.max(0, 1 - wK8s - wKnot);
+            const formedSpiralX = lerp(p.sx, spX, introEase);
+            const formedSpiralY = lerp(p.sy, spY, introEase);
+            const formedSpiralZ = lerp(p.sz, spZ, introEase);
 
-        if (!dragging && !still) {
-          const autoY = -0.18 + Math.sin(seconds * 0.24) * 0.24 + (pointer.active ? pointer.normX * 0.42 : 0);
-          const autoX = 0.52 + Math.cos(seconds * 0.19) * 0.12 + (pointer.active ? pointer.normY * 0.3 : 0);
-          targetSpinY = autoY;
-          targetSpinX = autoX;
-        }
-        spinX = lerp(spinX, targetSpinX, 0.07);
-        spinY = lerp(spinY, targetSpinY, 0.07);
+            const shapeRot = seconds * 0.28;
+            const cR = Math.cos(shapeRot);
+            const sR = Math.sin(shapeRot);
+            const kX = p.k8sX * cR - p.k8sZ * sR;
+            const kY = p.k8sY;
+            const kZ = p.k8sX * sR + p.k8sZ * cR;
 
-        pointer.vx *= 0.86;
-        pointer.vy *= 0.86;
+            const nX = p.knotX * cR - p.knotZ * sR;
+            const nY = p.knotY;
+            const nZ = p.knotX * sR + p.knotZ * cR;
 
-        context.clearRect(0, 0, width, height);
+            const gX = p.sphereX * cR - p.sphereZ * sR;
+            const gY = p.sphereY;
+            const gZ = p.sphereX * sR + p.sphereZ * cR;
 
-        const scale = Math.min(width, height) * (width < 640 ? 0.44 : 0.47);
-        const centerShiftX = width >= 1024 ? Math.sin(smoothedScroll * Math.PI) * width * 0.14 : 0;
-        const cx = width * 0.5 + centerShiftX;
-        const cy = height * 0.5;
-        const fov = 3.2;
+            const wx = formedSpiralX * wSpiral + kX * wK8s + nX * wKnot + gX * wSphere;
+            const wy = formedSpiralY * wSpiral + kY * wK8s + nY * wKnot + gY * wSphere;
+            const wz = formedSpiralZ * wSpiral + kZ * wK8s + nZ * wKnot + gZ * wSphere;
 
-        const ambientR = scale * 1.35;
-        const ambGrad = context.createRadialGradient(cx, cy, 0, cx, fyClamp(cy, height), ambientR);
-        if (palette.light) {
-          ambGrad.addColorStop(0, "rgba(15, 108, 189, 0.12)");
-          ambGrad.addColorStop(0.45, "rgba(109, 40, 217, 0.06)");
-          ambGrad.addColorStop(1, "rgba(238, 242, 246, 0)");
-        } else {
-          ambGrad.addColorStop(0, "rgba(35, 67, 95, 0.44)");
-          ambGrad.addColorStop(0.38, "rgba(22, 42, 74, 0.24)");
-          ambGrad.addColorStop(0.72, "rgba(248, 121, 21, 0.05)");
-          ambGrad.addColorStop(1, "rgba(3, 5, 8, 0)");
-        }
-        context.fillStyle = ambGrad;
-        context.fillRect(0, 0, width, height);
+            const rx1 = wx * cosY + wz * sinY;
+            const rz1 = -wx * sinY + wz * cosY;
+            const ry2 = wy * cosX - rz1 * sinX;
+            const rz2 = wy * sinX + rz1 * cosX;
 
-        const cosX = Math.cos(spinX + smoothedScroll * 0.55);
-        const sinX = Math.sin(spinX + smoothedScroll * 0.55);
-        const cosY = Math.cos(spinY + smoothedScroll * 0.9);
-        const sinY = Math.sin(spinY + smoothedScroll * 0.9);
+            const perspective = fov / Math.max(0.6, fov - rz2);
+            let sx = cx + rx1 * scale * perspective + p.ox;
+            let sy = cy + ry2 * scale * perspective + p.oy;
 
-        context.save();
-        context.globalCompositeOperation = palette.light ? "source-over" : "lighter";
+            if (pointer.active && !still) {
+              const dx = sx - pointer.x;
+              const dy = sy - pointer.y;
+              const distSq = dx * dx + dy * dy;
+              const repelRadius = pointer.pressed ? 235 : 168;
+              if (distSq < repelRadius * repelRadius && distSq > 1) {
+                const dist = Math.sqrt(distSq);
+                const falloff = Math.pow(1 - dist / repelRadius, 2);
+                const push = (pointer.pressed ? 4.0 : 1.8) * falloff;
+                p.vx += (dx / dist) * push + pointer.vx * falloff * 0.14;
+                p.vy += (dy / dist) * push + pointer.vy * falloff * 0.14;
+              }
+            }
 
-        const heroScreens: { x: number; y: number; intensity: number; color: [number, number, number]; primary: boolean }[] = [];
+            // Radial shockwave impulse
+            for (let sIdx = 0; sIdx < shockwaves.length; sIdx += 1) {
+              const sw = shockwaves[sIdx]!;
+              const age = seconds - sw.born;
+              if (age < 0 || age > 1.8) continue;
+              const waveR = age * 460;
+              const dx = sx - sw.x;
+              const dy = sy - sw.y;
+              const dist = Math.hypot(dx, dy) || 1;
+              const band = Math.abs(dist - waveR);
+              if (band < 46) {
+                const strength = (1 - band / 46) * (1 - age / 1.8) * 2.4;
+                p.vx += (dx / dist) * strength;
+                p.vy += (dy / dist) * strength;
+              }
+            }
 
-        const turns = 2.65;
-        const flowOffset = still ? 0 : seconds * 0.05;
+            p.vx += -p.ox * 0.085;
+            p.vy += -p.oy * 0.085;
+            p.vx *= 0.84;
+            p.vy *= 0.84;
+            p.ox += p.vx;
+            p.oy += p.vy;
 
-        for (let i = 0; i < particles.length; i += 1) {
-          const p = particles[i]!;
-          const tFlow = ((p.t - flowOffset * p.speed) % 1 + 1) % 1;
-          const armAngle = (p.arm * (Math.PI * 2)) / 3;
-          const theta = tFlow * Math.PI * 2 * turns + armAngle - seconds * 0.18;
-          const spiralRadius = (0.025 + Math.pow(tFlow, 0.92) * 1.15) * (1 + exhalePulse);
+            sx = cx + rx1 * scale * perspective + p.ox;
+            sy = cy + ry2 * scale * perspective + p.oy;
 
-          const baseCos = Math.cos(theta);
-          const baseSin = Math.sin(theta);
-          // Tangent & normal vectors along the logarithmic spiral arm
-          const spX = baseCos * spiralRadius - baseSin * p.across;
-          const spY = baseSin * spiralRadius + baseCos * p.across;
-          // Vortex funnel depth: deeper at the center core, rising along outer arms
-          const funnelZ = -Math.exp(-tFlow * 4.5) * 0.34 + Math.sin(theta + p.phase * 0.2) * 0.06;
-          const spZ = funnelZ + p.depth;
+            if (sx < -40 || sx > width + 40 || sy < -40 || sy > height + 40) continue;
 
-          const formedSpiralX = lerp(p.sx, spX, introEase);
-          const formedSpiralY = lerp(p.sy, spY, introEase);
-          const formedSpiralZ = lerp(p.sz, spZ, introEase);
+            const tip = Math.sin(clamp(tFlow, 0.02, 0.98) * Math.PI);
+            const twinkle = still ? 0.85 : 0.68 + Math.sin(seconds * 2.4 + p.phase) * 0.32;
+            const depthBoost = clamp((rz2 + 1.4) / 2.8, 0.35, 1.25);
+            const alpha = clamp(tip * twinkle * depthBoost * (palette.light ? 0.72 : 0.92), 0.08, 1);
 
-          const shapeRot = seconds * 0.28;
-          const cR = Math.cos(shapeRot);
-          const sR = Math.sin(shapeRot);
-          const kX = p.k8sX * cR - p.k8sZ * sR;
-          const kY = p.k8sY;
-          const kZ = p.k8sX * sR + p.k8sZ * cR;
+            const sprite = sprites[p.colorIndex] ?? sprites[0]!;
+            const drawRadius = p.size * perspective * (0.75 + (1 - tFlow) * 0.55) * 4.2;
 
-          const nX = p.knotX * cR - p.knotZ * sR;
-          const nY = p.knotY;
-          const nZ = p.knotX * sR + p.knotZ * cR;
+            context.globalAlpha = alpha;
+            context.drawImage(sprite, sx - drawRadius, sy - drawRadius, drawRadius * 2, drawRadius * 2);
 
-          const wx = formedSpiralX * wSpiral + kX * wK8s + nX * wKnot;
-          const wy = formedSpiralY * wSpiral + kY * wK8s + nY * wKnot;
-          const wz = formedSpiralZ * wSpiral + kZ * wK8s + nZ * wKnot;
-
-          const rx1 = wx * cosY + wz * sinY;
-          const rz1 = -wx * sinY + wz * cosY;
-          const ry2 = wy * cosX - rz1 * sinX;
-          const rz2 = wy * sinX + rz1 * cosX;
-
-          const perspective = fov / Math.max(0.6, fov - rz2);
-          let sx = cx + rx1 * scale * perspective + p.ox;
-          let sy = cy + ry2 * scale * perspective + p.oy;
-
-          if (pointer.active && !still) {
-            const dx = sx - pointer.x;
-            const dy = sy - pointer.y;
-            const distSq = dx * dx + dy * dy;
-            const repelRadius = pointer.pressed ? 230 : 165;
-            if (distSq < repelRadius * repelRadius && distSq > 1) {
-              const dist = Math.sqrt(distSq);
-              const falloff = Math.pow(1 - dist / repelRadius, 2);
-              const push = (pointer.pressed ? 3.8 : 1.75) * falloff;
-              p.vx += (dx / dist) * push + pointer.vx * falloff * 0.14;
-              p.vy += (dy / dist) * push + pointer.vy * falloff * 0.14;
+            if (p.hero) {
+              heroScreens.push({
+                x: sx,
+                y: sy,
+                intensity: clamp(alpha * perspective * 0.85, 0.2, 1.15),
+                color: palette.colors[p.colorIndex] ?? palette.colors[0]!,
+                primary: i === 0,
+              });
             }
           }
 
-          p.vx += -p.ox * 0.085;
-          p.vy += -p.oy * 0.085;
-          p.vx *= 0.84;
-          p.vy *= 0.84;
-          p.ox += p.vx;
-          p.oy += p.vy;
-
-          sx = cx + rx1 * scale * perspective + p.ox;
-          sy = cy + ry2 * scale * perspective + p.oy;
-
-          if (sx < -40 || sx > width + 40 || sy < -40 || sy > height + 40) continue;
-
-          const tip = Math.sin(clamp(tFlow, 0.02, 0.98) * Math.PI);
-          const twinkle = still ? 0.85 : 0.68 + Math.sin(seconds * 2.4 + p.phase) * 0.32;
-          const depthBoost = clamp((rz2 + 1.4) / 2.8, 0.35, 1.25);
-          const alpha = clamp(tip * twinkle * depthBoost * (palette.light ? 0.72 : 0.92), 0.08, 1);
-
-          const sprite = sprites[p.colorIndex] ?? sprites[0]!;
-          const drawRadius = p.size * perspective * (0.75 + (1 - tFlow) * 0.55) * 4.2;
-
-          context.globalAlpha = alpha;
-          context.drawImage(sprite, sx - drawRadius, sy - drawRadius, drawRadius * 2, drawRadius * 2);
-
-          if (p.hero) {
-            heroScreens.push({
-              x: sx,
-              y: sy,
-              intensity: clamp(alpha * perspective * 0.85, 0.2, 1.15),
-              color: palette.colors[p.colorIndex] ?? palette.colors[0]!,
-              primary: i === 0,
-            });
+          // Render expanding shockwave rings
+          for (let i = shockwaves.length - 1; i >= 0; i -= 1) {
+            const sw = shockwaves[i]!;
+            const age = seconds - sw.born;
+            if (age > 1.8) {
+              shockwaves.splice(i, 1);
+              continue;
+            }
+            const progress = age / 1.8;
+            const [r, g, b] = sw.color;
+            context.beginPath();
+            context.arc(sw.x, sw.y, progress * 460, 0, Math.PI * 2);
+            context.strokeStyle = `rgba(${r}, ${g}, ${b}, ${(1 - progress) ** 1.6 * 0.55})`;
+            context.lineWidth = 1.6;
+            context.stroke();
           }
-        }
 
-        context.restore();
+          context.restore();
 
-        heroScreens.forEach((h) => {
-          drawAnamorphicFlare(h.x, h.y, h.intensity, h.color, h.primary);
-        });
-
-        context.globalAlpha = 1;
-        if (!still) {
-          this.frame = requestAnimationFrame(draw);
-        }
-      };
-
-      const restart = () => {
-        cancelAnimationFrame(this.frame);
-        draw(performance.now());
-      };
-
-      window.addEventListener(
-        "astra:replay",
-        () => {
-          introStart = performance.now();
-          spinX = 0.22;
-          spinY = -0.18;
-          targetSpinX = 0.22;
-          targetSpinY = -0.18;
-          particles.forEach((p) => {
-            p.ox = 0;
-            p.oy = 0;
-            p.vx = 0;
-            p.vy = 0;
+          heroScreens.forEach((h) => {
+            drawAnamorphicFlare(h.x, h.y, h.intensity, h.color, h.primary);
           });
+
+          context.globalAlpha = 1;
+          if (!still) {
+            this.frame = requestAnimationFrame(draw);
+          }
+        };
+
+        const restart = () => {
+          cancelAnimationFrame(this.frame);
+          draw(performance.now());
+        };
+
+        window.addEventListener(
+          "cosmos:replay",
+          () => {
+            introStart = performance.now();
+            spinX = 0.52;
+            spinY = -0.22;
+            targetSpinX = 0.52;
+            targetSpinY = -0.22;
+            particles.forEach((p) => {
+              p.ox = 0;
+              p.oy = 0;
+              p.vx = 0;
+              p.vy = 0;
+            });
+            triggerShockwave(width * 0.5, height * 0.5);
+            restart();
+          },
+          { signal },
+        );
+
+        window.addEventListener(
+          "cosmos:mode",
+          (event: Event) => {
+            const detail = (event as CustomEvent<string>).detail;
+            if (detail === "auto" || detail === "spiral" || detail === "helm" || detail === "knot" || detail === "sphere") {
+              lockedMode = detail;
+              triggerShockwave(width * 0.5, height * 0.5);
+            }
+          },
+          { signal },
+        );
+
+        window.addEventListener(
+          "pointermove",
+          (event) => {
+            if (reducedMotion.matches) return;
+            const nx = event.clientX;
+            const ny = event.clientY;
+            if (pointer.active) {
+              pointer.vx = clamp(nx - pointer.x, -45, 45);
+              pointer.vy = clamp(ny - pointer.y, -45, 45);
+            }
+            pointer.prevX = pointer.x;
+            pointer.prevY = pointer.y;
+            pointer.x = nx;
+            pointer.y = ny;
+            pointer.normX = (nx / Math.max(1, width)) * 2 - 1;
+            pointer.normY = (ny / Math.max(1, height)) * 2 - 1;
+            pointer.active = true;
+
+            if (dragging) {
+              const dx = nx - dragLastX;
+              const dy = ny - dragLastY;
+              dragDistance += Math.hypot(dx, dy);
+              dragLastX = nx;
+              dragLastY = ny;
+              targetSpinY = clamp(targetSpinY + dx * 0.0055, -Math.PI, Math.PI);
+              targetSpinX = clamp(targetSpinX + dy * 0.0055, -1.2, 1.2);
+            }
+          },
+          { passive: true, signal },
+        );
+
+        window.addEventListener(
+          "pointerdown",
+          (event) => {
+            if (reducedMotion.matches) return;
+            pointer.pressed = true;
+            dragDistance = 0;
+            const target = event.target as HTMLElement | null;
+            if (!target?.closest("a, button, input, dialog")) {
+              dragging = true;
+              dragLastX = event.clientX;
+              dragLastY = event.clientY;
+            }
+          },
+          { passive: true, signal },
+        );
+
+        window.addEventListener(
+          "pointerup",
+          (event) => {
+            const wasQuickClick = dragging && dragDistance < 6;
+            pointer.pressed = false;
+            dragging = false;
+            if (wasQuickClick && !reducedMotion.matches) {
+              triggerShockwave(event.clientX, event.clientY);
+            }
+          },
+          { passive: true, signal },
+        );
+
+        window.addEventListener(
+          "pointerleave",
+          () => {
+            pointer.active = false;
+            pointer.pressed = false;
+            dragging = false;
+          },
+          { passive: true, signal },
+        );
+
+        this.resizeObserver = new ResizeObserver(() => {
+          resize();
           restart();
-        },
-        { signal },
-      );
+        });
+        this.resizeObserver.observe(this);
 
-      window.addEventListener(
-        "pointermove",
-        (event) => {
-          if (reducedMotion.matches) return;
-          const nx = event.clientX;
-          const ny = event.clientY;
-          if (pointer.active) {
-            pointer.vx = clamp(nx - pointer.x, -45, 45);
-            pointer.vy = clamp(ny - pointer.y, -45, 45);
-          }
-          pointer.prevX = pointer.x;
-          pointer.prevY = pointer.y;
-          pointer.x = nx;
-          pointer.y = ny;
-          pointer.normX = (nx / Math.max(1, width)) * 2 - 1;
-          pointer.normY = (ny / Math.max(1, height)) * 2 - 1;
-          pointer.active = true;
+        this.themeObserver = new MutationObserver(() => {
+          palette = this.readPalette();
+          buildSprites();
+          restart();
+        });
+        this.themeObserver.observe(document.documentElement, { attributeFilter: ["data-theme"] });
 
-          if (dragging) {
-            const dx = nx - dragLastX;
-            const dy = ny - dragLastY;
-            dragLastX = nx;
-            dragLastY = ny;
-            targetSpinY = clamp(targetSpinY + dx * 0.0055, -Math.PI, Math.PI);
-            targetSpinX = clamp(targetSpinX + dy * 0.0055, -1.2, 1.2);
-          }
-        },
-        { passive: true, signal },
-      );
+        reducedMotion.addEventListener("change", restart, { signal });
 
-      window.addEventListener(
-        "pointerdown",
-        (event) => {
-          if (reducedMotion.matches) return;
-          pointer.pressed = true;
-          const target = event.target as HTMLElement | null;
-          if (!target?.closest("a, button, input, dialog")) {
-            dragging = true;
-            dragLastX = event.clientX;
-            dragLastY = event.clientY;
-          }
-        },
-        { passive: true, signal },
-      );
-
-      window.addEventListener(
-        "pointerup",
-        () => {
-          pointer.pressed = false;
-          dragging = false;
-        },
-        { passive: true, signal },
-      );
-
-      window.addEventListener(
-        "pointerleave",
-        () => {
-          pointer.active = false;
-          pointer.pressed = false;
-          dragging = false;
-        },
-        { passive: true, signal },
-      );
-
-      this.resizeObserver = new ResizeObserver(() => {
         resize();
         restart();
-      });
-      this.resizeObserver.observe(this);
-
-      this.themeObserver = new MutationObserver(() => {
-        palette = this.readPalette();
-        buildSprites();
-        restart();
-      });
-      this.themeObserver.observe(document.documentElement, { attributeFilter: ["data-theme"] });
-
-      reducedMotion.addEventListener("change", restart, { signal });
-
-      resize();
-      restart();
     }
 
     disconnectedCallback() {
-      cancelAnimationFrame(this.frame);
-      this.controller?.abort();
-      this.resizeObserver?.disconnect();
-      this.themeObserver?.disconnect();
+        cancelAnimationFrame(this.frame);
+        this.controller?.abort();
+        this.resizeObserver?.disconnect();
+        this.themeObserver?.disconnect();
     }
 
     private readPalette(): Palette {
-      const light = document.documentElement.dataset.theme === "light";
-      const styles = getComputedStyle(document.documentElement);
-      const canvas = styles.getPropertyValue("--theme-canvas").trim() || (light ? "#eef2f6" : "#030508");
-      return {
-        canvas,
-        light,
-        colors: light
-          ? [
-              [15, 23, 34],    // deep ink
-              [15, 108, 189],  // cyan
-              [37, 99, 235],   // royal blue
-              [217, 95, 14],   // solar orange
-              [234, 124, 43],  // warm amber
-              [24, 121, 91],   // emerald
-            ]
-          : [
-              [245, 246, 251], // #F5F6FB stellar white
-              [109, 203, 244], // #6DCBF4 Astra cyan
-              [122, 177, 254], // #7AB1FE Astra blue
-              [248, 121, 21],  // #F87915 Astra solar orange
-              [250, 153, 76],  // #FA994C Astra warm gold
-              [125, 211, 176], // #7DD3B0 Platform emerald
-            ],
-      };
+        const light = document.documentElement.dataset.theme === "light";
+        const styles = getComputedStyle(document.documentElement);
+        const canvas = styles.getPropertyValue("--theme-canvas").trim() || (light ? "#eef2f6" : "#030508");
+        return {
+          canvas,
+          light,
+          colors: light
+            ? [
+                [15, 23, 34],    // deep ink
+                [15, 108, 189],  // cyan
+                [37, 99, 235],   // royal blue
+                [217, 95, 14],   // solar orange
+                [234, 124, 43],  // warm amber
+                [24, 121, 91],   // emerald
+              ]
+            : [
+                [245, 246, 251], // #F5F6FB stellar white
+                [109, 203, 244], // #6DCBF4 celestial cyan
+                [122, 177, 254], // #7AB1FE electric blue
+                [248, 121, 21],  // #F87915 solar orange
+                [250, 153, 76],  // #FA994C warm gold
+                [125, 211, 176], // #7DD3B0 platform emerald
+              ],
+        };
     }
   }
 
