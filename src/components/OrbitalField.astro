@@ -186,6 +186,18 @@
         let dragLastY = 0;
         let dragDistance = 0;
 
+        // Easter Egg: Gravitational Singularity & Supernova State
+        const singularity = {
+          charge: 0,           // 0..1 gravitational well strength
+          captured: false,     // true when cursor is trapped inside the Event Horizon
+          cursorX: 0,          // simulated trapped cursor X
+          cursorY: 0,          // simulated trapped cursor Y
+          orbitAngle: 0,       // swirling angle of trapped cursor
+          escapeEnergy: 0,     // accumulated mouse velocity trying to break free
+          supernovaTime: -99,  // timestamp of last supernova eruption
+          cooldownUntil: 0,    // brief immunity after escaping so user isn't re-trapped immediately
+        };
+
         // Mode override: "auto" follows scroll, or locked to "spiral" | "helm" | "knot" | "sphere"
         let lockedMode: "auto" | "spiral" | "helm" | "knot" | "sphere" = "auto";
         const morphWeights = { spiral: 1, helm: 0, knot: 0, sphere: 0 };
@@ -376,6 +388,31 @@
           if (shockwaves.length > 5) shockwaves.shift();
         };
 
+        const eruptSupernova = (cx: number, cy: number, nowSec: number) => {
+          singularity.captured = false;
+          singularity.charge = 0;
+          singularity.escapeEnergy = 0;
+          singularity.supernovaTime = nowSec;
+          singularity.cooldownUntil = nowSec + 2.8;
+          document.body.classList.remove("singularity-captured");
+          document.documentElement.style.setProperty("--singularity-charge", "0");
+          document.documentElement.style.setProperty("--singularity-pull-x", "0px");
+          document.documentElement.style.setProperty("--singularity-pull-y", "0px");
+
+          // Triple chromatic shockwave burst
+          triggerShockwave(cx, cy);
+          setTimeout(() => triggerShockwave(cx, cy), 90);
+          setTimeout(() => triggerShockwave(cx, cy), 190);
+
+          // Radial relativistic blast across all 3D particles
+          particles.forEach((p, idx) => {
+            const angle = (idx / particles.length) * Math.PI * 24 + p.phase;
+            const speed = 14 + (idx % 7) * 4.5;
+            p.vx += Math.cos(angle) * speed;
+            p.vy += Math.sin(angle) * speed;
+          });
+        };
+
         const draw = (now = performance.now()) => {
           if (width === 0 || height === 0) return;
           if (introStart === null) introStart = now;
@@ -440,6 +477,64 @@
           const cx = width * 0.5 + centerShiftX;
           const cy = height * 0.5;
           const fov = 3.2;
+
+          // ---- Easter Egg: Event Horizon Gravity Well & Cursor Capture ---------
+          if (!still && pointer.active && smoothedScroll < 0.25 && seconds > singularity.cooldownUntil) {
+            const distToCore = Math.hypot(pointer.x - cx, pointer.y - cy);
+            const horizonRadius = singularity.captured ? 235 : 108;
+
+            if (distToCore < horizonRadius) {
+              singularity.charge = clamp(singularity.charge + 0.018, 0, 1);
+              if (singularity.charge > 0.36 && !singularity.captured) {
+                singularity.captured = true;
+                singularity.cursorX = pointer.x;
+                singularity.cursorY = pointer.y;
+                singularity.orbitAngle = Math.atan2(pointer.y - cy, pointer.x - cx);
+                document.body.classList.add("singularity-captured");
+              }
+            } else if (!singularity.captured) {
+              singularity.charge = Math.max(0, singularity.charge - 0.025);
+            }
+
+            if (singularity.captured) {
+              const speedMag = Math.hypot(pointer.vx, pointer.vy);
+              singularity.escapeEnergy = clamp(singularity.escapeEnergy * 0.94 + speedMag * 0.022, 0, 1.5);
+              singularity.orbitAngle += 0.09 + singularity.charge * 0.14;
+
+              // Pull trapped cursor inward along a decaying Schwarzschild spiral while user fights it
+              const struggleOffset = Math.min(82, distToCore * 0.32);
+              const targetX =
+                cx +
+                Math.cos(singularity.orbitAngle) * (18 + struggleOffset * 0.45) +
+                (pointer.x - cx) * 0.18;
+              const targetY =
+                cy +
+                Math.sin(singularity.orbitAngle) * (18 + struggleOffset * 0.45) +
+                (pointer.y - cy) * 0.18;
+              singularity.cursorX = lerp(singularity.cursorX, targetX, 0.22);
+              singularity.cursorY = lerp(singularity.cursorY, targetY, 0.22);
+
+              // Erupt into a Supernova if user shakes cursor fast enough or drags far outside
+              if (singularity.escapeEnergy >= 1.05 || distToCore > 310) {
+                eruptSupernova(cx, cy, seconds);
+              }
+            }
+          } else if (singularity.captured || singularity.charge > 0) {
+            singularity.charge = Math.max(0, singularity.charge - 0.04);
+            if (singularity.charge <= 0.01 && singularity.captured) {
+              singularity.captured = false;
+              document.body.classList.remove("singularity-captured");
+            }
+          }
+
+          // Apply subtle gravitational tidal pull to the Hero portrait & split letters
+          if (!still) {
+            document.documentElement.style.setProperty("--singularity-charge", singularity.charge.toFixed(3));
+            const pullX = singularity.captured ? ((pointer.x - cx) * 0.06).toFixed(1) : "0";
+            const pullY = singularity.captured ? ((pointer.y - cy) * 0.06).toFixed(1) : "0";
+            document.documentElement.style.setProperty("--singularity-pull-x", `${pullX}px`);
+            document.documentElement.style.setProperty("--singularity-pull-y", `${pullY}px`);
+          }
 
           // Ambient deep-space core illumination
           const ambientR = scale * 1.38;
@@ -544,16 +639,29 @@
             let sy = cy + ry2 * scale * perspective + p.oy;
 
             if (pointer.active && !still) {
-              const dx = sx - pointer.x;
-              const dy = sy - pointer.y;
-              const distSq = dx * dx + dy * dy;
-              const repelRadius = pointer.pressed ? 235 : 168;
-              if (distSq < repelRadius * repelRadius && distSq > 1) {
-                const dist = Math.sqrt(distSq);
-                const falloff = Math.pow(1 - dist / repelRadius, 2);
-                const push = (pointer.pressed ? 4.0 : 1.8) * falloff;
-                p.vx += (dx / dist) * push + pointer.vx * falloff * 0.14;
-                p.vy += (dy / dist) * push + pointer.vy * falloff * 0.14;
+              if (singularity.charge > 0.05) {
+                // Event Horizon vortex: spiral particles inward toward the singularity core
+                const cdx = cx - sx;
+                const cdy = cy - sy;
+                const cDist = Math.hypot(cdx, cdy) || 1;
+                if (cDist < 380) {
+                  const pull = Math.pow(1 - cDist / 380, 1.5) * singularity.charge * 3.4;
+                  // Inward radial pull + tangential frame-dragging swirl
+                  p.vx += (cdx / cDist) * pull + (-cdy / cDist) * pull * 0.85;
+                  p.vy += (cdy / cDist) * pull + (cdx / cDist) * pull * 0.85;
+                }
+              } else {
+                const dx = sx - pointer.x;
+                const dy = sy - pointer.y;
+                const distSq = dx * dx + dy * dy;
+                const repelRadius = pointer.pressed ? 235 : 168;
+                if (distSq < repelRadius * repelRadius && distSq > 1) {
+                  const dist = Math.sqrt(distSq);
+                  const falloff = Math.pow(1 - dist / repelRadius, 2);
+                  const push = (pointer.pressed ? 4.0 : 1.8) * falloff;
+                  p.vx += (dx / dist) * push + pointer.vx * falloff * 0.14;
+                  p.vy += (dy / dist) * push + pointer.vy * falloff * 0.14;
+                }
               }
             }
 
@@ -631,6 +739,82 @@
             drawAnamorphicFlare(h.x, h.y, h.intensity, h.color, h.primary);
           });
 
+          // ---- Render Event Horizon Singularity & Trapped Cursor HUD -----------
+          if (singularity.charge > 0.05) {
+            const ch = singularity.charge;
+            context.save();
+            // Glowing photon ring + relativistic accretion halo
+            const photonR = 26 + ch * 44;
+            const accGrad = context.createRadialGradient(cx, cy, photonR * 0.35, cx, cy, photonR * 2.5);
+            accGrad.addColorStop(0, "rgba(0, 0, 0, 0.92)");
+            accGrad.addColorStop(0.28, `rgba(248, 121, 21, ${0.75 * ch})`);
+            accGrad.addColorStop(0.52, `rgba(109, 203, 244, ${0.55 * ch})`);
+            accGrad.addColorStop(1, "rgba(109, 203, 244, 0)");
+            context.fillStyle = accGrad;
+            context.beginPath();
+            context.arc(cx, cy, photonR * 2.5, 0, Math.PI * 2);
+            context.fill();
+
+            // Dark Schwarzschild event-horizon core
+            context.beginPath();
+            context.arc(cx, cy, photonR * 0.42, 0, Math.PI * 2);
+            context.fillStyle = `rgba(3, 5, 8, ${0.88 * ch})`;
+            context.fill();
+            context.strokeStyle = `rgba(255, 255, 255, ${0.85 * ch})`;
+            context.lineWidth = 1.4;
+            context.stroke();
+
+            if (singularity.captured) {
+              // Gravitational tether line from event horizon to trapped cursor probe
+              const tether = context.createLinearGradient(cx, cy, singularity.cursorX, singularity.cursorY);
+              tether.addColorStop(0, "rgba(248, 121, 21, 0.9)");
+              tether.addColorStop(1, "rgba(109, 203, 244, 0.95)");
+              context.strokeStyle = tether;
+              context.lineWidth = 1.5;
+              context.setLineDash([3, 4]);
+              context.beginPath();
+              context.moveTo(cx, cy);
+              context.lineTo(singularity.cursorX, singularity.cursorY);
+              context.stroke();
+              context.setLineDash([]);
+
+              // Custom trapped cursor probe with spaghettification stretch toward core
+              const angleToCore = Math.atan2(cy - singularity.cursorY, cx - singularity.cursorX);
+              context.save();
+              context.translate(singularity.cursorX, singularity.cursorY);
+              context.rotate(angleToCore);
+              context.scale(1.35 + singularity.escapeEnergy * 0.5, 0.78);
+              context.beginPath();
+              context.arc(0, 0, 7, 0, Math.PI * 2);
+              context.fillStyle = "#f5f6fb";
+              context.fill();
+              context.strokeStyle = "#6dcbf4";
+              context.lineWidth = 2;
+              context.stroke();
+              context.restore();
+
+              // Telemetry warning readout
+              context.font = "500 10px 'IBM Plex Mono', ui-monospace, monospace";
+              context.textAlign = "center";
+              context.fillStyle = "rgba(248, 121, 21, 0.92)";
+              const pct = Math.min(100, Math.round((singularity.escapeEnergy / 1.05) * 100));
+              context.fillText(
+                `EVENT HORIZON CAPTURE · SHAKE CURSOR OR CLICK TO ESCAPE [${pct}%]`,
+                cx,
+                cy + photonR * 2.2 + 18,
+              );
+            }
+            context.restore();
+          }
+
+          // Supernova white-hot flash decay
+          const novaAge = seconds - singularity.supernovaTime;
+          if (novaAge >= 0 && novaAge < 1.3) {
+            const flash = Math.pow(1 - novaAge / 1.3, 2.2) * 0.45;
+            context.fillStyle = `rgba(245, 246, 251, ${flash})`;
+            context.fillRect(0, 0, width, height);
+          }
+
           context.globalAlpha = 1;
           if (!still) {
             this.frame = requestAnimationFrame(draw);
@@ -663,13 +847,24 @@
         );
 
         window.addEventListener(
-          "cosmos:mode",
-          (event: Event) => {
-            const detail = (event as CustomEvent<string>).detail;
-            if (detail === "auto" || detail === "spiral" || detail === "helm" || detail === "knot" || detail === "sphere") {
-              lockedMode = detail;
-              triggerShockwave(width * 0.5, height * 0.5);
-            }
+          "cosmos:supernova",
+          () => {
+            eruptSupernova(width * 0.5, height * 0.5, performance.now() / 1000);
+          },
+          { signal },
+        );
+
+        window.addEventListener(
+          "cosmos:singularity",
+          () => {
+            pointer.active = true;
+            pointer.x = width * 0.5;
+            pointer.y = height * 0.5;
+            singularity.charge = 1;
+            singularity.captured = true;
+            singularity.cursorX = width * 0.5 + 24;
+            singularity.cursorY = height * 0.5;
+            document.body.classList.add("singularity-captured");
           },
           { signal },
         );
@@ -727,7 +922,9 @@
             const wasQuickClick = dragging && dragDistance < 6;
             pointer.pressed = false;
             dragging = false;
-            if (wasQuickClick && !reducedMotion.matches) {
+            if (singularity.captured && wasQuickClick) {
+              eruptSupernova(width * 0.5, height * 0.5, performance.now() / 1000);
+            } else if (wasQuickClick && !reducedMotion.matches) {
               triggerShockwave(event.clientX, event.clientY);
             }
           },

@@ -137,7 +137,8 @@ const consoleData = {
   const COMMANDS = [
     "help", "man", "ls", "cd", "cat", "pwd", "tree", "open", "search",
     "neofetch", "whoami", "date", "uptime", "history", "echo", "theme", "banner",
-    "skills", "status", "contact", "github", "linkedin", "clear", "exit",
+    "skills", "status", "contact", "github", "linkedin",
+    "singularity", "supernova", "warp", "clear", "exit",
   ];
 
   const ALIASES: Record<string, string> = {
@@ -152,6 +153,9 @@ const consoleData = {
     projects: "ls work",
     posts: "ls blog",
     profile: "whoami",
+    blackhole: "singularity",
+    nova: "supernova",
+    overdrive: "warp",
   };
 
   const MANUAL: Record<string, string[]> = {
@@ -163,6 +167,9 @@ const consoleData = {
     theme: ["theme [dark|light]", "Switch colour scheme. Toggles when no argument is given."],
     tree: ["tree", "Print the whole site as a directory tree."],
     neofetch: ["neofetch", "Print a summary of this site."],
+    singularity: ["singularity", "Easter egg: collapse the 3D core into an Event Horizon gravity well."],
+    supernova: ["supernova", "Easter egg: detonate a relativistic 3D particle supernova."],
+    warp: ["warp", "Easter egg: engage 3D hyperdrive overdrive on the active scene."],
   };
 
   class PortfolioTerminalElement extends HTMLElement {
@@ -377,6 +384,7 @@ const consoleData = {
             "NAVIGATE   ls  cd  pwd  cat  tree  open  search",
             "INSPECT    neofetch  whoami  skills  status  contact",
             "SHELL      man  history  uptime  echo  date  theme  banner",
+            "COSMOS     singularity  supernova  warp",
             "LINKS      github  linkedin",
             "CONTROL    clear  exit",
             "",
@@ -610,11 +618,30 @@ const consoleData = {
 
         case "skills":
           this.lines([
-            "PLATFORM       Kubernetes · Argo CD · Docker",
-            "INFRASTRUCTURE Azure · Terraform · Linux",
-            "OBSERVABILITY  Prometheus · Grafana · Loki",
-            "DEVELOPMENT    TypeScript · Python · GitLab",
+            "PLATFORM       Kubernetes · Argo CD · Docker · PostgreSQL",
+            "INFRASTRUCTURE Azure · Terraform · Linux · Ray / KubeRay",
+            "OBSERVABILITY  Prometheus · Grafana · Loki · OpenFlow / Ryu",
+            "DEVELOPMENT    Go · TypeScript · Python · GitLab & MCP",
           ]);
+          break;
+
+        case "singularity":
+          this.write("WARNING: Schwarzschild Event Horizon engaged. Shake cursor or click to escape.", "accent");
+          this.dialog?.close();
+          window.dispatchEvent(new CustomEvent("cosmos:singularity"));
+          break;
+
+        case "supernova":
+          this.write("Detonating relativistic core supernova…", "accent");
+          this.dialog?.close();
+          window.dispatchEvent(new CustomEvent("cosmos:supernova"));
+          break;
+
+        case "warp":
+          this.write("Engaging 3D orbital hyperdrive…", "accent");
+          this.dialog?.close();
+          window.dispatchEvent(new CustomEvent("cosmos:overdrive"));
+          window.dispatchEvent(new CustomEvent("cosmos:replay"));
           break;
 
         case "status":

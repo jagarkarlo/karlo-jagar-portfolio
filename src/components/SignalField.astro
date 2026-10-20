@@ -108,6 +108,7 @@ const { scene = "globe" } = Astro.props;
       };
 
       const shockwaves: Shockwave[] = [];
+      let overdriveUntil = 0;
 
       let seedState =
         scene === "globe"
@@ -377,6 +378,19 @@ const { scene = "globe" } = Astro.props;
         if (shockwaves.length > 5) shockwaves.shift();
       };
 
+      const activateOverdrive = (cx: number, cy: number) => {
+        const nowSec = performance.now() / 1000;
+        overdriveUntil = nowSec + 3.4;
+        triggerShockwave(cx, cy);
+        setTimeout(() => triggerShockwave(cx, cy), 110);
+        particles.forEach((p, idx) => {
+          const angle = (idx / particles.length) * Math.PI * 18 + p.phase;
+          const burst = 9 + (idx % 5) * 3.2;
+          p.vx += Math.cos(angle) * burst;
+          p.vy += Math.sin(angle) * burst;
+        });
+      };
+
       const drawAnamorphicFlare = (
         fx: number,
         fy: number,
@@ -443,6 +457,10 @@ const { scene = "globe" } = Astro.props;
         smoothedScroll = still ? rawScroll : lerp(smoothedScroll, rawScroll, 0.08);
 
         // Accumulate user drag offset on top of gentle ambient rotation (never snaps back)
+        const overdriveBoost = seconds < overdriveUntil ? (overdriveUntil - seconds) * 0.9 : 0;
+        if (overdriveBoost > 0 && !still) {
+          userRotY += 0.045 * overdriveBoost;
+        }
         const ambientY =
           defaultSpinY +
           (still ? 0 : seconds * (scene === "globe" ? 0.11 : 0.085)) +
@@ -747,13 +765,31 @@ const { scene = "globe" } = Astro.props;
       );
 
       window.addEventListener(
-        "pointerleave",
-        () => {
-          pointer.active = false;
-          pointer.pressed = false;
-          dragging = false;
+        "dblclick",
+        (event) => {
+          if (reducedMotion.matches) return;
+          const target = event.target as HTMLElement | null;
+          if (!target?.closest("a, button, input, dialog")) {
+            activateOverdrive(event.clientX, event.clientY);
+          }
         },
         { passive: true, signal },
+      );
+
+      window.addEventListener(
+        "cosmos:overdrive",
+        () => {
+          activateOverdrive(width * 0.5, height * 0.46);
+        },
+        { signal },
+      );
+
+      window.addEventListener(
+        "cosmos:supernova",
+        () => {
+          activateOverdrive(width * 0.5, height * 0.46);
+        },
+        { signal },
       );
 
       this.resizeObserver = new ResizeObserver(() => {
