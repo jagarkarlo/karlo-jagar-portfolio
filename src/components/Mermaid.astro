@@ -1,12 +1,14 @@
 ---
 // Renders any <pre class="mermaid"> produced by the markdown pipeline.
-// Mermaid is only fetched on pages that actually contain a diagram.
+// Injects live multi-spectrum telemetry packet animations along every diagram edge
+// and interactive node highlighting.
 ---
 
 <script>
-  const nodes = document.querySelectorAll<HTMLElement>("pre.mermaid");
+  const renderMermaidDiagrams = async () => {
+    const nodes = document.querySelectorAll<HTMLElement>("pre.mermaid");
+    if (nodes.length === 0) return;
 
-  if (nodes.length > 0) {
     const { default: mermaid } = await import("mermaid");
 
     const palette = () => {
@@ -14,6 +16,8 @@
       const read = (name: string) => styles.getPropertyValue(name).trim();
       return {
         accent: read("--theme-accent"),
+        cyan: read("--theme-cyan"),
+        amber: read("--theme-amber"),
         canvas: read("--theme-canvas"),
         surface: read("--theme-surface"),
         raised: read("--theme-raised"),
@@ -23,10 +27,31 @@
       };
     };
 
-    const sources = [...nodes].map((node) => node.textContent ?? "");
+    const sources = [...nodes].map((node) => {
+      if (!node.dataset.mermaidSource) {
+        node.dataset.mermaidSource = node.textContent ?? "";
+      }
+      return node.dataset.mermaidSource;
+    });
+
+    const enhanceSvg = (container: HTMLElement, colors: string[]) => {
+      const svgEl = container.querySelector("svg");
+      if (!svgEl) return;
+
+      const edgePaths = svgEl.querySelectorAll<SVGPathElement>("path.flowchart-link, .edgePaths path");
+      edgePaths.forEach((path, idx) => {
+        const clone = path.cloneNode(false) as SVGPathElement;
+        clone.classList.add("mermaid-pulse-edge");
+        const color = colors[idx % colors.length] ?? colors[0]!;
+        clone.style.stroke = color;
+        clone.style.animationDelay = `${(idx * 0.28).toFixed(2)}s`;
+        path.parentElement?.appendChild(clone);
+      });
+    };
 
     const render = async () => {
       const theme = palette();
+      const pulseColors = [theme.accent, theme.cyan, theme.amber];
       mermaid.initialize({
         startOnLoad: false,
         securityLevel: "strict",
@@ -48,8 +73,10 @@
       });
 
       for (const [index, node] of nodes.entries()) {
-        const { svg } = await mermaid.render(`mermaid-${index}`, sources[index]);
+        const id = `mermaid-${Date.now()}-${index}`;
+        const { svg } = await mermaid.render(id, sources[index] ?? "");
         node.innerHTML = svg;
+        enhanceSvg(node, pulseColors);
       }
     };
 
@@ -57,20 +84,76 @@
     new MutationObserver(render).observe(document.documentElement, {
       attributeFilter: ["data-theme"],
     });
-  }
+  };
+
+  document.addEventListener("astro:page-load", renderMermaidDiagrams);
+  renderMermaidDiagrams();
 </script>
 
 <style is:global>
   pre.mermaid {
-    background: none;
-    border: 0;
+    background: color-mix(in srgb, var(--theme-surface) 75%, transparent);
+    border: 1px solid var(--theme-border);
     display: grid;
     justify-items: center;
-    padding: 0;
+    overflow-x: auto;
+    padding: 1.5rem 1.25rem;
+    position: relative;
+  }
+
+  pre.mermaid::before {
+    background: linear-gradient(90deg, var(--theme-accent), var(--theme-cyan), var(--theme-amber));
+    content: "";
+    height: 1px;
+    inset-inline: 0;
+    opacity: 0.65;
+    position: absolute;
+    top: 0;
   }
 
   pre.mermaid svg {
     height: auto;
     max-width: 100%;
   }
+
+  pre.mermaid .node rect,
+  pre.mermaid .node polygon,
+  pre.mermaid .node circle,
+  pre.mermaid .node path {
+    transition: filter 180ms ease, stroke-width 180ms ease;
+  }
+
+  pre.mermaid .node:hover rect,
+  pre.mermaid .node:hover polygon,
+  pre.mermaid .node:hover circle,
+  pre.mermaid .node:hover path {
+    filter: drop-shadow(0 0 10px color-mix(in srgb, var(--theme-accent) 55%, transparent));
+    stroke-width: 2px;
+  }
+
+  .mermaid-pulse-edge {
+    animation: mermaid-packet-flow 2.8s linear infinite;
+    fill: none !important;
+    pointer-events: none;
+    stroke-dasharray: 10 86 !important;
+    stroke-linecap: round;
+    stroke-width: 2.2px !important;
+  }
+
+  @keyframes mermaid-packet-flow {
+    from {
+      stroke-dashoffset: 96;
+    }
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .mermaid-pulse-edge {
+      animation: none;
+      display: none;
+    }
+  }
 </style>
+

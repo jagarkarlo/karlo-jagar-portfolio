@@ -71,6 +71,23 @@
     font-family: var(--font-sans);
     letter-spacing: 0;
     min-width: 20rem;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  input,
+  textarea,
+  .prose pre,
+  .prose code,
+  [data-terminal-output] {
+    -webkit-user-select: text;
+    user-select: text;
+  }
+
+  img,
+  a {
+    -webkit-user-drag: none;
+    user-select: none;
   }
 
   ::selection {

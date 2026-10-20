@@ -98,12 +98,14 @@ const rightName = Array.from("Jagar");
           </p>
           <div class="pointer-events-auto mt-7 flex flex-wrap items-center justify-center gap-3">
             <a
+              data-magnetic
               class="inline-flex items-center gap-6 border border-accent bg-accent px-5 py-3 font-mono text-xs uppercase text-canvas no-underline shadow-[0_0_32px_-4px_var(--theme-accent)] transition-all hover:bg-transparent hover:text-accent"
               href={`${base}/work/`}
             >
               Explore work <span aria-hidden="true">→</span>
             </a>
             <a
+              data-magnetic
               class="border border-border bg-surface/75 px-5 py-3 font-mono text-xs uppercase text-foreground no-underline backdrop-blur-md transition-colors hover:border-accent hover:text-accent"
               href={`${base}/contact/`}
             >
@@ -177,6 +179,20 @@ const rightName = Array.from("Jagar");
           void el.offsetHeight;
           el.style.animation = "";
         });
+      });
+    });
+
+    document.querySelectorAll<HTMLElement>("[data-magnetic]").forEach((el) => {
+      if (el.dataset.magneticBound === "true") return;
+      el.dataset.magneticBound = "true";
+      el.addEventListener("pointermove", (event) => {
+        const bounds = el.getBoundingClientRect();
+        const dx = (event.clientX - (bounds.left + bounds.width / 2)) * 0.24;
+        const dy = (event.clientY - (bounds.top + bounds.height / 2)) * 0.24;
+        el.style.transform = `translate3d(${dx.toFixed(1)}px, ${dy.toFixed(1)}px, 0)`;
+      });
+      el.addEventListener("pointerleave", () => {
+        el.style.transform = "";
       });
     });
   };

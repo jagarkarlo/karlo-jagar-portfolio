@@ -780,6 +780,7 @@ const { scene = "globe" } = Astro.props;
           dragDistance = 0;
           const target = event.target as HTMLElement | null;
           if (!target?.closest("a, button, input, dialog")) {
+            window.getSelection()?.removeAllRanges();
             dragging = true;
             dragLastX = event.clientX;
             dragLastY = event.clientY;

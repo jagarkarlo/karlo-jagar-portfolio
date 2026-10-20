@@ -1,0 +1,225 @@
+---
+// Interactive Nostekon V0–V4 Recovery Drill Simulator:
+// Lets visitors execute synthetic k3d + PostgreSQL restore scenarios and inspect
+// how V0–V4 verification levels, phased RTO, and exact RPO ledger checks respond.
+---
+
+<nostekon-drill-sim class="not-prose my-12 block border border-border bg-raised">
+  <header class="flex flex-wrap items-center justify-between gap-4 border-b border-border bg-surface px-5 py-4">
+    <div class="flex items-center gap-3">
+      <span class="size-2 rounded-full bg-accent"></span>
+      <span class="font-mono text-xs uppercase text-foreground">Interactive V0–V4 Recovery Drill Simulator</span>
+    </div>
+    <div class="flex flex-wrap items-center gap-2" role="group" aria-label="Recovery drill scenario">
+      <button
+        type="button"
+        data-drill-scenario="clean"
+        aria-pressed="true"
+        class="border border-accent bg-accent px-3 py-1 font-mono text-xs uppercase text-canvas transition-colors"
+      >
+        01 Clean restore
+      </button>
+      <button
+        type="button"
+        data-drill-scenario="wal-gap"
+        aria-pressed="false"
+        class="border border-border bg-surface px-3 py-1 font-mono text-xs uppercase text-muted transition-colors hover:border-accent hover:text-foreground"
+      >
+        02 Unsynced WAL loss
+      </button>
+      <button
+        type="button"
+        data-drill-scenario="schema-corrupt"
+        aria-pressed="false"
+        class="border border-border bg-surface px-3 py-1 font-mono text-xs uppercase text-muted transition-colors hover:border-accent hover:text-foreground"
+      >
+        03 Missing table / checksum
+      </button>
+    </div>
+  </header>
+
+  <div class="grid gap-6 p-5 sm:p-6 lg:grid-cols-[1.2fr_.8fr]">
+    <ol class="m-0 grid list-none gap-2.5 p-0" data-drill-levels>
+      {[
+        { level: "V0", title: "Backup artifact status", desc: "Logical dump exit code & artifact metadata" },
+        { level: "V1", title: "Restore job execution", desc: "Isolated k3d target cluster pg_restore completion" },
+        { level: "V2", title: "Workload readiness", desc: "Pod Ready probes, TCP & HTTP health endpoints" },
+        { level: "V3", title: "Structural integrity", desc: "Expected tables, row counts, and schema checksums" },
+        { level: "V4", title: "Semantic & ledger invariants", desc: "External acknowledged-write ledger reconciliation" },
+      ].map((item, idx) => (
+        <li
+          class="grid grid-cols-[2.75rem_1fr_auto] items-center gap-3 border border-border bg-surface/75 px-3.5 py-2.5 transition-colors"
+          data-level-row={idx}
+        >
+          <span class="font-mono text-xs font-semibold text-accent">{item.level}</span>
+          <div>
+            <strong class="block text-sm font-medium text-foreground">{item.title}</strong>
+            <span class="block font-mono text-xs text-muted">{item.desc}</span>
+          </div>
+          <span class="border border-border px-2 py-0.5 font-mono text-xs uppercase text-muted" data-level-badge={idx}>
+            PASS
+          </span>
+        </li>
+      ))}
+    </ol>
+
+    <div class="flex flex-col justify-between border border-border bg-surface/60 p-4 font-mono text-xs">
+      <div>
+        <p class="m-0 uppercase text-muted">Drill verdict &amp; telemetry</p>
+        <p class="mt-3 text-lg font-semibold text-accent" data-drill-verdict>PASSED V0–V4 (POLICY COMPLIANT)</p>
+        <p class="mt-2 leading-5 text-muted" data-drill-summary>
+          All 1,240 acknowledged writes in the external ledger survived logical restore on the isolated k3d cluster.
+        </p>
+      </div>
+
+      <dl class="mt-6 grid grid-cols-2 gap-3 border-t border-border pt-4">
+        <div>
+          <dt class="uppercase text-muted">Exact RPO</dt>
+          <dd class="m-0 mt-1 text-sm font-semibold text-foreground" data-drill-rpo>0 writes lost (0.0s)</dd>
+        </div>
+        <div>
+          <dt class="uppercase text-muted">Phased RTO</dt>
+          <dd class="m-0 mt-1 text-sm font-semibold text-foreground" data-drill-rto>18.4s total</dd>
+        </div>
+        <div>
+          <dt class="uppercase text-muted">Deepest passed</dt>
+          <dd class="m-0 mt-1 text-sm font-semibold text-foreground" data-drill-deepest>V4 (Semantic)</dd>
+        </div>
+        <div>
+          <dt class="uppercase text-muted">Attestation</dt>
+          <dd class="m-0 mt-1 text-sm font-semibold text-accent" data-drill-sig>Ed25519 verified</dd>
+        </div>
+      </dl>
+    </div>
+  </div>
+</nostekon-drill-sim>
+
+<script>
+  type ScenarioConfig = {
+    verdict: string;
+    verdictTone: string;
+    summary: string;
+    rpo: string;
+    rto: string;
+    deepest: string;
+    statuses: ("PASS" | "FAIL" | "SKIP")[];
+  };
+
+  const SCENARIOS: Record<string, ScenarioConfig> = {
+    clean: {
+      verdict: "PASSED V0–V4 (POLICY COMPLIANT)",
+      verdictTone: "var(--theme-emerald)",
+      summary:
+        "All 1,240 acknowledged writes in the external ledger survived logical restore on the isolated k3d cluster.",
+      rpo: "0 writes lost (0.0s)",
+      rto: "18.4s total",
+      deepest: "V4 (Semantic)",
+      statuses: ["PASS", "PASS", "PASS", "PASS", "PASS"],
+    },
+    "wal-gap": {
+      verdict: "FAILED AT V4 (UNSYNCED WRITE LOSS)",
+      verdictTone: "var(--theme-amber)",
+      summary:
+        "Backup and restore reported Completed (V0–V3 passed), but the external ledger caught 14 acknowledged writes missing after restore.",
+      rpo: "14 writes lost (4.2s)",
+      rto: "19.1s total",
+      deepest: "V3 (Structural)",
+      statuses: ["PASS", "PASS", "PASS", "PASS", "FAIL"],
+    },
+    "schema-corrupt": {
+      verdict: "FAILED AT V3 (CHECKSUM MISMATCH)",
+      verdictTone: "var(--theme-rose)",
+      summary:
+        "Pods became Ready (V2 passed), but V3 structural verification detected a truncated ledger_events table and halted before V4.",
+      rpo: "Unverified (V3 halt)",
+      rto: "16.8s total",
+      deepest: "V2 (Readiness)",
+      statuses: ["PASS", "PASS", "PASS", "FAIL", "SKIP"],
+    },
+  };
+
+  class NostekonDrillSimElement extends HTMLElement {
+    private timer = 0;
+
+    connectedCallback() {
+      const buttons = this.querySelectorAll<HTMLButtonElement>("[data-drill-scenario]");
+      const rows = this.querySelectorAll<HTMLElement>("[data-level-row]");
+      const badges = this.querySelectorAll<HTMLElement>("[data-level-badge]");
+      const verdict = this.querySelector<HTMLElement>("[data-drill-verdict]");
+      const summary = this.querySelector<HTMLElement>("[data-drill-summary]");
+      const rpo = this.querySelector<HTMLElement>("[data-drill-rpo]");
+      const rto = this.querySelector<HTMLElement>("[data-drill-rto]");
+      const deepest = this.querySelector<HTMLElement>("[data-drill-deepest]");
+
+      const runScenario = (key: string) => {
+        const cfg = SCENARIOS[key] ?? SCENARIOS.clean!;
+        window.clearInterval(this.timer);
+
+        buttons.forEach((btn) => {
+          const active = btn.dataset.drillScenario === key;
+          btn.setAttribute("aria-pressed", String(active));
+          btn.classList.toggle("bg-accent", active);
+          btn.classList.toggle("text-canvas", active);
+          btn.classList.toggle("border-accent", active);
+          btn.classList.toggle("bg-surface", !active);
+          btn.classList.toggle("text-muted", !active);
+          btn.classList.toggle("border-border", !active);
+        });
+
+        // Reset rows to running state then step through V0 -> V4 sequentially
+        badges.forEach((b) => {
+          b.textContent = "WAIT…";
+          b.style.borderColor = "var(--theme-border)";
+          b.style.color = "var(--theme-muted)";
+        });
+
+        let step = 0;
+        this.timer = window.setInterval(() => {
+          if (step >= cfg.statuses.length) {
+            window.clearInterval(this.timer);
+            if (verdict) {
+              verdict.textContent = cfg.verdict;
+              verdict.style.color = cfg.verdictTone;
+            }
+            if (summary) summary.textContent = cfg.summary;
+            if (rpo) rpo.textContent = cfg.rpo;
+            if (rto) rto.textContent = cfg.rto;
+            if (deepest) deepest.textContent = cfg.deepest;
+            return;
+          }
+
+          const status = cfg.statuses[step]!;
+          const badge = badges[step];
+          const row = rows[step];
+          if (badge && row) {
+            badge.textContent = status;
+            const color =
+              status === "PASS"
+                ? "var(--theme-emerald)"
+                : status === "FAIL"
+                  ? "var(--theme-amber)"
+                  : "var(--theme-muted)";
+            badge.style.borderColor = color;
+            badge.style.color = color;
+            row.style.borderColor = status === "FAIL" ? "var(--theme-amber)" : "var(--theme-border)";
+          }
+          step += 1;
+        }, 140);
+      };
+
+      buttons.forEach((btn) => {
+        btn.addEventListener("click", () => runScenario(btn.dataset.drillScenario ?? "clean"));
+      });
+
+      runScenario("clean");
+    }
+
+    disconnectedCallback() {
+      window.clearInterval(this.timer);
+    }
+  }
+
+  if (!customElements.get("nostekon-drill-sim")) {
+    customElements.define("nostekon-drill-sim", NostekonDrillSimElement);
+  }
+</script>

@@ -7,29 +7,68 @@ type Props = {
 };
 
 const { projects } = Astro.props;
+const showFilter = projects.length > 4;
+const allStacks = Array.from(new Set(projects.flatMap((p) => p.data.stack)));
 ---
 
-<project-deck class="project-deck">
-  {projects.map((project, index) => (
-    <article class="project-window" data-project-window style={`--window-index:${index}`}>
-      <header class="project-window__bar">
-        <span class="project-window__lights" aria-hidden="true"><i></i><i></i><i></i></span>
-        <span>{String(project.data.order).padStart(2, "0")} / {project.data.category}</span>
-        <a href={project.data.repo} target="_blank" rel="noreferrer" aria-label={`Open ${project.data.title} public repository`}>Repository ↗</a>
-      </header>
-      <div class="project-window__body">
-        <div>
-          <p class="font-mono text-xs uppercase text-accent">{project.data.category}</p>
-          <h3><a href={withBase(`/work/${project.id}/`)}>{project.data.title}</a></h3>
-        </div>
-        <p>{project.data.summary}</p>
-        <strong>{project.data.outcome}</strong>
-        <ul aria-label={`${project.data.title} technologies`}>
-          {project.data.stack.map((item) => <li>{item}</li>)}
-        </ul>
+<project-deck class="project-deck-wrapper">
+  {showFilter && (
+    <div class="mx-auto mb-12 flex max-w-[94rem] flex-wrap items-center justify-between gap-4 border-y border-border/80 py-4">
+      <div class="flex flex-wrap items-center gap-2" role="group" aria-label="Filter projects by technology">
+        <button
+          type="button"
+          data-stack-filter="all"
+          aria-pressed="true"
+          class="border border-accent bg-accent px-3 py-1.5 font-mono text-xs uppercase text-canvas transition-colors"
+        >
+          All ({projects.length})
+        </button>
+        {allStacks.map((tech) => (
+          <button
+            type="button"
+            data-stack-filter={tech}
+            aria-pressed="false"
+            class="border border-border bg-surface/80 px-3 py-1.5 font-mono text-xs uppercase text-muted transition-colors hover:border-accent hover:text-foreground"
+          >
+            {tech}
+          </button>
+        ))}
       </div>
-    </article>
-  ))}
+      <span class="font-mono text-xs uppercase text-muted" data-filter-count>{projects.length} active repositories</span>
+    </div>
+  )}
+
+  <div class="project-deck">
+    {projects.map((project, index) => (
+      <article
+        class="project-window"
+        data-project-window
+        data-project-stack={project.data.stack.join("|")}
+        style={`--window-index:${index}`}
+      >
+        <header class="project-window__bar">
+          <span class="project-window__lights" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span>{String(project.data.order).padStart(2, "0")} / {project.data.category}</span>
+          <a href={project.data.repo} target="_blank" rel="noreferrer" aria-label={`Open ${project.data.title} public repository`}>Repository ↗</a>
+        </header>
+        <div class="project-window__body">
+          <div>
+            <p class="font-mono text-xs uppercase text-accent">{project.data.category}</p>
+            <h3><a href={withBase(`/work/${project.id}/`)}>{project.data.title}</a></h3>
+          </div>
+          <p>{project.data.summary}</p>
+          <strong>{project.data.outcome}</strong>
+          <ul aria-label={`${project.data.title} technologies`}>
+            {project.data.stack.map((item) => (
+              <li data-stack-badge={item} class="cursor-pointer transition-colors hover:border-accent hover:text-accent">
+                {item}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </article>
+    ))}
+  </div>
 </project-deck>
 
 <script>
@@ -42,7 +81,59 @@ const { projects } = Astro.props;
       this.controller = controller;
       const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 
-      this.querySelectorAll<HTMLElement>("[data-project-window]").forEach((projectWindow) => {
+      const windows = this.querySelectorAll<HTMLElement>("[data-project-window]");
+      const filterButtons = this.querySelectorAll<HTMLButtonElement>("[data-stack-filter]");
+      const countLabel = this.querySelector<HTMLElement>("[data-filter-count]");
+
+      const applyFilter = (selected: string) => {
+        let visibleCount = 0;
+        windows.forEach((win) => {
+          const stack = (win.dataset.projectStack ?? "").split("|");
+          const match = selected === "all" || stack.includes(selected);
+          win.classList.toggle("is-filtered-out", !match);
+          if (match) visibleCount += 1;
+        });
+
+        filterButtons.forEach((btn) => {
+          const active = btn.dataset.stackFilter === selected;
+          btn.setAttribute("aria-pressed", String(active));
+          btn.classList.toggle("bg-accent", active);
+          btn.classList.toggle("text-canvas", active);
+          btn.classList.toggle("border-accent", active);
+          btn.classList.toggle("bg-surface/80", !active);
+          btn.classList.toggle("text-muted", !active);
+          btn.classList.toggle("border-border", !active);
+        });
+
+        if (countLabel) {
+          countLabel.textContent =
+            selected === "all"
+              ? `${visibleCount} active repositories`
+              : `${visibleCount} matching ${selected}`;
+        }
+      };
+
+      filterButtons.forEach((btn) => {
+        btn.addEventListener(
+          "click",
+          () => applyFilter(btn.dataset.stackFilter ?? "all"),
+          { signal: controller.signal },
+        );
+      });
+
+      this.querySelectorAll<HTMLElement>("[data-stack-badge]").forEach((badge) => {
+        badge.addEventListener(
+          "click",
+          () => {
+            if (filterButtons.length > 0 && badge.dataset.stackBadge) {
+              applyFilter(badge.dataset.stackBadge);
+            }
+          },
+          { signal: controller.signal },
+        );
+      });
+
+      windows.forEach((projectWindow) => {
         projectWindow.addEventListener("pointermove", (event) => {
           if (reducedMotion.matches || window.innerWidth < 768) return;
           const bounds = projectWindow.getBoundingClientRect();
@@ -69,12 +160,20 @@ const { projects } = Astro.props;
 </script>
 
 <style>
+  .project-deck-wrapper {
+    display: block;
+  }
+
   .project-deck {
     display: grid;
     gap: clamp(2rem, 5vw, 5rem);
     margin-inline: auto;
     max-width: 94rem;
     perspective: 1100px;
+  }
+
+  .project-window.is-filtered-out {
+    display: none;
   }
 
   .project-window {
