@@ -1,155 +1,64 @@
 ---
-// Orbital relay network: a planet limb anchored to the viewport, ground stations
-// on the horizon, and satellites that only link to a station while above it.
+// Astra 3D Spiral & Scroll-Morphing Engine:
+// Modelled directly after OpenAI's GPT-6 Astra experience:
+// - 3,600 3D particles in logarithmic spiral arms + dense accretion core
+// - Exact Astra spectrum (#6DCBF4, #7AB1FE, #F87915, #FA994C, #F5F6FB, #7DD3B0)
+// - Intro accretion-exhale convergence + replay trigger (`astra:replay`)
+// - Scroll-driven 3D morphing from Spiral -> Helm/K8s Heptagon Wheel -> GitOps Infinity Knot
+// - Anamorphic optical lens flares, chromatic ghosts, and spring-physics cursor smear
 ---
 
 <orbital-field class="orbital-field" aria-hidden="true">
+  <div class="orbital-field__ambient"></div>
   <canvas data-orbital-canvas></canvas>
 </orbital-field>
 
 <script>
   type Palette = {
-    foreground: string;
-    accent: string;
     canvas: string;
-    surface: string;
     light: boolean;
+    colors: [number, number, number][];
   };
 
-  type Star = {
-    x: number;
-    y: number;
+  type Particle = {
+    arm: number;
+    t: number;
+    across: number;
     depth: number;
+    speed: number;
+    sx: number;
+    sy: number;
+    sz: number;
+    k8sX: number;
+    k8sY: number;
+    k8sZ: number;
+    knotX: number;
+    knotY: number;
+    knotZ: number;
+    colorIndex: number;
     size: number;
+    hero: boolean;
     phase: number;
-    accented: boolean;
+    vx: number;
+    vy: number;
+    ox: number;
+    oy: number;
   };
 
-  type Satellite = {
-    shell: number;
-    offset: number;
-    speed: number;
-    direction: number;
+  const PARTICLE_COUNT_DESKTOP = 3600;
+  const PARTICLE_COUNT_MOBILE = 1700;
+  const HERO_KNOTS = [0.14, 0.27, 0.39, 0.52, 0.64, 0.82, 0.93];
+
+  const clamp = (v: number, min: number, max: number) => Math.min(max, Math.max(min, v));
+  const smoothstep = (edge0: number, edge1: number, x: number) => {
+    const t = clamp((x - edge0) / Math.max(1e-5, edge1 - edge0), 0, 1);
+    return t * t * (3 - 2 * t);
   };
-
-  type Placed = {
-    x: number;
-    y: number;
-    angle: number;
-    altitude: number;
-    index: number;
-    shell: number;
-    highlight: number;
+  const smootherstep = (edge0: number, edge1: number, x: number) => {
+    const t = clamp((x - edge0) / Math.max(1e-5, edge1 - edge0), 0, 1);
+    return t * t * t * (t * (t * 6 - 15) + 10);
   };
-
-  type Constellation = {
-    name: string;
-    anchor: [number, number];
-    scale: number;
-    stars: [number, number][];
-    links: [number, number][];
-  };
-
-  type Meteor = {
-    phase: number;
-    period: number;
-    spread: number;
-    speed: number;
-    length: number;
-  };
-
-  const STAR_COUNT = 170;
-  const SATELLITE_COUNT = 26;
-  const STATION_LABELS = ["eu-north", "eu-west", "eu-central", "ap-south", "us-east"];
-  const METEOR_COUNT = 7;
-
-  // Star positions are the real asterism shapes, normalised into a unit box.
-  const CONSTELLATIONS: Constellation[] = [
-    {
-      name: "Ursa Major",
-      anchor: [0.12, 0.22],
-      scale: 0.19,
-      stars: [
-        [0.0, 0.28],
-        [0.06, 0.52],
-        [0.3, 0.55],
-        [0.34, 0.37],
-        [0.53, 0.31],
-        [0.74, 0.24],
-        [1.0, 0.0],
-      ],
-      links: [
-        [0, 1],
-        [1, 2],
-        [2, 3],
-        [3, 0],
-        [3, 4],
-        [4, 5],
-        [5, 6],
-      ],
-    },
-    {
-      name: "Cassiopeia",
-      anchor: [0.8, 0.13],
-      scale: 0.14,
-      stars: [
-        [0.0, 0.3],
-        [0.22, 0.62],
-        [0.48, 0.22],
-        [0.72, 0.58],
-        [1.0, 0.05],
-      ],
-      links: [
-        [0, 1],
-        [1, 2],
-        [2, 3],
-        [3, 4],
-      ],
-    },
-    {
-      name: "Orion",
-      anchor: [0.88, 0.46],
-      scale: 0.12,
-      stars: [
-        [0.18, 0.05],
-        [0.72, 0.1],
-        [0.38, 0.48],
-        [0.5, 0.5],
-        [0.62, 0.52],
-        [0.28, 0.95],
-        [0.85, 0.92],
-      ],
-      links: [
-        [0, 1],
-        [0, 2],
-        [1, 4],
-        [2, 3],
-        [3, 4],
-        [2, 5],
-        [4, 6],
-        [5, 6],
-      ],
-    },
-    {
-      name: "Lyra",
-      anchor: [0.42, 0.12],
-      scale: 0.09,
-      stars: [
-        [0.5, 0.0],
-        [0.18, 0.35],
-        [0.72, 0.34],
-        [0.28, 0.78],
-        [0.82, 0.76],
-      ],
-      links: [
-        [0, 1],
-        [0, 2],
-        [1, 3],
-        [2, 4],
-        [3, 4],
-      ],
-    },
-  ];
+  const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 
   const seeded = (seed: number) => {
     let state = seed >>> 0;
@@ -159,18 +68,70 @@
     };
   };
 
+  // Sample a 7-spoke Kubernetes/Platform helm wheel in normalized [-1, 1] space
+  const sampleK8sHelm = (u: number, across: number, depth: number): [number, number, number] => {
+    const spokes = 7;
+    if (u < 0.42) {
+      const sub = u / 0.42;
+      const ringRadius = sub < 0.72 ? 0.78 : 0.24;
+      const angle = (sub < 0.72 ? sub / 0.72 : (sub - 0.72) / 0.28) * Math.PI * 2;
+      const sector = (Math.PI * 2) / spokes;
+      const localA = ((angle % sector) + sector) % sector - sector * 0.5;
+      const polygonFactor = sub < 0.72 ? Math.cos(sector * 0.5) / Math.max(0.5, Math.cos(localA * 0.65)) : 1;
+      const r = ringRadius * polygonFactor + across * 0.045;
+      return [
+        Math.cos(angle) * r,
+        Math.sin(angle) * r,
+        Math.sin(angle * spokes) * 0.12 + depth * 0.08,
+      ];
+    } else if (u < 0.86) {
+      const sub = (u - 0.42) / 0.44;
+      const spokeIdx = Math.min(spokes - 1, Math.floor(sub * spokes));
+      const radialT = sub * spokes - spokeIdx;
+      const angle = (spokeIdx / spokes) * Math.PI * 2 - Math.PI * 0.5;
+      const r = lerp(0.22, 0.96, radialT);
+      const perpX = -Math.sin(angle);
+      const perpY = Math.cos(angle);
+      const handleKnob = radialT > 0.84 ? 2.1 : 0.7;
+      return [
+        Math.cos(angle) * r + perpX * across * 0.032 * handleKnob,
+        Math.sin(angle) * r + perpY * across * 0.032 * handleKnob,
+        Math.cos(radialT * Math.PI) * 0.14 + depth * 0.07,
+      ];
+    } else {
+      const sub = (u - 0.86) / 0.14;
+      const angle = sub * Math.PI * 12;
+      const r = Math.sqrt(sub) * 0.19;
+      return [Math.cos(angle) * r, Math.sin(angle) * r, depth * 0.15];
+    }
+  };
+
+  // Sample a 3D Trefoil / Infinity GitOps loop in normalized [-1, 1] space
+  const sampleTrefoilKnot = (u: number, across: number, depth: number): [number, number, number] => {
+    const t = u * Math.PI * 2;
+    const x = (Math.sin(t) + 2 * Math.sin(2 * t)) * 0.31;
+    const y = (Math.cos(t) - 2 * Math.cos(2 * t)) * 0.31;
+    const z = -Math.sin(3 * t) * 0.34;
+    const nx = Math.cos(t) + 4 * Math.cos(2 * t);
+    const ny = -Math.sin(t) + 4 * Math.sin(2 * t);
+    const len = Math.hypot(nx, ny) || 1;
+    return [
+      x + (-ny / len) * across * 0.09,
+      y + (nx / len) * across * 0.09,
+      z + depth * 0.12,
+    ];
+  };
+
   class OrbitalFieldElement extends HTMLElement {
     private controller?: AbortController;
     private resizeObserver?: ResizeObserver;
-    private visibilityObserver?: IntersectionObserver;
     private themeObserver?: MutationObserver;
     private frame = 0;
-    private visible = true;
 
     connectedCallback() {
       const canvas = this.querySelector("[data-orbital-canvas]");
       if (!(canvas instanceof HTMLCanvasElement)) return;
-      const context = canvas.getContext("2d");
+      const context = canvas.getContext("2d", { alpha: true });
       if (!context) return;
 
       this.controller?.abort();
@@ -178,448 +139,365 @@
       const { signal } = this.controller;
       const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 
-      const random = seeded(20260820);
-      const stars: Star[] = Array.from({ length: STAR_COUNT }, () => {
-        const roll = random();
-        return {
-          x: random(),
-          y: random(),
-          depth: 0.25 + random() * 0.75,
-          size: roll > 0.94 ? 1.7 : roll > 0.78 ? 1.1 : 0.6,
-          phase: random() * Math.PI * 2,
-          accented: random() > 0.93,
-        };
-      });
-
-      const satellites: Satellite[] = Array.from({ length: SATELLITE_COUNT }, (_, index) => {
-        const shell = index % 2;
-        return {
-          shell,
-          offset: (index / SATELLITE_COUNT) * Math.PI * 2 + shell * 0.24,
-          // Inner shell orbits faster, as it would in reality.
-          speed: shell === 0 ? 0.046 : 0.031,
-          direction: shell === 0 ? 1 : -1,
-        };
-      });
-
-      const pointer = { x: 0, y: 0, targetX: 0, targetY: 0, canvasX: -9999, canvasY: -9999, active: false };
-      const meteors: Meteor[] = Array.from({ length: METEOR_COUNT }, (_, index) => ({
-        phase: random() * 30,
-        period: 6 + random() * 11,
-        spread: (random() - 0.5) * 1.15,
-        speed: 0.85 + random() * 0.5,
-        length: 120 + random() * 210,
-        // Keeps early meteors from all firing on the first frame.
-        ...(index === 0 ? { phase: 2 } : {}),
-      }));
-      let palette: Palette = this.readPalette();
       let width = 0;
       let height = 0;
+      let dpr = 1;
+      let palette = this.readPalette();
+      let introStart = performance.now();
+        let spinX = 0.52;
+      let spinY = -0.22;
+      let targetSpinX = 0.52;
+      let targetSpinY = -0.22;
+      let dragging = false;
+      let dragLastX = 0;
+      let dragLastY = 0;
+
+      const pointer = {
+        x: -9999,
+        y: -9999,
+        prevX: -9999,
+        prevY: -9999,
+        vx: 0,
+        vy: 0,
+        normX: 0,
+        normY: 0,
+        active: false,
+        pressed: false,
+      };
+
+      const isMobile = () => window.innerWidth < 768;
+      const count = isMobile() ? PARTICLE_COUNT_MOBILE : PARTICLE_COUNT_DESKTOP;
+      const rand = seeded(20261019);
+      const gauss = () => (rand() + rand() + rand() + rand() - 2) * 0.5;
+
+      // Color weights matching OpenAI Astra:
+      // 0: #F5F6FB (50%), 1: #6DCBF4 (16%), 2: #7AB1FE (16%), 3: #F87915 (7%), 4: #FA994C (6%), 5: #7DD3B0 (5%)
+      const pickColorIndex = (r: number) => {
+        if (r < 0.5) return 0;
+        if (r < 0.66) return 1;
+        if (r < 0.82) return 2;
+        if (r < 0.89) return 3;
+        if (r < 0.95) return 4;
+        return 5;
+      };
+
+      const particles: Particle[] = Array.from({ length: count }, (_, i) => {
+        // 3 distinct logarithmic spiral streams + a 12% ambient deep-space halo
+        const isAmbient = i % 9 === 0;
+        const arm = i % 3;
+        const u = (i + rand() * 0.85) / count;
+        const t = Math.pow(u, 1.32);
+        // Tight ribbon width so the 3 spiral arms read as crisp luminous streams
+        const across = isAmbient
+          ? (rand() - 0.5) * 1.4
+          : gauss() * (0.018 + Math.pow(t, 1.4) * 0.065);
+        const depth = isAmbient
+          ? (rand() - 0.5) * 0.9
+          : gauss() * (0.025 + t * 0.075);
+        const isHero = i < HERO_KNOTS.length;
+        const heroT = isHero ? HERO_KNOTS[i]! : t;
+
+        const [k8sX, k8sY, k8sZ] = sampleK8sHelm(u, across * 0.65, depth * 0.65);
+        const [knotX, knotY, knotZ] = sampleTrefoilKnot(u, across * 0.65, depth * 0.65);
+
+        return {
+          arm,
+          t: heroT,
+          across: isHero ? 0 : across,
+          depth: isHero ? 0 : depth,
+          speed: (0.055 + rand() * 0.025) * (isAmbient ? 0.25 : 1),
+          sx: (rand() - 0.5) * 2.6,
+          sy: (rand() - 0.5) * 2.2,
+          sz: (rand() - 0.5) * 1.4,
+          k8sX,
+          k8sY,
+          k8sZ,
+          knotX,
+          knotY,
+          knotZ,
+          colorIndex: isHero ? (i % 2 === 0 ? 1 : 3) : pickColorIndex(rand()),
+          size: isHero ? 4.2 : rand() > 0.95 ? 2.2 : rand() > 0.72 ? 1.35 : 0.78,
+          hero: isHero,
+          phase: rand() * Math.PI * 2,
+          vx: 0,
+          vy: 0,
+          ox: 0,
+          oy: 0,
+        };
+      });
+
+      let sprites: HTMLCanvasElement[] = [];
+      const buildSprites = () => {
+        sprites = palette.colors.map(([r, g, b]) => {
+          const size = 64;
+          const off = document.createElement("canvas");
+          off.width = size;
+          off.height = size;
+          const ctx = off.getContext("2d");
+          if (!ctx) return off;
+          const half = size / 2;
+          const grad = ctx.createRadialGradient(half, half, 0, half, half, half);
+          grad.addColorStop(0, `rgba(255, 255, 255, 1)`);
+          grad.addColorStop(0.16, `rgba(${r}, ${g}, ${b}, 0.95)`);
+          grad.addColorStop(0.42, `rgba(${r}, ${g}, ${b}, 0.34)`);
+          grad.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0)`);
+          ctx.fillStyle = grad;
+          ctx.fillRect(0, 0, size, size);
+          return off;
+        });
+      };
 
       const resize = () => {
         const bounds = this.getBoundingClientRect();
-        const ratio = Math.min(window.devicePixelRatio || 1, 2);
-        width = bounds.width;
-        height = bounds.height;
-        canvas.width = Math.round(width * ratio);
-        canvas.height = Math.round(height * ratio);
-        context.setTransform(ratio, 0, 0, ratio, 0, 0);
+        dpr = Math.min(window.devicePixelRatio || 1, 2);
+        width = Math.max(1, bounds.width);
+        height = Math.max(1, bounds.height);
+        canvas.width = Math.round(width * dpr);
+        canvas.height = Math.round(height * dpr);
+        context.setTransform(dpr, 0, 0, dpr, 0, 0);
       };
 
-      const draw = (time = 0) => {
-        if (width === 0 || height === 0) return;
-        const still = reducedMotion.matches;
-        const seconds = still ? 42 : time / 1000;
-        const mobile = width < 640;
+      buildSprites();
 
-        if (still) {
-          pointer.x = 0;
-          pointer.y = 0;
-        } else {
-          pointer.x += (pointer.targetX - pointer.x) * 0.05;
-          pointer.y += (pointer.targetY - pointer.y) * 0.05;
-        }
+      let smoothedScroll = 0;
 
-        context.clearRect(0, 0, width, height);
-        context.lineCap = "round";
-
-        // Anchor the horizon to a fixed fraction of viewport height and derive the
-        // planet centre from it. Radius no longer drags the limb off-screen when
-        // the viewport gets wide.
-        const horizonY = height * (mobile ? 0.88 : 0.78);
-        const radius = Math.max(width * 0.92, height * 1.3);
-        const cx = width / 2 + pointer.x * 14;
-        const cy = horizonY + radius + pointer.y * 8;
-
-        // Widest angle from the planet's vertical axis that is still on screen.
-        const thetaMax = Math.asin(Math.min(1, (width / 2 + 40) / radius));
-
-        const project = (angle: number, altitude: number) => ({
-          x: cx + Math.sin(angle) * (radius + altitude),
-          y: cy - Math.cos(angle) * (radius + altitude),
-        });
-
-        const horizonAt = (x: number) => {
-          const dx = x - cx;
-          if (Math.abs(dx) >= radius) return height + 200;
-          return cy - Math.sqrt(radius * radius - dx * dx);
-        };
-
-        // Fades network elements out behind the hero copy so text stays legible.
-        const clarity = (x: number, y: number) => {
-          const dx = (x - width / 2) / (width * 0.32);
-          const dy = (y - height * 0.46) / (height * 0.4);
-          return Math.min(1, 0.18 + Math.hypot(dx, dy) ** 1.7);
-        };
-
-        // ---- starfield -------------------------------------------------------
-        const starAlpha = palette.light ? 0.5 : 1;
-        stars.forEach((star, index) => {
-          const x = star.x * width - pointer.x * star.depth * 34;
-          const y = star.y * height * 0.92 - pointer.y * star.depth * 22;
-          const limb = horizonAt(x);
-          if (y > limb - 4) return;
-          const twinkle = still ? 0.55 : 0.45 + Math.sin(seconds * 1.6 + star.phase) * 0.28;
-          const fade = Math.min(1, (limb - y) / 90);
-          context.beginPath();
-          context.arc(x, y, star.size, 0, Math.PI * 2);
-          context.fillStyle = star.accented ? palette.accent : palette.foreground;
-          context.globalAlpha = twinkle * fade * star.depth * starAlpha * 0.85;
-          context.fill();
-          if (index % 41 === 0) {
-            context.strokeStyle = palette.accent;
-            context.globalAlpha = 0.16 * fade;
-            context.lineWidth = 0.6;
-            context.beginPath();
-            context.moveTo(x - 6, y);
-            context.lineTo(x + 6, y);
-            context.moveTo(x, y - 6);
-            context.lineTo(x, y + 6);
-            context.stroke();
-          }
-        });
-
-        // ---- constellations --------------------------------------------------
-        context.font = "10px 'IBM Plex Mono', ui-monospace, monospace";
-        context.textAlign = "center";
-        CONSTELLATIONS.forEach((constellation) => {
-          const span = constellation.scale * width;
-          const originX = constellation.anchor[0] * width - pointer.x * 20;
-          const originY = constellation.anchor[1] * height - pointer.y * 13;
-          const points = constellation.stars.map(([sx, sy]) => ({
-            x: originX + (sx - 0.5) * span,
-            y: originY + (sy - 0.5) * span,
-          }));
-          if (points.some((point) => point.y > horizonAt(point.x) - 6)) return;
-
-          const centre = points.reduce(
-            (total, point) => ({ x: total.x + point.x / points.length, y: total.y + point.y / points.length }),
-            { x: 0, y: 0 },
-          );
-          const reach = span * 0.9;
-          const focus = pointer.active
-            ? Math.max(0, 1 - Math.hypot(centre.x - pointer.canvasX, centre.y - pointer.canvasY) / reach)
-            : 0;
-          const veil = clarity(centre.x, centre.y);
-
-          context.lineWidth = 0.7 + focus * 0.5;
-          context.strokeStyle = focus > 0.1 ? palette.accent : palette.foreground;
-          constellation.links.forEach(([from, to]) => {
-            context.globalAlpha = (0.07 + focus * 0.62) * veil;
-            context.beginPath();
-            context.moveTo(points[from].x, points[from].y);
-            context.lineTo(points[to].x, points[to].y);
-            context.stroke();
-          });
-
-          points.forEach((point, index) => {
-            context.beginPath();
-            context.arc(point.x, point.y, (index === 0 ? 1.7 : 1.2) + focus * 1.4, 0, Math.PI * 2);
-            context.fillStyle = focus > 0.1 ? palette.accent : palette.foreground;
-            context.globalAlpha = (0.55 + focus * 0.45) * veil;
-            context.fill();
-          });
-
-          if (focus > 0.12) {
-            context.fillStyle = palette.accent;
-            context.globalAlpha = Math.min(1, (focus - 0.12) * 3) * veil;
-            context.fillText(constellation.name.toUpperCase(), centre.x, centre.y + span * 0.42);
-          }
-        });
-        context.textAlign = "start";
-
-        // ---- meteor shower ---------------------------------------------------
-        // Streaks radiate from a single point, the way a real shower does.
-        if (!still) {
-          const radiant = { x: width * 0.76 - pointer.x * 26, y: -height * 0.08 - pointer.y * 16 };
-          const duration = 1.7;
-          meteors.forEach((meteor) => {
-            const elapsed = (seconds + meteor.phase) % meteor.period;
-            if (elapsed > duration) return;
-            const progress = elapsed / duration;
-            const angle = Math.PI * 0.66 + meteor.spread;
-            const direction = { x: Math.cos(angle), y: Math.sin(angle) };
-            const travel = progress * height * 1.5 * meteor.speed;
-            const head = {
-              x: radiant.x + direction.x * travel,
-              y: radiant.y + direction.y * travel,
-            };
-            if (head.y > horizonAt(head.x)) return;
-            const trail = meteor.length * Math.sin(progress * Math.PI);
-            const tail = { x: head.x - direction.x * trail, y: head.y - direction.y * trail };
-            // Meteors keep most of their brightness through the centre, unlike
-            // the persistent network layers.
-            const envelope = Math.sin(progress * Math.PI) ** 0.7 * (0.5 + clarity(head.x, head.y) * 0.5);
-
-            const streak = context.createLinearGradient(tail.x, tail.y, head.x, head.y);
-            streak.addColorStop(0, "transparent");
-            streak.addColorStop(1, palette.accent);
-            context.strokeStyle = streak;
-            context.globalAlpha = envelope;
-            context.lineWidth = 1.8;
-            context.beginPath();
-            context.moveTo(tail.x, tail.y);
-            context.lineTo(head.x, head.y);
-            context.stroke();
-
-            context.beginPath();
-            context.arc(head.x, head.y, 2, 0, Math.PI * 2);
-            context.fillStyle = palette.accent;
-            context.globalAlpha = envelope;
-            context.fill();
-          });
-        }
-
-        // ---- atmosphere ------------------------------------------------------
-        const glow = context.createLinearGradient(0, horizonY - 190, 0, horizonY + 10);
-        glow.addColorStop(0, "transparent");
-        glow.addColorStop(1, palette.accent);
+      const drawAnamorphicFlare = (
+        fx: number,
+        fy: number,
+        intensity: number,
+        color: [number, number, number],
+        primary: boolean,
+      ) => {
+        if (intensity <= 0.02) return;
+        const [r, g, b] = color;
         context.save();
+        context.globalCompositeOperation = palette.light ? "source-over" : "lighter";
+
+        const haloR = (primary ? 135 : 70) * (0.7 + intensity * 0.45);
+        const halo = context.createRadialGradient(fx, fy, 0, fx, fy, haloR);
+        halo.addColorStop(0, `rgba(255, 255, 255, ${0.55 * intensity})`);
+        halo.addColorStop(0.22, `rgba(${r}, ${g}, ${b}, ${0.32 * intensity})`);
+        halo.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0)`);
+        context.fillStyle = halo;
         context.beginPath();
-        context.arc(cx, cy, radius + 170, Math.PI * 1.2, Math.PI * 1.8);
-        context.arc(cx, cy, radius, Math.PI * 1.8, Math.PI * 1.2, true);
-        context.closePath();
-        context.clip();
-        context.fillStyle = glow;
-        context.globalAlpha = palette.light ? 0.1 : 0.16;
-        context.fillRect(0, horizonY - 190, width, 200);
-        context.restore();
+        context.arc(fx, fy, haloR, 0, Math.PI * 2);
+        context.fill();
 
-        // ---- planet body -----------------------------------------------------
-        context.save();
+        const streakW = (primary ? Math.min(width * 0.46, 520) : 190) * (0.65 + intensity * 0.4);
+        const hGrad = context.createLinearGradient(fx - streakW, fy, fx + streakW, fy);
+        hGrad.addColorStop(0, `rgba(${r}, ${g}, ${b}, 0)`);
+        hGrad.addColorStop(0.38, `rgba(${r}, ${g}, ${b}, ${0.22 * intensity})`);
+        hGrad.addColorStop(0.5, `rgba(255, 255, 255, ${0.75 * intensity})`);
+        hGrad.addColorStop(0.62, `rgba(${r}, ${g}, ${b}, ${0.22 * intensity})`);
+        hGrad.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0)`);
+        context.strokeStyle = hGrad;
+        context.lineWidth = primary ? 1.8 : 1.1;
         context.beginPath();
-        context.arc(cx, cy, radius, Math.PI, Math.PI * 2);
-        context.lineTo(cx + radius, height + 2);
-        context.lineTo(cx - radius, height + 2);
-        context.closePath();
-        context.clip();
-
-        const body = context.createLinearGradient(0, horizonY, 0, height);
-        body.addColorStop(0, palette.surface);
-        body.addColorStop(1, palette.canvas);
-        context.globalAlpha = 1;
-        context.fillStyle = body;
-        context.fillRect(0, horizonY - 2, width, height - horizonY + 4);
-
-        // Graticule, drawn only inside the planet silhouette.
-        context.lineWidth = 0.6;
-        for (let ring = 1; ring <= 7; ring += 1) {
-          const ringY = horizonY + (ring / 7) ** 1.5 * (height - horizonY) * 1.5;
-          const half = Math.sqrt(Math.max(0, radius * radius - (ringY - cy) ** 2));
-          context.beginPath();
-          context.ellipse(cx, ringY, half, 8 + ring * 6, 0, Math.PI, Math.PI * 2);
-          context.strokeStyle = ring % 3 === 0 ? palette.accent : palette.foreground;
-          context.globalAlpha = ring % 3 === 0 ? 0.14 : 0.07;
-          context.stroke();
-        }
-        for (let meridian = -6; meridian <= 6; meridian += 1) {
-          const angle = (meridian / 6) * thetaMax * 1.5 + pointer.x * 0.04;
-          context.beginPath();
-          context.ellipse(cx, cy, Math.abs(Math.sin(angle)) * radius, radius, 0, Math.PI, Math.PI * 2);
-          context.strokeStyle = meridian === 0 ? palette.accent : palette.foreground;
-          context.globalAlpha = meridian === 0 ? 0.13 : 0.06;
-          context.stroke();
-        }
-        context.restore();
-
-        // Limb: the brightest line in the composition.
-        context.beginPath();
-        context.arc(cx, cy, radius, Math.PI, Math.PI * 2);
-        context.strokeStyle = palette.accent;
-        context.globalAlpha = 0.75;
-        context.lineWidth = 1.15;
+        context.moveTo(fx - streakW, fy);
+        context.lineTo(fx + streakW, fy);
         context.stroke();
 
-        // ---- ground stations -------------------------------------------------
-        const stationSpan = thetaMax * 0.82;
-        const stations = STATION_LABELS.map((label, index) => {
-          const angle = (index / (STATION_LABELS.length - 1) - 0.5) * 2 * stationSpan;
-          return { angle, label, ...project(angle, 0) };
-        });
+        const streakH = (primary ? 115 : 52) * (0.65 + intensity * 0.35);
+        const vGrad = context.createLinearGradient(fx, fy - streakH, fx, fy + streakH);
+        vGrad.addColorStop(0, `rgba(${r}, ${g}, ${b}, 0)`);
+        vGrad.addColorStop(0.5, `rgba(255, 255, 255, ${0.48 * intensity})`);
+        vGrad.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0)`);
+        context.strokeStyle = vGrad;
+        context.lineWidth = 1.1;
+        context.beginPath();
+        context.moveTo(fx, fy - streakH);
+        context.lineTo(fx, fy + streakH);
+        context.stroke();
 
-        // ---- satellites ------------------------------------------------------
-        const innerAltitude = Math.max(height * 0.3, 150);
-        const outerAltitude = Math.max(height * 0.47, 235);
-        const placed: Placed[] = [];
-
-        satellites.forEach((satellite, index) => {
-          const angle = satellite.offset + seconds * satellite.speed * satellite.direction;
-          const wrapped = Math.atan2(Math.sin(angle), Math.cos(angle));
-          if (Math.abs(wrapped) > thetaMax + 0.35) return;
-          const altitude = satellite.shell === 0 ? innerAltitude : outerAltitude;
-          const spot = project(wrapped, altitude);
-          if (spot.y < -60 || spot.y > horizonY + 40) return;
-          const distance = Math.hypot(spot.x - pointer.canvasX, spot.y - pointer.canvasY);
-          const highlight = pointer.active ? Math.max(0, 1 - distance / 130) : 0;
-          placed.push({ ...spot, angle: wrapped, altitude, index, shell: satellite.shell, highlight });
-        });
-
-        // Orbit tracks.
-        context.setLineDash([1, 6]);
-        context.lineWidth = 0.6;
-        [innerAltitude, outerAltitude].forEach((altitude, shell) => {
-          context.beginPath();
-          context.arc(cx, cy, radius + altitude, Math.PI * 1.5 - thetaMax, Math.PI * 1.5 + thetaMax);
-          context.strokeStyle = palette.foreground;
-          context.globalAlpha = shell === 0 ? 0.12 : 0.09;
-          context.stroke();
-        });
-        context.setLineDash([]);
-
-        // Cross-links between neighbours in the same shell.
-        placed.forEach((satellite, index) => {
-          placed.slice(index + 1).forEach((other) => {
-            if (other.shell !== satellite.shell) return;
-            const separation = Math.abs(other.angle - satellite.angle);
-            if (separation > 0.52) return;
-            const strength = 1 - separation / 0.52;
-            const boost = Math.max(satellite.highlight, other.highlight);
+        if (primary && !palette.light) {
+          const axisX = width * 0.5 - fx;
+          const axisY = height * 0.5 - fy;
+          const ghostScales = [0.75, 1.32, 1.78];
+          ghostScales.forEach((gs, gi) => {
+            const gx = fx + axisX * gs;
+            const gy = fy + axisY * gs;
+            const gr = 14 + gi * 9;
             context.beginPath();
-            context.moveTo(satellite.x, satellite.y);
-            context.lineTo(other.x, other.y);
-            context.strokeStyle = boost > 0.1 ? palette.accent : palette.foreground;
-            context.globalAlpha =
-              strength *
-              (0.22 + boost * 0.55) *
-              clarity((satellite.x + other.x) / 2, (satellite.y + other.y) / 2);
-            context.lineWidth = 0.65 + boost * 0.5;
+            context.arc(gx, gy, gr, 0, Math.PI * 2);
+            context.strokeStyle = gi === 1 ? `rgba(109, 203, 244, ${0.14 * intensity})` : `rgba(248, 121, 21, ${0.11 * intensity})`;
+            context.lineWidth = 1.2;
             context.stroke();
           });
-        });
+        }
 
-        // Downlinks. A station only sees a satellite while it is above the
-        // station's local horizon, so links genuinely rise and set.
-        const activeStations = new Set<number>();
-        placed.forEach((satellite) => {
-          const cosLimit = radius / (radius + satellite.altitude);
-          const maxSeparation = Math.acos(Math.min(1, cosLimit));
-          stations.forEach((station, stationIndex) => {
-            const separation = Math.abs(satellite.angle - station.angle);
-            if (separation >= maxSeparation) return;
-            const strength = 1 - separation / maxSeparation;
-            if (strength < 0.04) return;
-            if (strength > 0.28) activeStations.add(stationIndex);
+        context.restore();
+      };
 
-            context.beginPath();
-            context.moveTo(station.x, station.y);
-            context.lineTo(satellite.x, satellite.y);
-            context.strokeStyle = palette.accent;
-            context.globalAlpha =
-              strength ** 1.3 *
-              (0.42 + satellite.highlight * 0.5) *
-              clarity((station.x + satellite.x) / 2, (station.y + satellite.y) / 2);
-            context.lineWidth = 0.6 + strength * 0.75;
-            context.stroke();
+      const fyClamp = (val: number, maxH: number) => clamp(val, 0, maxH);
 
-            if (strength > 0.42 && !still) {
-              const travel = (seconds * 0.45 + stationIndex * 0.27 + satellite.index * 0.13) % 1;
-              const px = station.x + (satellite.x - station.x) * travel;
-              const py = station.y + (satellite.y - station.y) * travel;
-              context.beginPath();
-              context.arc(px, py, 1.9, 0, Math.PI * 2);
-              context.fillStyle = palette.accent;
-              context.globalAlpha = Math.sin(travel * Math.PI) * 0.95 * clarity(px, py);
-              context.fill();
-            }
-          });
-        });
+      const draw = (now = performance.now()) => {
+        if (width === 0 || height === 0) return;
+        const still = reducedMotion.matches;
+        const seconds = still ? 12 : now / 1000;
+        const introElapsed = still ? 6 : (now - introStart) / 1000;
 
-        // Station markers, labelled only while they are carrying traffic.
-        context.font = "10px 'IBM Plex Mono', ui-monospace, monospace";
-        context.textAlign = "center";
-        stations.forEach((station, index) => {
-          const live = activeStations.has(index);
-          const outward = project(station.angle, live ? 15 : 9);
-          context.beginPath();
-          context.moveTo(station.x, station.y);
-          context.lineTo(outward.x, outward.y);
-          context.strokeStyle = live ? palette.accent : palette.foreground;
-          context.globalAlpha = live ? 0.85 : 0.4;
-          context.lineWidth = 1;
-          context.stroke();
+        const introProgress = clamp(introElapsed / 3.6, 0, 1);
+        const introEase = smootherstep(0, 1, introProgress);
+        const exhalePulse = Math.sin(introEase * Math.PI) * (1 - introEase) * 0.32;
 
-          context.beginPath();
-          context.arc(outward.x, outward.y, live ? 2.8 : 1.8, 0, Math.PI * 2);
-          context.fillStyle = live ? palette.accent : palette.foreground;
-          context.globalAlpha = live ? 1 : 0.5;
-          context.fill();
+        const docHeight = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
+        const rawScroll = clamp(window.scrollY / docHeight, 0, 1);
+        smoothedScroll = still ? rawScroll : lerp(smoothedScroll, rawScroll, 0.085);
 
-          if (live && !mobile) {
-            context.fillStyle = palette.accent;
-            context.globalAlpha = 0.7;
-            context.fillText(station.label, station.x, station.y + 22);
-          }
-        });
-        context.textAlign = "start";
+        const wK8s = smoothstep(0.14, 0.36, smoothedScroll) * (1 - smoothstep(0.54, 0.74, smoothedScroll));
+        const wKnot = smoothstep(0.54, 0.78, smoothedScroll);
+        const wSpiral = Math.max(0, 1 - wK8s - wKnot);
 
-        // Satellite bodies.
-        placed.forEach((satellite) => {
-          const size = satellite.shell === 0 ? 3 : 2.4;
-          const visibility = clarity(satellite.x, satellite.y);
-          context.save();
-          context.translate(satellite.x, satellite.y);
-          context.rotate(satellite.angle);
-          context.fillStyle = palette.accent;
-          context.globalAlpha = (0.9 + satellite.highlight * 0.1) * visibility;
-          context.fillRect(-size / 2, -size / 2, size, size);
-          context.strokeStyle = palette.accent;
-          context.globalAlpha = 0.55 * visibility;
-          context.lineWidth = 0.8;
-          context.beginPath();
-          context.moveTo(-size * 2.1, 0);
-          context.lineTo(-size * 0.9, 0);
-          context.moveTo(size * 0.9, 0);
-          context.lineTo(size * 2.1, 0);
-          context.stroke();
-          context.restore();
+        if (!dragging && !still) {
+          const autoY = -0.18 + Math.sin(seconds * 0.24) * 0.24 + (pointer.active ? pointer.normX * 0.42 : 0);
+          const autoX = 0.52 + Math.cos(seconds * 0.19) * 0.12 + (pointer.active ? pointer.normY * 0.3 : 0);
+          targetSpinY = autoY;
+          targetSpinX = autoX;
+        }
+        spinX = lerp(spinX, targetSpinX, 0.07);
+        spinY = lerp(spinY, targetSpinY, 0.07);
 
-          if (satellite.highlight > 0.05) {
-            context.beginPath();
-            context.arc(satellite.x, satellite.y, 9 + satellite.highlight * 5, 0, Math.PI * 2);
-            context.strokeStyle = palette.accent;
-            context.globalAlpha = satellite.highlight * 0.5;
-            context.lineWidth = 0.8;
-            context.stroke();
-          }
-        });
+        pointer.vx *= 0.86;
+        pointer.vy *= 0.86;
 
-        // ---- readability vignette -------------------------------------------
-        const vignette = context.createRadialGradient(
-          width / 2,
-          height * 0.44,
-          0,
-          width / 2,
-          height * 0.44,
-          Math.max(width, height) * 0.46,
-        );
-        vignette.addColorStop(0, palette.canvas);
-        vignette.addColorStop(1, "transparent");
-        context.globalAlpha = 0.62;
-        context.fillStyle = vignette;
+        context.clearRect(0, 0, width, height);
+
+        const scale = Math.min(width, height) * (width < 640 ? 0.44 : 0.47);
+        const centerShiftX = width >= 1024 ? Math.sin(smoothedScroll * Math.PI) * width * 0.14 : 0;
+        const cx = width * 0.5 + centerShiftX;
+        const cy = height * 0.5;
+        const fov = 3.2;
+
+        const ambientR = scale * 1.35;
+        const ambGrad = context.createRadialGradient(cx, cy, 0, cx, fyClamp(cy, height), ambientR);
+        if (palette.light) {
+          ambGrad.addColorStop(0, "rgba(15, 108, 189, 0.12)");
+          ambGrad.addColorStop(0.45, "rgba(109, 40, 217, 0.06)");
+          ambGrad.addColorStop(1, "rgba(238, 242, 246, 0)");
+        } else {
+          ambGrad.addColorStop(0, "rgba(35, 67, 95, 0.44)");
+          ambGrad.addColorStop(0.38, "rgba(22, 42, 74, 0.24)");
+          ambGrad.addColorStop(0.72, "rgba(248, 121, 21, 0.05)");
+          ambGrad.addColorStop(1, "rgba(3, 5, 8, 0)");
+        }
+        context.fillStyle = ambGrad;
         context.fillRect(0, 0, width, height);
 
+        const cosX = Math.cos(spinX + smoothedScroll * 0.55);
+        const sinX = Math.sin(spinX + smoothedScroll * 0.55);
+        const cosY = Math.cos(spinY + smoothedScroll * 0.9);
+        const sinY = Math.sin(spinY + smoothedScroll * 0.9);
+
+        context.save();
+        context.globalCompositeOperation = palette.light ? "source-over" : "lighter";
+
+        const heroScreens: { x: number; y: number; intensity: number; color: [number, number, number]; primary: boolean }[] = [];
+
+        const turns = 2.65;
+        const flowOffset = still ? 0 : seconds * 0.05;
+
+        for (let i = 0; i < particles.length; i += 1) {
+          const p = particles[i]!;
+          const tFlow = ((p.t - flowOffset * p.speed) % 1 + 1) % 1;
+          const armAngle = (p.arm * (Math.PI * 2)) / 3;
+          const theta = tFlow * Math.PI * 2 * turns + armAngle - seconds * 0.18;
+          const spiralRadius = (0.025 + Math.pow(tFlow, 0.92) * 1.15) * (1 + exhalePulse);
+
+          const baseCos = Math.cos(theta);
+          const baseSin = Math.sin(theta);
+          // Tangent & normal vectors along the logarithmic spiral arm
+          const spX = baseCos * spiralRadius - baseSin * p.across;
+          const spY = baseSin * spiralRadius + baseCos * p.across;
+          // Vortex funnel depth: deeper at the center core, rising along outer arms
+          const funnelZ = -Math.exp(-tFlow * 4.5) * 0.34 + Math.sin(theta + p.phase * 0.2) * 0.06;
+          const spZ = funnelZ + p.depth;
+
+          const formedSpiralX = lerp(p.sx, spX, introEase);
+          const formedSpiralY = lerp(p.sy, spY, introEase);
+          const formedSpiralZ = lerp(p.sz, spZ, introEase);
+
+          const shapeRot = seconds * 0.28;
+          const cR = Math.cos(shapeRot);
+          const sR = Math.sin(shapeRot);
+          const kX = p.k8sX * cR - p.k8sZ * sR;
+          const kY = p.k8sY;
+          const kZ = p.k8sX * sR + p.k8sZ * cR;
+
+          const nX = p.knotX * cR - p.knotZ * sR;
+          const nY = p.knotY;
+          const nZ = p.knotX * sR + p.knotZ * cR;
+
+          const wx = formedSpiralX * wSpiral + kX * wK8s + nX * wKnot;
+          const wy = formedSpiralY * wSpiral + kY * wK8s + nY * wKnot;
+          const wz = formedSpiralZ * wSpiral + kZ * wK8s + nZ * wKnot;
+
+          const rx1 = wx * cosY + wz * sinY;
+          const rz1 = -wx * sinY + wz * cosY;
+          const ry2 = wy * cosX - rz1 * sinX;
+          const rz2 = wy * sinX + rz1 * cosX;
+
+          const perspective = fov / Math.max(0.6, fov - rz2);
+          let sx = cx + rx1 * scale * perspective + p.ox;
+          let sy = cy + ry2 * scale * perspective + p.oy;
+
+          if (pointer.active && !still) {
+            const dx = sx - pointer.x;
+            const dy = sy - pointer.y;
+            const distSq = dx * dx + dy * dy;
+            const repelRadius = pointer.pressed ? 230 : 165;
+            if (distSq < repelRadius * repelRadius && distSq > 1) {
+              const dist = Math.sqrt(distSq);
+              const falloff = Math.pow(1 - dist / repelRadius, 2);
+              const push = (pointer.pressed ? 3.8 : 1.75) * falloff;
+              p.vx += (dx / dist) * push + pointer.vx * falloff * 0.14;
+              p.vy += (dy / dist) * push + pointer.vy * falloff * 0.14;
+            }
+          }
+
+          p.vx += -p.ox * 0.085;
+          p.vy += -p.oy * 0.085;
+          p.vx *= 0.84;
+          p.vy *= 0.84;
+          p.ox += p.vx;
+          p.oy += p.vy;
+
+          sx = cx + rx1 * scale * perspective + p.ox;
+          sy = cy + ry2 * scale * perspective + p.oy;
+
+          if (sx < -40 || sx > width + 40 || sy < -40 || sy > height + 40) continue;
+
+          const tip = Math.sin(clamp(tFlow, 0.02, 0.98) * Math.PI);
+          const twinkle = still ? 0.85 : 0.68 + Math.sin(seconds * 2.4 + p.phase) * 0.32;
+          const depthBoost = clamp((rz2 + 1.4) / 2.8, 0.35, 1.25);
+          const alpha = clamp(tip * twinkle * depthBoost * (palette.light ? 0.72 : 0.92), 0.08, 1);
+
+          const sprite = sprites[p.colorIndex] ?? sprites[0]!;
+          const drawRadius = p.size * perspective * (0.75 + (1 - tFlow) * 0.55) * 4.2;
+
+          context.globalAlpha = alpha;
+          context.drawImage(sprite, sx - drawRadius, sy - drawRadius, drawRadius * 2, drawRadius * 2);
+
+          if (p.hero) {
+            heroScreens.push({
+              x: sx,
+              y: sy,
+              intensity: clamp(alpha * perspective * 0.85, 0.2, 1.15),
+              color: palette.colors[p.colorIndex] ?? palette.colors[0]!,
+              primary: i === 0,
+            });
+          }
+        }
+
+        context.restore();
+
+        heroScreens.forEach((h) => {
+          drawAnamorphicFlare(h.x, h.y, h.intensity, h.color, h.primary);
+        });
+
         context.globalAlpha = 1;
-        if (!still && this.visible) this.frame = requestAnimationFrame(draw);
+        if (!still) {
+          this.frame = requestAnimationFrame(draw);
+        }
       };
 
       const restart = () => {
@@ -627,30 +505,87 @@
         draw(performance.now());
       };
 
-      this.addEventListener(
-        "pointermove",
-        (event) => {
-          if (reducedMotion.matches) return;
-          const bounds = this.getBoundingClientRect();
-          pointer.targetX = (event.clientX - bounds.left) / bounds.width - 0.5;
-          pointer.targetY = (event.clientY - bounds.top) / bounds.height - 0.5;
-          pointer.canvasX = event.clientX - bounds.left;
-          pointer.canvasY = event.clientY - bounds.top;
-          pointer.active = true;
+      window.addEventListener(
+        "astra:replay",
+        () => {
+          introStart = performance.now();
+          spinX = 0.22;
+          spinY = -0.18;
+          targetSpinX = 0.22;
+          targetSpinY = -0.18;
+          particles.forEach((p) => {
+            p.ox = 0;
+            p.oy = 0;
+            p.vx = 0;
+            p.vy = 0;
+          });
+          restart();
         },
         { signal },
       );
 
-      this.addEventListener(
+      window.addEventListener(
+        "pointermove",
+        (event) => {
+          if (reducedMotion.matches) return;
+          const nx = event.clientX;
+          const ny = event.clientY;
+          if (pointer.active) {
+            pointer.vx = clamp(nx - pointer.x, -45, 45);
+            pointer.vy = clamp(ny - pointer.y, -45, 45);
+          }
+          pointer.prevX = pointer.x;
+          pointer.prevY = pointer.y;
+          pointer.x = nx;
+          pointer.y = ny;
+          pointer.normX = (nx / Math.max(1, width)) * 2 - 1;
+          pointer.normY = (ny / Math.max(1, height)) * 2 - 1;
+          pointer.active = true;
+
+          if (dragging) {
+            const dx = nx - dragLastX;
+            const dy = ny - dragLastY;
+            dragLastX = nx;
+            dragLastY = ny;
+            targetSpinY = clamp(targetSpinY + dx * 0.0055, -Math.PI, Math.PI);
+            targetSpinX = clamp(targetSpinX + dy * 0.0055, -1.2, 1.2);
+          }
+        },
+        { passive: true, signal },
+      );
+
+      window.addEventListener(
+        "pointerdown",
+        (event) => {
+          if (reducedMotion.matches) return;
+          pointer.pressed = true;
+          const target = event.target as HTMLElement | null;
+          if (!target?.closest("a, button, input, dialog")) {
+            dragging = true;
+            dragLastX = event.clientX;
+            dragLastY = event.clientY;
+          }
+        },
+        { passive: true, signal },
+      );
+
+      window.addEventListener(
+        "pointerup",
+        () => {
+          pointer.pressed = false;
+          dragging = false;
+        },
+        { passive: true, signal },
+      );
+
+      window.addEventListener(
         "pointerleave",
         () => {
-          pointer.targetX = 0;
-          pointer.targetY = 0;
-          pointer.canvasX = -9999;
-          pointer.canvasY = -9999;
           pointer.active = false;
+          pointer.pressed = false;
+          dragging = false;
         },
-        { signal },
+        { passive: true, signal },
       );
 
       this.resizeObserver = new ResizeObserver(() => {
@@ -659,15 +594,9 @@
       });
       this.resizeObserver.observe(this);
 
-      this.visibilityObserver = new IntersectionObserver((entries) => {
-        this.visible = entries[0]?.isIntersecting ?? true;
-        if (this.visible) restart();
-        else cancelAnimationFrame(this.frame);
-      });
-      this.visibilityObserver.observe(this);
-
       this.themeObserver = new MutationObserver(() => {
         palette = this.readPalette();
+        buildSprites();
         restart();
       });
       this.themeObserver.observe(document.documentElement, { attributeFilter: ["data-theme"] });
@@ -682,19 +611,33 @@
       cancelAnimationFrame(this.frame);
       this.controller?.abort();
       this.resizeObserver?.disconnect();
-      this.visibilityObserver?.disconnect();
       this.themeObserver?.disconnect();
     }
 
     private readPalette(): Palette {
+      const light = document.documentElement.dataset.theme === "light";
       const styles = getComputedStyle(document.documentElement);
-      const read = (name: string) => styles.getPropertyValue(name).trim();
+      const canvas = styles.getPropertyValue("--theme-canvas").trim() || (light ? "#eef2f6" : "#030508");
       return {
-        foreground: read("--theme-foreground"),
-        accent: read("--theme-accent"),
-        canvas: read("--theme-canvas"),
-        surface: read("--theme-surface"),
-        light: document.documentElement.dataset.theme === "light",
+        canvas,
+        light,
+        colors: light
+          ? [
+              [15, 23, 34],    // deep ink
+              [15, 108, 189],  // cyan
+              [37, 99, 235],   // royal blue
+              [217, 95, 14],   // solar orange
+              [234, 124, 43],  // warm amber
+              [24, 121, 91],   // emerald
+            ]
+          : [
+              [245, 246, 251], // #F5F6FB stellar white
+              [109, 203, 244], // #6DCBF4 Astra cyan
+              [122, 177, 254], // #7AB1FE Astra blue
+              [248, 121, 21],  // #F87915 Astra solar orange
+              [250, 153, 76],  // #FA994C Astra warm gold
+              [125, 211, 176], // #7DD3B0 Platform emerald
+            ],
       };
     }
   }
@@ -708,24 +651,30 @@
   .orbital-field {
     inset: 0;
     overflow: hidden;
-    position: absolute;
+    pointer-events: none;
+    position: fixed;
+    z-index: 0;
   }
 
-  .orbital-field canvas {
-    height: 100%;
-    width: 100%;
-  }
-
-  .orbital-field::after {
-    background: linear-gradient(
-      90deg,
-      color-mix(in srgb, var(--theme-canvas) 55%, transparent),
-      transparent 18% 82%,
-      color-mix(in srgb, var(--theme-canvas) 55%, transparent)
-    );
-    content: "";
+  .orbital-field__ambient {
+    background:
+      radial-gradient(circle at 50% 44%, rgb(35 67 95 / 38%) 0%, transparent 62%),
+      radial-gradient(circle at 64% 38%, rgb(248 121 21 / 9%) 0%, transparent 45%);
     inset: 0;
     pointer-events: none;
     position: absolute;
   }
+
+  :global(:root[data-theme="light"]) .orbital-field__ambient {
+    background:
+      radial-gradient(circle at 50% 44%, rgb(15 108 189 / 10%) 0%, transparent 62%),
+      radial-gradient(circle at 64% 38%, rgb(217 95 14 / 6%) 0%, transparent 45%);
+  }
+
+  .orbital-field canvas {
+    display: block;
+    height: 100%;
+    width: 100%;
+  }
 </style>
+
