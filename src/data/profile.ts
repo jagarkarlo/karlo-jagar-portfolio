@@ -16,9 +16,9 @@ export type AcademicProject = {
 
 export const profile = {
   summary:
-    "I am a DevOps engineer at SICK Mobilisis and a master's student in Business Systems Organization at FOI (University of Zagreb). My work focuses on cloud-native platforms, GitOps delivery, observability, disaster-recovery verification, and local-first developer tooling — including my master's thesis project Nostekon, which proves Kubernetes and PostgreSQL recovery across V0–V4 verification levels rather than trusting a Completed backup status.",
+    "I am a DevOps engineer at SICK Mobilisis and a master's student in Business Systems Organization at FOI (University of Zagreb). My work focuses on cloud-native platforms, GitOps delivery, observability, disaster-recovery verification, and local-first developer tooling.",
   perspective:
-    "A six-month Erasmus+ exchange at the Faculty of Engineering in Porto (FEUP) shaped how I approach unfamiliar engineering problems, distributed teamwork, and clear technical writing. Across my public repositories — from Nostekon, OpsBench, ContextLoom MCP, and raywhy to DashDrift, SDN security labs, and my BSc Unity thesis QuantumQuarry — I build systems where behaviour, failure modes, and recovery can be measured and verified.",
+    "A six-month Erasmus+ exchange at the Faculty of Engineering in Porto (FEUP) shaped how I approach unfamiliar engineering problems, distributed teamwork, and clear technical writing. Across my public repositories, from Nostekon, OpsBench, ContextLoom MCP, and raywhy to DashDrift, SDN security labs, and my BSc Unity thesis QuantumQuarry, I build systems where behaviour, failure modes, and recovery can be measured and verified.",
   experience: [
     {
       title: "DevOps Engineer",
@@ -61,9 +61,7 @@ export const profile = {
       title: "Master's degree in Business Systems Organization",
       organization: "Faculty of Organization and Informatics, University of Zagreb",
       period: "Sep 2025 - Present",
-      description:
-        "Master's thesis research: Nostekon — verifiable Kubernetes + PostgreSQL disaster-recovery drills (V0–V4) and revocation-aware recovery verification (Nostekon Guard).",
-    },
+      },
     {
       title: "Bachelor's degree in Information and Business Systems",
       organization: "Faculty of Organization and Informatics, University of Zagreb",

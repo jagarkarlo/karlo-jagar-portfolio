@@ -1,5 +1,5 @@
 ---
-title: PC Status Monitor
+title: PC status monitor
 order: 12
 category: Resilient web application
 summary: An Angular and FastAPI monitor for latency, CPU, and memory using REST polling and a live WebSocket stream.

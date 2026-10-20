@@ -15,7 +15,7 @@ featured: true
 ---
 
 AI coding and operations assistants are quick to suggest `kubectl` or Terraform
-commands during an incident — but speed without evidence citation or safety
+commands during an incident but speed without evidence citation or safety
 boundaries is a liability.
 
 **OpsBench** is an open DevOps scenario and evaluation engine (evolving toward

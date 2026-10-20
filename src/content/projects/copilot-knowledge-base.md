@@ -1,5 +1,5 @@
 ---
-title: Copilot Knowledge Base
+title: Copilot knowledge base
 order: 7
 category: Local AI memory & MCP server
 summary: A local TypeScript Model Context Protocol server that gives coding assistants durable, git-versioned Markdown memory backed by a SQLite FTS5 search index.

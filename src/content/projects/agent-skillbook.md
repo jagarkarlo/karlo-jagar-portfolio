@@ -1,5 +1,5 @@
 ---
-title: Agent Skillbook & Astro Orbit
+title: Agent skillbook & Astro Orbit
 order: 9
 category: Open-source templates & agent workflows
 summary: Composable SKILL.md workflows for coding agents (diagnosing bugs, alignment grilling, session handoffs) alongside the MIT-licensed Astro Orbit portfolio template.

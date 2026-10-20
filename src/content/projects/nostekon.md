@@ -1,7 +1,7 @@
 ---
 title: Nostekon
 order: 1
-category: Recovery verification & MSc thesis
+category: Recovery verification
 summary: Automated PostgreSQL logical-restore drills across disposable k3d clusters with V0–V4 data-level verification, exact RPO from an external write ledger, phased RTO, Ed25519 evidence attestation, and Studio UI.
 outcome: Proves recovery rather than assuming a Completed backup status means a workload can be restored without silent data or policy loss.
 stack:
@@ -69,18 +69,3 @@ flowchart LR
   read-only Docker Compose container that serves the Studio UI and Go
   verification API, with optional Prometheus Pushgateway metrics and a bundled
   Grafana dashboard.
-
-## Thesis research direction: Nostekon Guard
-
-Alongside V0–V4 data-recovery verification, the thesis investigates
-**Revocation-Aware Recovery Verification for PostgreSQL-Backed Applications in
-Kubernetes** (*Nostekon Guard*):
-
-- **The problem**: If Alice had permission to read a document when a backup was
-  taken, and that permission was later revoked, restoring the database from
-  backup can silently resurrect Alice's revoked access while legitimate current
-  grants (Bob) must still work.
-- **Approach**: Hold a versioned, temporal authorization contract outside the
-  restored database's failure domain and run explicit allow/deny behavioural
-  checks against the restored instance — distinguishing genuine policy
-  regressions from target unavailability, timeouts, or stale policy evidence.

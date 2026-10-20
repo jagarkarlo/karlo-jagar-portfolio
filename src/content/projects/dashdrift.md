@@ -13,7 +13,7 @@ repo: https://github.com/jagarkarlo/dashdrift
 ---
 
 When someone edits a Grafana panel at 2am during an incident to see a metric
-more clearly, the fix works — and almost never makes it back into Git. Six
+more clearly, the fix works and almost never makes it back into Git. Six
 months later, Git and production have silently diverged, and raw JSON diffs are
 drowned in hundreds of lines of Grafana metadata noise.
 
