@@ -16,23 +16,23 @@ export type AcademicProject = {
 
 export const profile = {
   summary:
-    "I am a DevOps engineer and master's student in Business Systems Organization, with a background in Information and Business Systems. I work across cloud platforms, delivery automation, observability, and developer tooling, connecting technical implementation with the people who need to understand and operate it.",
+    "I am a DevOps engineer at SICK Mobilisis and a master's student in Business Systems Organization at FOI (University of Zagreb). My work focuses on cloud-native platforms, GitOps delivery, observability, disaster-recovery verification, and local-first developer tooling — including my master's thesis project Nostekon, which proves Kubernetes and PostgreSQL recovery across V0–V4 verification levels rather than trusting a Completed backup status.",
   perspective:
-    "A six-month Erasmus exchange at the Faculty of Engineering in Porto strengthened how I approach unfamiliar problems, international teamwork, and communication across disciplines. I bring that same curiosity to public projects in infrastructure, networking, AI-assisted workflows, and game systems.",
+    "A six-month Erasmus+ exchange at the Faculty of Engineering in Porto (FEUP) shaped how I approach unfamiliar engineering problems, distributed teamwork, and clear technical writing. Across my public repositories — from Nostekon, OpsBench, ContextLoom MCP, and raywhy to DashDrift, SDN security labs, and my BSc Unity thesis QuantumQuarry — I build systems where behaviour, failure modes, and recovery can be measured and verified.",
   experience: [
     {
       title: "DevOps Engineer",
       organization: "SICK Mobilisis",
       period: "Apr 2026 - Present",
       description:
-        "Working with cloud-native delivery, platform operations, observability, and developer workflows.",
+        "Operating Kubernetes and cloud platforms, GitOps delivery with Argo CD and Terraform, Prometheus/Grafana/Loki observability stacks, and AI-assisted operational workflows.",
     },
     {
       title: "Software Engineer",
       organization: "SICK Mobilisis",
       period: "Dec 2025 - Apr 2026",
       description:
-        "Built software experience before moving into a platform and operations-focused role.",
+        "Developed backend and platform services, CI/CD automation, and containerized workloads before transitioning into a dedicated DevOps and platform engineering role.",
     },
     {
       title: "Information Desk Associate",
@@ -45,11 +45,15 @@ export const profile = {
       title: "Practical Work",
       organization: "APIS IT",
       period: "Apr 2024",
+      description:
+        "Completed hands-on enterprise IT and software systems practicum.",
     },
     {
       title: "Website Maintenance",
       organization: "Croatian Audiovisual Centre",
       period: "Mar 2022 - Jan 2023",
+      description:
+        "Maintained web content, publishing workflows, and site updates.",
     },
   ] satisfies TimelineItem[],
   education: [
@@ -57,16 +61,22 @@ export const profile = {
       title: "Master's degree in Business Systems Organization",
       organization: "Faculty of Organization and Informatics, University of Zagreb",
       period: "Sep 2025 - Present",
+      description:
+        "Master's thesis research: Nostekon — verifiable Kubernetes + PostgreSQL disaster-recovery drills (V0–V4) and revocation-aware recovery verification (Nostekon Guard).",
     },
     {
       title: "Bachelor's degree in Information and Business Systems",
       organization: "Faculty of Organization and Informatics, University of Zagreb",
       period: "Sep 2021 - Sep 2025",
+      description:
+        "Bachelor's thesis: 'Izrada retro platformera u programskom alatu Unity' (QuantumQuarry), mentored by Mladen Konecki.",
     },
     {
       title: "Erasmus+ exchange",
       organization: "Faculty of Engineering, University of Porto",
       period: "Feb 2025 - Jul 2025",
+      description:
+        "Completed engineering coursework in computer graphics, distributed systems, and collaborative software development in Porto, Portugal.",
     },
     {
       title: "Electronics Technician",
