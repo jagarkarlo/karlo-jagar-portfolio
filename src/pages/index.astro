@@ -12,6 +12,8 @@ const featured = (await getCollection("projects", ({ data }) => data.featured &&
 );
 
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+const leftName = Array.from("Karlo");
+const rightName = Array.from("Jagar");
 ---
 
 <BaseLayout
@@ -19,35 +21,167 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
   description="Karlo Jagar builds observable cloud platforms, reliable delivery workflows, and focused developer tools."
 >
   <SiteHeader />
-  <main id="main-content">
-    <section class="relative flex min-h-[calc(100svh-5.5rem)] overflow-hidden bg-canvas px-6 py-12 sm:px-10 lg:px-[6vw]" aria-labelledby="hero-title" data-reveal>
-      <OrbitalField />
-      <div class="pointer-events-none relative z-10 mx-auto flex w-full max-w-[94rem] flex-col items-center justify-center text-center">
-        <p class="absolute top-0 left-0 flex items-center gap-3 font-mono text-xs uppercase text-muted"><span class="size-1.5 bg-accent"></span> Zagreb / Platform engineering</p>
-        <div class="portrait-stage">
-          <img src={`${base}/images/karlo-jagar-portrait.webp`} alt="Karlo Jagar" width="1200" height="1200" fetchpriority="high" />
+  <OrbitalField />
+  <main id="main-content" class="relative z-10">
+    <section
+      class="relative flex min-h-[calc(100svh-3.5rem)] flex-col justify-between overflow-hidden px-6 py-8 sm:px-10 sm:py-10 lg:px-[5vw]"
+      aria-labelledby="hero-title"
+    >
+      <!-- Top HUD bar -->
+      <div class="flex items-center justify-between gap-4">
+        <p class="m-0 flex items-center gap-3 font-mono text-xs uppercase text-muted">
+          <span class="size-1.5 rounded-full bg-accent shadow-[0_0_10px_var(--theme-accent)]"></span>
+          Varaždin · Zagreb / Platform engineering
+        </p>
+        <div class="flex items-center gap-3">
+          <span class="hidden items-center gap-2 font-mono text-xs uppercase text-muted md:inline-flex">
+            <span class="size-1.5 rounded-full bg-[var(--theme-amber)]"></span>
+            Drag to rotate 3D field · Scroll to morph
+          </span>
+          <button
+            type="button"
+            data-astra-replay
+            class="inline-flex items-center gap-2 border border-border bg-surface/75 px-3 py-1.5 font-mono text-xs uppercase text-muted backdrop-blur-md transition-colors hover:border-accent hover:text-accent"
+            aria-label="Replay spiral field animation"
+            title="Replay spiral field animation"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 20 20" aria-hidden="true">
+              <path
+                fill="currentColor"
+                d="M10 1.834a8.167 8.167 0 1 1-7.965 9.98.876.876 0 0 1 1.707-.387A6.416 6.416 0 1 0 4.5 6.695h1.45a.876.876 0 0 1 0 1.75H2.71a.875.875 0 0 1-.876-.875V3.924a.875.875 0 1 1 1.75 0V4.95A8.15 8.15 0 0 1 10 1.834"
+              />
+            </svg>
+            <span>Replay</span>
+          </button>
         </div>
-        <div class="mt-7 max-w-3xl">
-          <p class="mb-3 font-mono text-xs uppercase text-accent">DevOps engineer</p>
-          <h1 class="text-5xl leading-none font-semibold sm:text-6xl lg:text-7xl" id="hero-title">Karlo Jagar</h1>
-          <p class="mx-auto mt-5 max-w-2xl text-base leading-7 text-muted sm:text-lg">I build observable cloud platforms, reliable delivery workflows, and focused developer tools.</p>
+      </div>
+
+      <!-- Center Astra Stage: Left Label ("Karlo") · Accretion Core + Portrait · Right Label ("Jagar") -->
+      <div class="pointer-events-none my-auto mx-auto grid w-full max-w-[94rem] items-center gap-6 py-8 md:grid-cols-[1fr_auto_1fr] md:gap-10">
+        <p
+          aria-hidden="true"
+          class="m-0 hidden select-none text-right text-5xl font-semibold tracking-tight text-foreground drop-shadow-[0_0_28px_rgba(109,203,244,0.35)] md:block lg:text-7xl xl:text-8xl"
+          data-astra-split
+        >
+          {leftName.map((letter, idx) => {
+            const order = leftName.length - idx - 1;
+            return (
+              <span
+                class="astra-split-letter"
+                style={`--astra-letter-delay:${(0.35 + order * 0.09).toFixed(2)}s;--astra-letter-duration:0.95s;--astra-letter-shift:-44px`}
+              >
+                {letter}
+              </span>
+            );
+          })}
+        </p>
+
+        <div class="flex flex-col items-center text-center">
+          <div class="portrait-halo">
+            <div class="portrait-stage">
+              <img
+                src={`${base}/images/karlo-jagar-portrait.webp`}
+                alt="Karlo Jagar"
+                width="1200"
+                height="1200"
+                fetchpriority="high"
+              />
+            </div>
+          </div>
+
+          <p class="mt-6 mb-2 font-mono text-xs uppercase tracking-widest text-accent">DevOps &amp; Platform Engineer</p>
+          <h1 class="astra-text-gradient text-5xl leading-none font-semibold sm:text-6xl md:sr-only" id="hero-title">
+            Karlo Jagar
+          </h1>
+          <p class="mx-auto mt-4 max-w-xl text-base leading-7 text-foreground/90 drop-shadow-[0_2px_14px_rgba(0,0,0,0.75)] sm:text-lg">
+            I build observable cloud platforms, reliable delivery workflows, and focused developer tools.
+          </p>
           <div class="pointer-events-auto mt-7 flex flex-wrap items-center justify-center gap-3">
-            <a class="inline-flex items-center gap-7 border border-accent bg-accent px-5 py-3 font-mono text-xs uppercase text-canvas no-underline transition-colors hover:bg-transparent hover:text-accent" href={`${base}/work/`}>Explore work <span aria-hidden="true">→</span></a>
-            <a class="border border-border bg-surface/70 px-5 py-3 font-mono text-xs uppercase text-foreground no-underline backdrop-blur-md transition-colors hover:border-accent hover:text-accent" href={`${base}/contact/`}>Contact</a>
+            <a
+              class="inline-flex items-center gap-6 border border-accent bg-accent px-5 py-3 font-mono text-xs uppercase text-canvas no-underline shadow-[0_0_32px_-4px_var(--theme-accent)] transition-all hover:bg-transparent hover:text-accent"
+              href={`${base}/work/`}
+            >
+              Explore work <span aria-hidden="true">→</span>
+            </a>
+            <a
+              class="border border-border bg-surface/75 px-5 py-3 font-mono text-xs uppercase text-foreground no-underline backdrop-blur-md transition-colors hover:border-accent hover:text-accent"
+              href={`${base}/contact/`}
+            >
+              Contact
+            </a>
           </div>
         </div>
+
+        <p
+          aria-hidden="true"
+          class="m-0 hidden select-none text-left text-5xl font-semibold tracking-tight text-foreground drop-shadow-[0_0_28px_rgba(248,121,21,0.3)] md:block lg:text-7xl xl:text-8xl"
+          data-astra-split
+        >
+          {rightName.map((letter, idx) => (
+            <span
+              class="astra-split-letter"
+              style={`--astra-letter-delay:${(0.35 + idx * 0.09).toFixed(2)}s;--astra-letter-duration:0.95s;--astra-letter-shift:44px`}
+            >
+              {letter}
+            </span>
+          ))}
+        </p>
+      </div>
+
+      <!-- Bottom scroll cue -->
+      <div class="flex items-center justify-between font-mono text-xs uppercase text-muted">
+        <span>01 // Spiral Convergence</span>
+        <a href="#stack-section" class="inline-flex items-center gap-2 text-muted no-underline transition-colors hover:text-accent">
+          <span>Scroll to morph</span>
+          <span aria-hidden="true">↓</span>
+        </a>
       </div>
     </section>
 
-    <TechnologyStack />
+    <div id="stack-section">
+      <TechnologyStack />
+    </div>
 
-    <section class="border-t border-border bg-surface px-5 py-20 sm:px-10 lg:px-[6vw] lg:py-28" aria-labelledby="selected-work-title" data-reveal>
+    <section
+      class="border-t border-border/80 bg-surface/68 px-5 py-20 backdrop-blur-md sm:px-10 lg:px-[6vw] lg:py-28"
+      aria-labelledby="selected-work-title"
+      data-reveal
+    >
       <div class="mx-auto mb-16 flex max-w-[94rem] flex-col items-start justify-between gap-8 sm:flex-row sm:items-end">
-        <div><p class="font-mono text-xs uppercase text-accent">Selected work</p><h2 class="mt-4 text-4xl leading-tight font-semibold sm:text-5xl" id="selected-work-title">Featured projects</h2></div>
-        <a class="font-mono text-xs uppercase text-muted underline decoration-border underline-offset-4 transition-colors hover:text-accent" href={`${base}/work/`}>View all work <span aria-hidden="true">→</span></a>
+        <div>
+          <p class="font-mono text-xs uppercase text-accent">03 // Telemetry Knot · Selected work</p>
+          <h2 class="mt-4 text-4xl leading-tight font-semibold sm:text-5xl" id="selected-work-title">Featured projects</h2>
+        </div>
+        <a
+          class="font-mono text-xs uppercase text-muted underline decoration-border underline-offset-4 transition-colors hover:text-accent"
+          href={`${base}/work/`}
+        >
+          View all work <span aria-hidden="true">→</span>
+        </a>
       </div>
       <ProjectList projects={featured} />
     </section>
   </main>
   <SiteFooter />
 </BaseLayout>
+
+<script>
+  const bindReplayButtons = () => {
+    document.querySelectorAll<HTMLButtonElement>("[data-astra-replay]").forEach((btn) => {
+      if (btn.dataset.bound === "true") return;
+      btn.dataset.bound = "true";
+      btn.addEventListener("click", () => {
+        window.dispatchEvent(new CustomEvent("astra:replay"));
+        document.querySelectorAll<HTMLElement>(".astra-split-letter").forEach((el) => {
+          el.style.animation = "none";
+          void el.offsetHeight;
+          el.style.animation = "";
+        });
+      });
+    });
+  };
+
+  document.addEventListener("astro:page-load", bindReplayButtons);
+  bindReplayButtons();
+</script>
+
