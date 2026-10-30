@@ -381,11 +381,6 @@ const consoleData = {
       const argument = args.filter((part) => !part.startsWith("-")).join(" ");
       const flags = args.filter((part) => part.startsWith("-"));
 
-      if (document.querySelector("edge-stars") && ["wormhole", "kj", "supernova", "warp"].includes(command)) {
-        this.write("The home scene does not support the console's 3D effects.", "muted");
-        return;
-      }
-
       switch (command) {
         case "help":
           this.lines([

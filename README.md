@@ -14,19 +14,19 @@ Live at <https://jagarkarlo.github.io/karlo-jagar-portfolio/>.
 
 ## Features
 
-- **An asymmetric, animated home hero** — a left-aligned introduction alongside an
-  original stream of particles that becomes a systems network as the page scrolls;
-  no sphere is placed behind the portrait or name
-- **Controlled home motion** — a pause control, limited canvas resolution, automatic
-  suspension offscreen or in a hidden tab, and static artwork without JavaScript
+- **Unified 3D cosmic scene engine across every page** — each page renders its own bespoke
+  3D particle formation with identical motion, drag rotation, spring cursor physics,
+  shockwave clicks, double-click overdrive, and anamorphic lens flares (`galaxy` on Home,
+  `globe` on About, `cluster` on Work, `helix` on Blog, `bridge` on Contact, and `radar`
+  on Search)
+- **Editorial page layout** — consistent header typography, offset summary copy, and
+  structured project and technology sections across the site
 - **Work-first home page** — featured projects precede the interactive technology list
-- **Bespoke secondary-page scenes** — existing 3D formations remain on the other pages;
-  home-page console effects are intentionally disabled
-- **Operations console** — keyboard-driven command palette on `Ctrl+K` / `Cmd+K`
+- **Operations console** — keyboard-driven command palette on `Ctrl+K` / `Cmd+K` with
+  interactive 3D scene triggers
 - **Typed content collections** — projects are Markdown validated by a Zod schema
 - **Single config file** — identity, navigation and socials in `src/config.ts`
 - **Light and dark themes** with no flash of unstyled theme on navigation
-- **Reduced-motion home atmosphere** — the scene and stars remain static when reduced motion is requested
 - Structured person metadata, Open Graph tags, sitemap, robots policy, and 404 page
 - Automatic GitHub Pages deployment from `main`
 
