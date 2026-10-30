@@ -536,11 +536,13 @@
           context.clearRect(0, 0, width, height);
 
           const scale = Math.min(width, height) * (width < 640 ? 0.44 : 0.47);
-          const centerShiftX =
-            lockedMode === "auto" && seconds >= cosmosState.kjActiveUntil && width >= 1024
-              ? Math.sin(smoothedScroll * Math.PI) * width * 0.14
-              : 0;
-          const cx = width * 0.5 + centerShiftX;
+          const baseCenterX =
+            seconds < cosmosState.kjActiveUntil
+              ? width * 0.5
+              : width >= 1024
+                ? lerp(width * 0.68, width * 0.54, smoothedScroll)
+                : width * 0.5;
+          const cx = baseCenterX;
           const cy = height * 0.5;
           const fov = 3.2;
 
@@ -897,8 +899,9 @@
               pointer.vy = clamp(ny - pointer.y, -45, 45);
             }
 
-            // Detect circular "Swirl Gesture" around the screen center (no click required!)
-            const angleNow = Math.atan2(ny - height * 0.5, nx - width * 0.5);
+            // Detect circular "Swirl Gesture" around the active 3D core (no click required!)
+            const coreCenterX = width >= 1024 ? width * 0.68 : width * 0.5;
+            const angleNow = Math.atan2(ny - height * 0.5, nx - coreCenterX);
             if (pointer.active && !dragging) {
               let deltaA = angleNow - cosmosState.lastAngleToCenter;
               if (deltaA > Math.PI) deltaA -= Math.PI * 2;
@@ -909,7 +912,7 @@
                   const dir = Math.sign(cosmosState.swirlAccumulator);
                   cosmosState.swirlBoost = clamp(cosmosState.swirlBoost + dir * 0.09, -0.22, 0.22);
                   cosmosState.swirlAccumulator = 0;
-                  triggerShockwave(width * 0.5, height * 0.5);
+                  triggerShockwave(coreCenterX, height * 0.5);
                   playCosmicChord([329.63, 493.88, 659.25], 1.1);
                 }
               }
@@ -949,8 +952,9 @@
               dragLastX = event.clientX;
               dragLastY = event.clientY;
               // Pressing and holding near the core engages 3D Wormhole Hyperspace & Einstein-Ring Lensing
-              const distToCenter = Math.hypot(event.clientX - width * 0.5, event.clientY - height * 0.5);
-              if (distToCenter < 220) {
+              const coreCenterX = width >= 1024 ? width * 0.68 : width * 0.5;
+              const distToCenter = Math.hypot(event.clientX - coreCenterX, event.clientY - height * 0.5);
+              if (distToCenter < 260) {
                 cosmosState.holdingCore = true;
                 playCosmicChord([196.0, 293.66, 392.0], 1.4);
               }
@@ -1066,8 +1070,8 @@
 
   .orbital-field__ambient {
     background:
-      radial-gradient(circle at 50% 44%, rgb(35 67 95 / 38%) 0%, transparent 62%),
-      radial-gradient(circle at 64% 38%, rgb(248 121 21 / 9%) 0%, transparent 45%);
+      radial-gradient(circle at 68% 46%, rgb(35 67 95 / 38%) 0%, transparent 62%),
+      radial-gradient(circle at 74% 38%, rgb(248 121 21 / 9%) 0%, transparent 45%);
     inset: 0;
     pointer-events: none;
     position: absolute;
@@ -1075,8 +1079,8 @@
 
   :global(:root[data-theme="light"]) .orbital-field__ambient {
     background:
-      radial-gradient(circle at 50% 44%, rgb(15 108 189 / 10%) 0%, transparent 62%),
-      radial-gradient(circle at 64% 38%, rgb(217 95 14 / 6%) 0%, transparent 45%);
+      radial-gradient(circle at 68% 46%, rgb(15 108 189 / 10%) 0%, transparent 62%),
+      radial-gradient(circle at 74% 38%, rgb(217 95 14 / 6%) 0%, transparent 45%);
   }
 
   .orbital-field canvas {

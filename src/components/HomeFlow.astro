@@ -1,0 +1,400 @@
+<home-flow aria-hidden="true" data-stage="current" data-running="false">
+  <svg class="home-flow__fallback" viewBox="0 0 640 560" fill="none" preserveAspectRatio="xMidYMid meet">
+    <defs>
+      <linearGradient id="home-flow-gradient" x1="30" y1="490" x2="610" y2="65" gradientUnits="userSpaceOnUse">
+        <stop stop-color="var(--theme-violet)" stop-opacity=".1" />
+        <stop offset=".35" stop-color="var(--theme-accent)" stop-opacity=".8" />
+        <stop offset=".7" stop-color="var(--theme-cyan)" stop-opacity=".8" />
+        <stop offset="1" stop-color="var(--theme-warm)" stop-opacity=".15" />
+      </linearGradient>
+    </defs>
+    <g stroke="url(#home-flow-gradient)">
+      <path d="M22 453C148 472 165 258 312 275S476 110 618 111" stroke-width="1.5" />
+      <path d="M17 480C170 467 179 292 317 302S480 142 623 126" />
+      <path d="M30 428C135 444 169 225 307 247S478 89 614 93" />
+      <path d="M48 502C183 441 179 318 324 323S493 163 604 149" opacity=".55" />
+    </g>
+    <g fill="var(--theme-accent)">
+      <circle cx="142" cy="368" r="2" /><circle cx="208" cy="282" r="3" />
+      <circle cx="308" cy="275" r="2.5" /><circle cx="370" cy="258" r="2" />
+      <circle cx="455" cy="161" r="3" /><circle cx="525" cy="121" r="2" />
+    </g>
+  </svg>
+  <canvas></canvas>
+</home-flow>
+
+<script>
+  type Point = { x: number; y: number; z: number };
+  type Particle = {
+    offset: number;
+    speed: number;
+    lane: number;
+    spreadX: number;
+    spreadY: number;
+    depth: number;
+    radius: number;
+    tone: number;
+    edge: number;
+    glow: boolean;
+  };
+
+  const nodes: Point[] = [
+    { x: -0.98, y: -0.24, z: -0.2 }, { x: -0.98, y: 0.32, z: 0.12 },
+    { x: -0.57, y: -0.48, z: 0.12 }, { x: -0.57, y: 0, z: 0.3 },
+    { x: -0.57, y: 0.48, z: -0.12 }, { x: -0.04, y: -0.33, z: -0.12 },
+    { x: -0.04, y: 0.34, z: 0.2 }, { x: 0.48, y: -0.47, z: 0.2 },
+    { x: 0.48, y: 0, z: -0.16 }, { x: 0.48, y: 0.47, z: 0.1 },
+    { x: 0.98, y: -0.22, z: -0.1 }, { x: 0.98, y: 0.29, z: 0.12 },
+  ];
+  const edges: [number, number][] = [
+    [0, 2], [0, 3], [1, 3], [1, 4], [2, 5], [3, 5], [3, 6], [4, 6],
+    [5, 7], [5, 8], [6, 8], [6, 9], [7, 10], [8, 10], [8, 11], [9, 11],
+  ];
+  const clamp = (value: number) => Math.max(0, Math.min(1, value));
+  const mix = (start: number, end: number, amount: number) => start + (end - start) * amount;
+
+  class HomeFlowElement extends HTMLElement {
+    private controller?: AbortController;
+    private visibilityObserver?: IntersectionObserver;
+    private resizeObserver?: ResizeObserver;
+    private themeObserver?: MutationObserver;
+    private frame = 0;
+
+    connectedCallback() {
+      this.disconnect();
+      const canvas = this.querySelector("canvas");
+      const journey = this.closest<HTMLElement>("[data-home-journey]");
+      const header = document.querySelector<HTMLElement>("[data-site-header]");
+      if (!canvas || !journey || !header) {
+        console.error("Home animation is missing its canvas, scroll container, or header.");
+        return;
+      }
+      const context = canvas.getContext("2d");
+      if (!context) {
+        console.error("Home animation could not initialize its 2D canvas; the static artwork remains available.");
+        return;
+      }
+
+      const controller = new AbortController();
+      this.controller = controller;
+      const { signal } = controller;
+      const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+      const narrowScreen = window.matchMedia("(max-width: 63.99rem)");
+      const particles: Particle[] = [];
+      let seed = 12731;
+      const random = () => {
+        seed = (seed * 1664525 + 1013904223) >>> 0;
+        return seed / 4294967296;
+      };
+      for (let i = 0; i < 1050; i++) {
+        const colour = random();
+        particles.push({
+          offset: random(),
+          speed: 0.012 + random() * 0.018,
+          lane: (i % 5) - 2,
+          spreadX: random() + random() - 1,
+          spreadY: random() + random() - 1,
+          depth: random() * 2 - 1,
+          radius: 0.45 + random() * 1.1,
+          tone: colour < 0.38 ? 0 : colour < 0.68 ? 1 : colour < 0.86 ? 2 : colour < 0.94 ? 3 : 4,
+          edge: Math.floor(random() * edges.length),
+          glow: i % 17 === 0,
+        });
+      }
+
+      const positions = new Float32Array(particles.length * 2);
+      let palette: string[] = [];
+      let glows: HTMLCanvasElement[] = [];
+      let width = 0;
+      let height = 0;
+      let ratio = 1;
+      let inView = false;
+      let paused = false;
+      let progress = 0;
+      let targetProgress = 0;
+      let elapsed = 0;
+      let previousTime = 0;
+      let pointerX = 0;
+      let pointerY = 0;
+      let targetPointerX = 0;
+      let targetPointerY = 0;
+      let lightTheme = false;
+
+      const readPalette = () => {
+        const style = getComputedStyle(document.documentElement);
+        lightTheme = document.documentElement.dataset.theme === "light";
+        palette = [
+          style.getPropertyValue(lightTheme ? "--theme-cyan" : "--theme-foreground").trim(),
+          style.getPropertyValue("--theme-accent").trim(),
+          style.getPropertyValue("--theme-cyan").trim(),
+          style.getPropertyValue("--theme-warm").trim(),
+          style.getPropertyValue("--theme-violet").trim(),
+        ];
+        glows = palette.map((colour) => {
+          const sprite = document.createElement("canvas");
+          sprite.width = 48;
+          sprite.height = 48;
+          const spriteContext = sprite.getContext("2d");
+          if (!spriteContext) {
+            console.error("Home animation could not create a particle glow.");
+            return sprite;
+          }
+          const gradient = spriteContext.createRadialGradient(24, 24, 0, 24, 24, 24);
+          gradient.addColorStop(0, colour);
+          gradient.addColorStop(0.12, colour);
+          gradient.addColorStop(1, "transparent");
+          spriteContext.fillStyle = gradient;
+          spriteContext.fillRect(0, 0, 48, 48);
+          return sprite;
+        });
+      };
+
+      const draw = () => {
+        if (!width || !height) return;
+        const amount = progress * progress * (3 - 2 * progress);
+        const scaleX = Math.min(width * 0.48, height * 0.51);
+        const scaleY = Math.min(height * 0.49, width * 0.58);
+        const centerX = width * 0.5 + pointerX * 8;
+        const centerY = height * 0.49 + pointerY * 8;
+        const project = (point: Point) => {
+          const perspective = 1 + point.z * 0.14;
+          return { x: centerX + point.x * scaleX * perspective, y: centerY + point.y * scaleY * perspective };
+        };
+        const flowY = (u: number, lane: number) =>
+          -(u - 0.5) * 1.06 + Math.sin(u * Math.PI * 2 + lane * 0.32 + elapsed * 0.12) * 0.19 + lane * 0.075;
+
+        context.setTransform(ratio, 0, 0, ratio, 0, 0);
+        context.clearRect(0, 0, width, height);
+        context.lineWidth = 0.8;
+        context.strokeStyle = palette[1]!;
+        context.globalAlpha = (lightTheme ? 0.19 : 0.22) * (1 - amount);
+        for (let lane = -2; lane <= 2; lane++) {
+          context.beginPath();
+          for (let step = 0; step <= 36; step++) {
+            const u = step / 36;
+            const point = project({ x: (u - 0.5) * 2.05, y: flowY(u, lane), z: Math.sin(u * Math.PI) * 0.25 });
+            if (step === 0) context.moveTo(point.x, point.y);
+            else context.lineTo(point.x, point.y);
+          }
+          context.stroke();
+        }
+
+        context.globalAlpha = (lightTheme ? 0.23 : 0.28) * amount;
+        context.strokeStyle = palette[2]!;
+        context.beginPath();
+        for (const [from, to] of edges) {
+          const start = project(nodes[from]!);
+          const end = project(nodes[to]!);
+          context.moveTo(start.x, start.y);
+          context.lineTo(end.x, end.y);
+        }
+        context.stroke();
+
+        const count = narrowScreen.matches ? 650 : particles.length;
+        for (let i = 0; i < count; i++) {
+          const particle = particles[i]!;
+          const u = (particle.offset + elapsed * particle.speed) % 1;
+          const [from, to] = edges[particle.edge]!;
+          const start = nodes[from]!;
+          const end = nodes[to]!;
+          const cloud = 0.04 + Math.sin(u * Math.PI) * 0.16;
+          const flowX = (u - 0.5) * 2.05 + particle.spreadX * cloud;
+          const flowHeight = flowY(u, particle.lane) + particle.spreadY * cloud;
+          const networkX = mix(start.x, end.x, u) + particle.spreadX * 0.018;
+          const networkY = mix(start.y, end.y, u) + particle.spreadY * 0.018;
+          const depth = mix(
+            Math.sin(u * Math.PI) * 0.3 + particle.depth * 0.2,
+            mix(start.z, end.z, u) + particle.depth * 0.08,
+            amount,
+          );
+          const perspective = 1 + depth * 0.14;
+          positions[i * 2] = centerX + mix(flowX, networkX, amount) * scaleX * perspective;
+          positions[i * 2 + 1] = centerY + mix(flowHeight, networkY, amount) * scaleY * perspective;
+        }
+
+        for (let tone = 0; tone < palette.length; tone++) {
+          context.fillStyle = palette[tone]!;
+          context.globalAlpha = lightTheme ? 0.66 : 0.8;
+          context.beginPath();
+          for (let i = 0; i < count; i++) {
+            const particle = particles[i]!;
+            if (particle.tone !== tone) continue;
+            const x = positions[i * 2]!;
+            const y = positions[i * 2 + 1]!;
+            const radius = particle.radius * (narrowScreen.matches ? 0.8 : 1);
+            context.moveTo(x + radius, y);
+            context.arc(x, y, radius, 0, Math.PI * 2);
+          }
+          context.fill();
+        }
+
+        context.globalAlpha = lightTheme ? 0.4 : 0.65;
+        for (let i = 0; i < count; i++) {
+          const particle = particles[i]!;
+          if (!particle.glow) continue;
+          const size = particle.radius * (narrowScreen.matches ? 8 : 11);
+          context.drawImage(glows[particle.tone]!, positions[i * 2]! - size / 2, positions[i * 2 + 1]! - size / 2, size, size);
+        }
+
+        context.globalAlpha = (lightTheme ? 0.7 : 0.9) * amount;
+        for (const node of nodes) {
+          const point = project(node);
+          context.drawImage(glows[1]!, point.x - 12, point.y - 12, 24, 24);
+          context.fillStyle = palette[1]!;
+          context.beginPath();
+          context.arc(point.x, point.y, 1.8, 0, Math.PI * 2);
+          context.fill();
+        }
+        context.globalAlpha = 1;
+        if (!this.hasAttribute("data-rendered")) this.setAttribute("data-rendered", "");
+        const stage = progress < 0.55 ? "current" : "network";
+        if (this.dataset.stage !== stage) this.dataset.stage = stage;
+      };
+
+      const updateScroll = () => {
+        if (paused || reducedMotion.matches) return;
+        if (narrowScreen.matches) {
+          const bounds = this.getBoundingClientRect();
+          targetProgress = clamp((window.innerHeight * 0.68 - bounds.top) / (window.innerHeight * 0.58));
+        } else {
+          const bounds = journey.getBoundingClientRect();
+          const headerHeight = header.getBoundingClientRect().height;
+          const distance = Math.max(1, bounds.height - window.innerHeight + headerHeight);
+          targetProgress = clamp((headerHeight - bounds.top) / distance);
+        }
+      };
+
+      const tick = (time: number) => {
+        this.frame = 0;
+        const delta = previousTime ? Math.min((time - previousTime) / 1000, 0.05) : 0;
+        previousTime = time;
+        elapsed += delta;
+        const smoothing = 1 - Math.exp(-delta * 5);
+        progress = mix(progress, targetProgress, smoothing);
+        pointerX = mix(pointerX, targetPointerX, smoothing);
+        pointerY = mix(pointerY, targetPointerY, smoothing);
+        draw();
+        this.frame = requestAnimationFrame(tick);
+      };
+
+      const updateRunning = () => {
+        const running = inView && !paused && !document.hidden && !reducedMotion.matches && width > 0 && height > 0;
+        this.dataset.running = String(running);
+        if (running && !this.frame) {
+          previousTime = 0;
+          updateScroll();
+          this.frame = requestAnimationFrame(tick);
+        } else if (!running && this.frame) {
+          cancelAnimationFrame(this.frame);
+          this.frame = 0;
+          previousTime = 0;
+        }
+      };
+
+      const resize = () => {
+        const bounds = this.getBoundingClientRect();
+        width = bounds.width;
+        height = bounds.height;
+        ratio = Math.min(window.devicePixelRatio || 1, 1.5);
+        const canvasWidth = Math.round(width * ratio);
+        const canvasHeight = Math.round(height * ratio);
+        if (canvas.width !== canvasWidth || canvas.height !== canvasHeight) {
+          canvas.width = canvasWidth;
+          canvas.height = canvasHeight;
+        }
+        updateScroll();
+        draw();
+        updateRunning();
+      };
+
+      readPalette();
+      resize();
+      journey.addEventListener("home:motion", (event) => {
+        if (!(event instanceof CustomEvent) || typeof event.detail?.paused !== "boolean") return;
+        paused = event.detail.paused;
+        updateRunning();
+      }, { signal });
+      window.addEventListener("scroll", updateScroll, { passive: true, signal });
+      window.addEventListener("pointermove", (event) => {
+        if (!inView || paused || reducedMotion.matches || event.pointerType !== "mouse") return;
+        const bounds = this.getBoundingClientRect();
+        const inside = event.clientX >= bounds.left && event.clientX <= bounds.right &&
+          event.clientY >= bounds.top && event.clientY <= bounds.bottom;
+        targetPointerX = inside ? (event.clientX - bounds.left) / bounds.width - 0.5 : 0;
+        targetPointerY = inside ? (event.clientY - bounds.top) / bounds.height - 0.5 : 0;
+      }, { passive: true, signal });
+      document.addEventListener("visibilitychange", updateRunning, { signal });
+      reducedMotion.addEventListener("change", () => {
+        updateScroll();
+        updateRunning();
+      }, { signal });
+      this.visibilityObserver = new IntersectionObserver(([entry]) => {
+        inView = entry.isIntersecting;
+        updateRunning();
+      });
+      this.visibilityObserver.observe(this);
+      this.resizeObserver = new ResizeObserver(resize);
+      this.resizeObserver.observe(this);
+      this.themeObserver = new MutationObserver(() => {
+        readPalette();
+        draw();
+      });
+      this.themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+    }
+
+    private disconnect() {
+      this.controller?.abort();
+      this.visibilityObserver?.disconnect();
+      this.resizeObserver?.disconnect();
+      this.themeObserver?.disconnect();
+      if (this.frame) cancelAnimationFrame(this.frame);
+      this.frame = 0;
+    }
+
+    disconnectedCallback() {
+      this.disconnect();
+    }
+  }
+
+  if (!customElements.get("home-flow")) customElements.define("home-flow", HomeFlowElement);
+</script>
+
+<style>
+  home-flow {
+    display: block;
+    height: calc(100svh - 3.5rem);
+    mask-image: linear-gradient(transparent, #000 10%, #000 90%, transparent);
+    overflow: hidden;
+    pointer-events: none;
+    position: sticky;
+    top: 3.5rem;
+  }
+
+  home-flow::before {
+    background: linear-gradient(130deg, transparent 20%, color-mix(in srgb, var(--theme-cyan) 8%, transparent) 55%, transparent 85%);
+    content: "";
+    filter: blur(34px);
+    inset: 12% 4%;
+    position: absolute;
+    transform: skewY(-15deg);
+  }
+
+  canvas, .home-flow__fallback {
+    height: 100%;
+    inset: 0;
+    position: absolute;
+    width: 100%;
+  }
+
+  canvas { opacity: 0; }
+  home-flow[data-rendered] canvas { opacity: 1; }
+  home-flow[data-rendered] .home-flow__fallback { display: none; }
+
+  @media (max-width: 63.99rem) {
+    home-flow {
+      height: clamp(20rem, 84vw, 32rem);
+      position: relative;
+      top: auto;
+    }
+  }
+</style>

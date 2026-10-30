@@ -14,17 +14,19 @@ Live at <https://jagarkarlo.github.io/karlo-jagar-portfolio/>.
 
 ## Features
 
-- **Orbital relay hero** — an interactive canvas scene: a planet limb anchored to
-  the viewport, ground stations on the horizon, and satellites that link to a
-  station only while above its local horizon, so connections rise and set
-- **Interactive constellations** — four real asterisms that reveal their name and
-  geometry as the pointer approaches
-- **Radiant meteor shower** — streaks emanating from a single radiant point
+- **An asymmetric, animated home hero** — a left-aligned introduction alongside an
+  original stream of particles that becomes a systems network as the page scrolls;
+  no sphere is placed behind the portrait or name
+- **Controlled home motion** — a pause control, limited canvas resolution, automatic
+  suspension offscreen or in a hidden tab, and static artwork without JavaScript
+- **Work-first home page** — featured projects precede the interactive technology list
+- **Bespoke secondary-page scenes** — existing 3D formations remain on the other pages;
+  home-page console effects are intentionally disabled
 - **Operations console** — keyboard-driven command palette on `Ctrl+K` / `Cmd+K`
 - **Typed content collections** — projects are Markdown validated by a Zod schema
 - **Single config file** — identity, navigation and socials in `src/config.ts`
 - **Light and dark themes** with no flash of unstyled theme on navigation
-- **Motion-safe** — every animation honours `prefers-reduced-motion`
+- **Reduced-motion home atmosphere** — the scene and stars remain static when reduced motion is requested
 - Structured person metadata, Open Graph tags, sitemap, robots policy, and 404 page
 - Automatic GitHub Pages deployment from `main`
 
@@ -36,6 +38,11 @@ Live at <https://jagarkarlo.github.io/karlo-jagar-portfolio/>.
 | `npm run dev` | Start the dev server on `localhost:4321` |
 | `npm run build` | Type-check with `astro check` and build to `./dist/` |
 | `npm run preview` | Preview the production build locally |
+| `npx playwright install chromium` | Install Chromium for browser tests |
+| `npm run test:home` | Run the home scene's browser regression tests |
+
+To test an already running build instead of starting the dev server, set
+`PORTFOLIO_TEST_URL` to its full home-page URL before running `npm run test:home`.
 
 ## Configuration
 
